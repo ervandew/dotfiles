@@ -1,0 +1,42 @@
+#!/bin/bash
+
+##
+# Script to view PSDs by converting them to temp PNGs using ImageMagick and
+# then opening the temp images using feh.
+#
+# Usage: psdview file|dir [file|dir...]
+##
+
+if [ -z "$1" ] ; then
+  echo "Please supply the path to one or more psd files, or a directory containing psd files."
+  exit 1
+fi
+
+IFS=$'\n'
+for i in "$@" ; do
+  if [ -d "$i" ] ; then
+    for j in `find "$i" -type f -name "*.psd"` ; do
+      psds=("${psds[@]-}" "$(echo "$j")")
+      tmps=("${tmps[@]-}" "$(echo "/tmp/$(basename $j).png")")
+    done
+  else
+    psds=("${psds[@]-}" "$(echo "$i")")
+    tmps=("${tmps[@]-}" "$(echo "/tmp/$(basename $i).png")")
+  fi
+done
+
+if [ -z "${psds[0]}" ] ; then
+  psds=("${psds[@]:1}")
+  tmps=("${tmps[@]:1}")
+fi
+
+index=0
+for f in "${psds[@]}" ; do
+  psd="$f"
+  tmp="${tmps[$index]}"
+  index=$(($index + 1))
+  convert -layers merge "${psd}[0]" "$tmp"
+done
+
+feh "${tmps[@]}"
+rm "${tmps[@]}"

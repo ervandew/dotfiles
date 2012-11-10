@@ -1,0 +1,95 @@
+# Options {{{
+
+set nobeep
+set confirmappend=no # don't prompt when moving a message to another folder.
+set edit_headers # allow editing headers when composing mail.
+set fast_reply # don't prompt for forward subject or to/subject on reply
+set header_cache="~/.mutt/cache/header"
+set message_cachedir="~/.mutt/cache/message"
+set imap_keepalive=240 # poll imap every n seconds to prevent disconnect.
+set mail_check=300 # check every n seconds for mail updates.
+set nomark_old # don't mark messages old
+set quit=ask-yes # prompt before exiting
+unset record
+set timeout=600
+
+# when forwarding, include attachments
+set mime_forward=yes
+set mime_forward_rest=yes
+
+# set up the pager (use vim)
+set pager="vim -nc 'setlocal readonly ignorecase ft=mail' -c 'nmap q :q!<CR>'"
+set pager_format="-%S- %-20.20f %s"
+set pager_stop
+set noprompt_after
+
+# set the format and sorting of the index page
+set date_format="%Y-%m-%d %H:%M:%S"
+set index_format="%4C %4c %S%Z %D %-25.25F %?M?(%3M)&     ? %s"
+set sort=threads
+set sort_aux=reverse-date-received
+set sort_browser=reverse-date
+
+set signature="echo eric|"
+
+auto_view text/html
+alternative_order text/plain
+
+# This starts all threads collapsed (and may collapse them when not in use)
+folder-hook . exec collapse-all
+
+# }}}
+
+# Key bindings {{{
+
+bind index r group-reply
+bind index g first-entry
+bind index G last-entry
+bind index N search-opposite
+bind index o collapse-thread
+bind index O collapse-all
+bind index R toggle-new
+bind index \# sync-mailbox
+
+# use tab to complete address.
+bind editor <Tab> complete-query
+bind editor ^T complete
+
+# key bindings / macros for use with offlineimap {{{
+  # with offlineimap + gmail, this is equivalent to gmail's 'Archive'
+  bind index a delete-message
+  macro index,pager d "<save-message>+[Gmail]/Trash<enter>" "send message to trash"
+  macro index,pager S "<save-message>+[Gmail]/Spam<enter>" "mark message as spam"
+  macro index I "<shell-escape>/usr/bin/offlineimap -q -o<enter>" \
+    "sync imap folders via offlineimap"
+# }}}
+
+# }}}
+
+# Colors {{{
+
+# color <object> <foreground> <background>
+color normal color253 default # normal text
+color indicator default color239 # focused entry
+color tree brightmagenta default # thread arrows
+color status white default  # status line
+color error brightred default # errors
+color message green default # info messages
+color signature red default # signature
+color attachment black white # MIME attachments
+color search black white # search matches
+color tilde brightmagenta default # ~ at bottom of msg
+color markers red default # + at beginning of wrapped lines
+color hdrdefault blue default # default header lines
+color bold red default # bold patterns in body
+color underline green default # underlined patterns in body
+
+uncolor index * # unset all color index entries
+color index blue default ~F # Flagged
+color index green default ~N # New
+color index yellow default ~T # Tagged
+color index red default ~D # Deleted
+
+# }}}
+
+# vim:fdm=marker

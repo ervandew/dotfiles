@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# shutdown eclim instances
+if [ -f "$HOME/.eclim/.eclimd_instances" ] ; then
+  echo "shutdown eclim..."
+  for port in `cat $HOME/.eclim/.eclimd_instances | sed s/.*://` ; do
+    /opt/eclipse/eclim -Dnailgun.server.port=$port -command shutdown
+  done
+
+  # wait on all instance to fully stop
+  while [ -n "$(pgrep -f org.eclim.application)" ] ; do
+    sleep 1
+  done
+fi

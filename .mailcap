@@ -1,0 +1,45 @@
+##
+# Mailcap file which sets the default application for various mime types.
+#
+# For cases where the default app here is not properly used, try using xdg-mime
+# instead to add entries to .local/share/applications/defaults.list:
+#   $ xdg-mime default evince.desktop application/pdf
+# xdg-mime expects a '.desktop' application arg, which (I think) has to exist
+# in /usr/share/applications
+#
+# If the wrong app is still used, edit the global defaults.list and force the
+# cache to be updated:
+#   $ sudo -E vim /usr/share/applications/defaults.list
+#   $ sudo update-desktop-database
+###
+
+# images
+image/bmp;geeqie %s
+image/gif;geeqie %s
+image/ilbm;geeqie %s
+image/jpg;geeqie %s
+image/jpeg;geeqie %s
+image/png;geeqie %s
+image/tiff;geeqie %s
+image/x-png;geeqie %s
+image/x-ilbm;geeqie %s
+image/vnd.adobe.photoshop;psdview %s
+image/pdf;evince %s
+
+# text, html, xml
+text/plain;vim %s
+text/xml;vim %s
+text/html;elinks -dump %s; copiousoutput; nametemplate=%s.html
+#text/html;firefox %s; nametemplate=%s.html
+application/rtf;abiword %s
+
+# pdf
+application/pdf;evince %s
+
+# word, excel
+application/msword;abiword %s
+#application/vnd.openxmlformats-officedocument.wordprocessingml.document;abiword %s # .docx
+application/excel;gnumeric %s; copiousoutput; nametemplate=%s.xls
+application/msexcel;gnumeric %s; copiousoutput; nametemplate=%s.xls
+application/vnd.ms-excel;gnumeric %s; copiousoutput; nametemplate=%s.xls
+application/x-msexcel;gnumeric %s; copiousoutput; nametemplate=%s.xls

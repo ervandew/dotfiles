@@ -1,0 +1,57 @@
+[ui]
+username=ervandew
+merge=vimdiff
+
+[defaults]
+commit=-v
+pull=-v
+qnew=-e
+revert=--no-backup
+update=-v
+
+[diff]
+git = 1
+
+[hooks]
+# Prevent hg pull/push if MQ patches are applied.
+prechangegroup.mq-no-pull=! hg qtop > /dev/null 2>&1
+preoutgoing.mq-no-push=! hg qtop > /dev/null 2>&1
+
+[extensions]
+bookmarks=
+color=
+convert=
+mq=
+pager=
+parentrevspec=
+rebase=
+record=
+
+[alias]
+slog=log --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
+flog=log --style=$HOME/.hgflog
+sout=out --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
+fout=out --style=$HOME/.hgflog
+sin=in --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
+fin=in --style=$HOME/.hgflog
+qstatus=status --rev qparent:qtip
+qst=status --rev qparent:qtip
+
+[color]
+status.modified=blue
+status.added=green
+status.removed=red
+status.deleted=yellow
+status.unknown=none
+status.clean=none
+status.ignored=black
+
+[merge-tools]
+vimdiff.executable=vim
+vimdiff.args=-d $base $local $output $other -c "wincw J"
+
+[pager]
+pager=/usr/bin/less -+$LESS -FRX
+
+[web]
+style=gitweb

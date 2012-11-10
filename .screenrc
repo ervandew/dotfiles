@@ -1,0 +1,57 @@
+startup_message off
+
+terminfo rxvt|rxvt-unicode 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+term screen-256color
+hardstatus string "%t (screen %n)"
+
+# turn off visual bell to ensure bells can be for urgency hints
+vbell off
+
+# add ctrl-g to ensure a bell is sent for background screen windows.
+bell_msg 'Bell in window %n'
+
+# restore contents after vim, etc exit.
+altscreen on
+
+# create %1` value to be used in the caption to show the current git branch name
+# Note: requires that screen be in the same cwd as the shell (see .bashrc
+# PROMPT_COMMAND)
+backtick 1 3 1 git repo
+
+# always show the caption (shows that screen is running)
+caption always '%{= Kk}%-w%{.w}%n %t%{-}%+w %-= %{Kg}%1`'
+
+# update title automatically from last bash command typed
+shelltitle '$ |bash'
+
+# set big scrolling buffer
+defscrollback 5000
+
+#### Key bindings (Ctrl-A, then the binding shown below) ####
+# Terms:
+#   window : analogous to a 'tab' in vim
+#   region : analogous to a 'window' in vim
+bind ^j focus down    # down a region
+bind  j focus down
+bind ^k focus up      # up a region
+bind  k focus up
+bind ^h prev          # previous window
+bind  h prev
+bind ^l next          # next window
+bind  l next
+bind ^t focus top     # top most region
+bind  t focus top
+bind ^b focus bottom  # bottom most region
+bind  b focus bottom
+bind ^s copy          # enter scrollback / copy mode
+bind  s copy
+bind ^x remove        # close a region
+bind  x remove
+bind ^= resize =
+bind  = resize =
+
+# In copy mode, <space> to start first selection mode mark, <space> again to set
+# last selection mark, then use these mappings to tranfer that selection to the
+# x selection clipboard.
+bind ^y eval "writebuf" "exec sh -c 'xsel < /tmp/screen-exchange'" "echo Copied"
+bind  y eval "writebuf" "exec sh -c 'xsel < /tmp/screen-exchange'" "echo Copied"

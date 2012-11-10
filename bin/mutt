@@ -1,0 +1,13 @@
+#!/bin/bash
+
+##
+# Script providing a prompt to choose the mail account to open in mutt
+# according to the available ~/.muttrc.* files.
+##
+
+accounts=$(ls -1 ~/.muttrc.* | sed 's|.*\.muttrc\.\(.*\)|\1|' | grep -v "\.swp$")
+echo "Please select an account:"
+select account in $accounts; do
+  urxvt -name mutt -title mutt -e bash -ic "/usr/bin/mutt -F ~/.muttrc.${account}" &
+  exit
+done

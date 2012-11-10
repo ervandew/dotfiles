@@ -1,0 +1,39 @@
+#!/bin/bash
+
+##
+# Script which invokes offlineimap periodically and also handles detecting and
+# killing the offlineimap process if it hangs.
+##
+
+if [ ! -d ~/.offlineimap ] ; then
+  mkdir ~/.offlineimap
+fi
+
+echo `date +%s` > ~/.offlineimap/log
+
+# function which periodically checks the offlineimap process to make sure it
+# hasn't hung, but if so, kills it so that it can run again on the next loop.
+_monitor() {
+  while true; do
+    DATE=`head -n 1 ~/.offlineimap/log`
+    if [[ -n "$DATE" && "$DATE" =~ ^[0-9]+$ ]] ; then
+      NOW=`date +%s`
+      DIFF=$(($NOW - $DATE))
+
+      # kill offlineimap if it has been running for more than 10 minutes.
+      if [ $DIFF -gt 600 ] ; then
+        pkill -9 -f 'offlineimap\>.*-o'
+      fi
+    fi
+
+    sleep 60
+  done
+}
+_monitor &
+
+while true; do
+  echo `date +%s` > ~/.offlineimap/log
+  echo `date` >> ~/.offlineimap/log
+  /usr/bin/offlineimap -o -u Noninteractive.Basic &>> ~/.offlineimap/log
+  sleep 180
+done

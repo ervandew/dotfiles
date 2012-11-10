@@ -1,0 +1,2 @@
+# set the workspace
+osgi.instance.area.default=@user.home/projects

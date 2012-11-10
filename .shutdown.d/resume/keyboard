@@ -1,0 +1,5 @@
+#!/bin/bash
+
+xset r rate 250 30
+xmodmap ~/.Xmodmap
+setxkbmap -option ctrl:nocaps

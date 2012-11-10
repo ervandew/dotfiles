@@ -1,0 +1,115 @@
+! xrdb -load ~/.Xresources
+
+! Options {{{
+
+! fixes gtk font sizes (issue triggered by dual monitors?)
+Xft.dpi: 96.0
+
+*background: #222222
+*foreground: #e7e7e7
+
+! note: do not forget to update .vimrc cursor color changing based on mode.
+*cursorColor: #ac7d00
+*cursorColor2: #000000
+
+*geometry: 125x30
+*saveLines: 4096
+*visualBell: true
+
+dzen2*font: -*-terminus-*-r-normal-*-12-120-*-*-*-*-iso8859-*
+dzen2*background: #232323
+dzen2*foreground: #7e7e7e
+
+URxvt*meta8: true
+URxvt*scrollstyle: plain
+URxvt*scrollBar: false
+URxvt*urgentOnBell: true
+URxvt*visualBell: false
+
+! use xfontsel to find font in this format.
+URxvt*font: -misc-fixed-medium-r-normal--13-120-*-*-c-80-*-*
+
+xmessage*minHeight: 200
+xmessage*minWidth: 500
+xmessage*maxHeight: 600
+xmessage*maxWidth: 800
+
+xterm*font:     -misc-fixed-medium-r-normal--13-120-*-*-c-80-*-*
+xterm*boldFont: -misc-fixed-bold-r-normal--13-120-*-*-c-80-*-*
+
+! }}}
+
+! Colors {{{
+
+*colorBD: #bebebe
+
+! black
+*color0:  #111111
+! red
+*color1:  #bb4b4b
+! green
+*color2:  #aece91
+! yellow
+*color3:  #e18964
+! blue
+*color4:  #5884b0
+! magenta
+*color5:  #963c59
+! cyan
+*color6:  #67ccbf
+! white
+*color7:  #bebebe
+! bright black
+*color8:  #444444
+! bright red
+*color9:  #cf6171
+! bright green
+*color10: #8eb157
+! bright yellow
+*color11: #c4c466
+! bright blue
+*color12: #6699cc
+! bright magenta
+*color13: #cf9ebe
+! bright cyan
+*color14: #79cccc
+! bright white
+*color15: #dadada
+
+! }}}
+
+! rxvt-unicode extensions {{{
+
+! configure perl extensions
+URxvt*perl-lib: /home/ervandew/projects/urxvt-vim-scrollback
+URxvt*perl-ext-common: vim-scrollback
+
+! used by matcher and vim-scrollback
+URxvt*urlLauncher: xdg-open
+
+! configure matcher
+!URxvt.matcher.rend.0: fg6 Bold
+URxvt.matcher.rend.0: fg6
+
+! configure vim-scrollback
+URxvt.vim-scrollback: Mod1-s
+URxvt.vim-scrollback-paste: Mod1-r
+URxvt.vim-scrollback-bg: 10
+URxvt.vim-scrollback-fg: 18
+! full paths w/ line numbers
+URxvt.vim-scrollback.pattern.1: (/[0-9a-zA-Z/.-]+):(\\d+)(?=:|$)
+URxvt.vim-scrollback.launcher.1: urxvt +sb -e vim +$2 $1
+! lame edge case since ~ is treated literally when opening the file for some
+! reason.
+URxvt.vim-scrollback.pattern.2: ~(/[0-9a-zA-Z/.-]+)
+URxvt.vim-scrollback.launcher.2: urxvt +sb -e vim /home/ervandew$1
+! full paths
+URxvt.vim-scrollback.pattern.3: (/[0-9a-zA-Z/.-]+)
+URxvt.vim-scrollback.launcher.3: urxvt +sb -e vim $1
+
+! disable annoying ctrl+shift functionality
+URxvt*iso14755: false
+
+! }}}
+
+! vim:fdm=marker

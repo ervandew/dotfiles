@@ -1,0 +1,121 @@
+#!/bin/bash
+
+##
+# Script to shutdown, reboot, or suspend the OS.
+#
+#   Usage: shutdown <action>
+#     Supported Actions:
+#       gui:       Use zenity to open a graphic prompt for the action to take.
+#       poweroff:  Power off the machine.
+#       reboot:    Reboot the OS.
+#       suspend:   Suspend the OS.
+#
+# Uses systemctrl to perform the shutdown, reboot, or suspend so you can
+# register your own services to peform actions. Here is an example where I
+# register a sleep target to lock my screen on suspend:
+#
+#   $ vim /etc/systemd/system/display-lock.service
+#     [Unit]
+#     Description=Lock X session
+#
+#     [Service]
+#     User=ervandew
+#     Environment=DISPLAY=:0
+#     ExecStart=/usr/bin/alock -cursor theme:name=xtr -auth pam
+#
+#     [Install]
+#     WantedBy=sleep.target
+#   $ systemctl enable display-lock.service
+#
+# You can also register scripts to be run before the systemctl command by
+# creating a ~/.shutdown.d directory and place your scripts into one of:
+#
+#   ~/.shutdown.d/shutdown/  Scripts run before poweroff / reboot.
+#   ~/.shutdown.d/suspend/   Scripts run before suspend.
+#   ~/.shutdown.d/resume/    Scripts run upon resume.
+#
+# Scripts in these directories will be executed in sorted order as the current
+# user.
+##
+
+SUDO=sudo
+
+function _shutdown(){
+  _hooks shutdown
+  echo "$1..."
+  $SUDO systemctl $1
+}
+
+function _suspend(){
+  _hooks suspend
+  echo "suspend..."
+  $SUDO systemctl suspend
+  _hooks resume
+  echo "resumed."
+}
+
+function _gui(){
+  SUDO=gksudo
+  choice=`
+    zenity \
+      --list \
+      --text="Please Choose An Action" \
+      --column="" --column="Action" \
+      --hide-header \
+      --radiolist false "Suspend" false "Reboot" false "Shutdown"`
+
+  case "$choice" in
+    Suspend)
+      _suspend | zenity --text-info
+      ;;
+    Reboot)
+      _shutdown reboot | zenity --text-info
+      ;;
+    Shutdown)
+      _shutdown poweroff | zenity --text-info
+      ;;
+  esac
+}
+
+function _hooks (){
+  dir=~/.shutdown.d/$1
+  if [ ! -d "$dir" ] ; then
+    return;
+  fi
+
+  IFS=$'\n'
+  for hook in $(ls -1 $dir) ; do
+    $dir/$hook
+  done
+}
+
+function usage(){
+  if [ -n "$1" ] ; then
+    echo "$1"
+  fi
+  echo "Usage: shutdown <action>"
+  echo "  Supported Actions:"
+  echo "    gui:       Use zenity to open a graphic prompt for the action to take."
+  echo "    poweroff:  Power off the machine."
+  echo "    reboot:    Reboot the OS."
+  echo "    suspend:   Suspend the OS."
+
+  [ -n "$1" ] && exit 1 || exit 0
+}
+
+if [ $# -ne 1 ] ; then
+  usage "abort: missing action"
+fi
+
+case "$1" in
+  gui)
+    _gui ;;
+  reboot)
+    _shutdown reboot ;;
+  poweroff)
+    _shutdown poweroff ;;
+  suspend)
+    _suspend ;;
+  *)
+    usage "abort: unrecognized action: $1" ;;
+esac

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+##
+# Start a tmux session if not already in one.
+#
+# Note: for this to work properly it also requires ~/.bashrc.d/python.sh which
+# handles fixing the path based on VIRTUAL_PATH set here.
+##
+
+SCREEN=`echo "$TERM" | grep "^screen"`
+if [ -z "$SCREEN" -a -z "$VIRTUAL_ENV_SCREEN" ] ; then
+  export VIRTUAL_PATH=$PATH
+  export VIRTUAL_ENV_SCREEN=1
+  cdproject
+  tmux
+  deactivate
+  unset VIRTUAL_ENV_SCREEN
+  cd - > /dev/null
+fi

@@ -1,0 +1,5 @@
+map <c-a><c-n> :bnext
+map <c-a>n :bnext
+map <c-a><c-p> :bprev
+map <c-a>p :bprev
+map <c-l> /mark

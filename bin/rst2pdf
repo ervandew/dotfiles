@@ -1,0 +1,7 @@
+#!/bin/bash
+
+##
+# Wrapper around rst2pdf which uses my stylesheet.
+##
+
+/usr/bin/rst2pdf -s ~/.rst2pdf/stylesheet "$@"

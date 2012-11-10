@@ -1,0 +1,42 @@
+*** genelements.py.orig	2012-01-05 15:58:10.897581992 -0800
+--- genelements.py	2012-01-05 16:15:56.112034434 -0800
+***************
+*** 275,282 ****
+          # We render as a two-column table, left-column is right-aligned,
+          # bold, and much smaller
+  
+          fn = Paragraph(client.gather_pdftext(node.children[0]) + ":",
+!             style=client.styles['fieldname'])
+          fb = client.gen_elements(node.children[1],
+                  style=client.styles['fieldvalue'])
+          t_style=TableStyle(client.styles['field-list'].commands)
+--- 275,286 ----
+          # We render as a two-column table, left-column is right-aligned,
+          # bold, and much smaller
+  
++         node_class = ''
++         if node.children[0].rawsource in ('Address', 'Phone', 'Email'):
++             node_class = 'contact-'
++ 
+          fn = Paragraph(client.gather_pdftext(node.children[0]) + ":",
+!             style=client.styles['%sfieldname' % node_class])
+          fb = client.gen_elements(node.children[1],
+                  style=client.styles['fieldvalue'])
+          t_style=TableStyle(client.styles['field-list'].commands)
+***************
+*** 669,675 ****
+      def gather_elements(self, client, node, style):
+          if isinstance(node.parent,docutils.nodes.line_block):
+              qstyle = copy(style)
+!             qstyle.leftIndent += client.styles.adjustUnits("1.5em")
+          else:
+              qstyle = copy(client.styles['lineblock'])
+          # Fix Issue 225: no space betwen line in a lineblock, but keep
+--- 673,679 ----
+      def gather_elements(self, client, node, style):
+          if isinstance(node.parent,docutils.nodes.line_block):
+              qstyle = copy(style)
+!             #qstyle.leftIndent += client.styles.adjustUnits("1.5em")
+          else:
+              qstyle = copy(client.styles['lineblock'])
+          # Fix Issue 225: no space betwen line in a lineblock, but keep

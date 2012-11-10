@@ -1,0 +1,38 @@
+# turn off system beep
+set bell-style none
+
+# like ls -F for completion
+set visible-stats on
+
+tab: complete
+
+# use vi for everything ! :)
+set editing-mode vi
+
+$if mode=vi
+  # \e[A : up arrow
+  # \e[B : down arrow
+
+  # this block adds mappings for vi-command mode
+  set keymap vi-command
+
+  # these search the history using the text before the cursor
+  "\e[A": history-search-backward
+  "\e[B": history-search-forward
+  "\C-p": history-search-backward
+  "\C-n": history-search-forward
+  #"k": history-search-backward
+  #"j": history-search-forward
+
+  # this block adds mappings for vi-insert mode
+  set keymap vi-insert
+
+  # these search the history using the text before the cursor
+  "\e[A": history-search-backward
+  "\e[B": history-search-forward
+  "\C-p": history-search-backward
+  "\C-n": history-search-forward
+$endif
+
+# if we want to include another inputrc file
+#$include /etc/inputrc

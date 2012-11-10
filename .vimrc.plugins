@@ -1,0 +1,195 @@
+" Author: Eric Van Dewoestine
+
+call pathogen#runtime_append_all_bundles()
+call pathogen#runtime_prepend_subdirectories('~/projects/vim')
+call pathogen#helptags()
+
+runtime macros/matchit.vim
+
+" dailylog.vim {{{
+  nmap <silent> <leader>lo :DailyLogOpen<cr>
+  nmap <silent> <leader>lt :DailyLogStart<cr>
+  nmap <silent> <leader>lp :DailyLogStop<cr>
+  nmap <silent> <leader>lr :DailyLogRestart<cr>
+  let g:dailylog_home = '~/files/dailylog'
+  let g:dailylog_path = '<year>/<month>/<day>.txt'
+  "let g:dailylog_tracker_url = ''
+" }}}
+
+" diff.vim {{{
+  nmap ]c :DiffNextChange<cr>
+  nmap [c :DiffPrevChange<cr>
+  nmap <leader>n :DiffNextChange<cr>
+  nmap <leader>N :DiffPrevChange<cr>
+" }}}
+
+" eclim.vim {{{
+  let g:EclimLargeFileEnabled = 1
+
+  let g:EclimOpenUrlInVimPatterns = [
+      \ '\.\(dtd\|xml\|xsd\)$',
+      \ '\.txt$',
+      \ '\.vim$',
+    \ ]
+
+  " for sphinx
+  let g:EclimAntCompilerAdditionalErrorFormat =
+    \ '\%W%.%#\ WARNING:\ %f:%l:\ %m,' .
+    \ '\%W%.%#\ WARNING:\ %f::\ %m,'
+
+  " mark current line
+  nnoremap <silent> <leader>s :Sign<cr>
+
+  " swap 2 words using ,ws
+  nnoremap <silent> <leader>ws :SwapWords<cr>
+  " swap typed method declaration arguments
+  nnoremap <silent> <buffer> <leader>aws :SwapTypedArguments<cr>
+
+  nnoremap <silent> <leader>> :LocateFile<cr>
+  nnoremap <silent> <leader>b :BuffersToggle<cr>
+
+  " update project tree's default actions to exclude several extensions for
+  " files that vim can't read.
+  let vimsupported = '^.*\(\.\(' .
+    \ 'doc\|ppt\|' .
+    \ 'bmp\|gif\|ico\|jpeg\|jpg\|png\|tif\|' .
+    \ 'avi\|mov\|mp3\|mp4\|mpg\|mpeg\|wmv\|' .
+    \ 'pdf\|' .
+    \ 'so' .
+    \ '\)\@!\w\+\|' .
+    \ '/[^.]*\)$'
+  let g:EclimProjectTreeActions = [
+      \ {'pattern': vimsupported, 'name': 'Split', 'action': 'split'},
+      \ {'pattern': vimsupported, 'name': 'VSplit', 'action': 'vsplit'},
+      \ {'pattern': vimsupported, 'name': 'Tab', 'action': 'tablast | tabnew'},
+      \ {'pattern': vimsupported, 'name': 'Edit', 'action': 'edit'},
+    \ ]
+
+  let g:TreeExternalShell = '!urxvt -title terminal &> /dev/null &'
+  let g:TreeSettingsFunction = "TreeSettings"
+  let g:TreeExpandSingleDirs = 1
+
+  function! TreeSettings()
+    call eclim#tree#RegisterFileAction('.*\.doc$',
+      \ 'Abiword', '!abiword <file> &> /dev/null &')
+    call eclim#tree#RegisterFileAction('.*\.xls$',
+      \ 'Gnumeric', '!gnumeric <file> &> /dev/null &')
+
+    call eclim#tree#RegisterFileAction('.*\.html\?$',
+      \ 'Firefox', '!firefox <file> &> /dev/null &')
+
+    call eclim#tree#RegisterFileAction(
+      \ '.*\.\(bmp\|gif\|ico\|jpeg\|jpg\|png\|tif\)$',
+      \ 'Geeqie', '!geeqie <file> &> /dev/null &')
+    call eclim#tree#RegisterFileAction(
+      \ '.*\.\(bmp\|gif\|ico\|jpeg\|jpg\|png\|tif\)$',
+      \ 'Feh', '!feh <file> &> /dev/null &')
+    call eclim#tree#RegisterFileAction(
+      \ '.*\.\(bmp\|gif\|ico\|jpeg\|jpg\|png\|psd\|svg\|tif\|xbm\|xpm\)$',
+      \ 'Gimp', '!gimp <file> &> /dev/null &')
+    call eclim#tree#RegisterFileAction('.*\.psd$',
+      \ 'psdview', '!psdview <file> &> /dev/null &')
+
+    call eclim#tree#RegisterFileAction(
+      \ '.*\.pdf$', 'Evince', '!evince <file> &> /dev/null &')
+  endfunction
+" }}}
+
+" indentdetect.vim {{{
+  " Perform after the filetype has been set since indent detection relies on
+  " the file's syntax to skip comments and strings.
+  autocmd FileType * IndentDetect
+" }}}
+
+" lookup.vim {{{
+  let g:LookupSingleResultAction = 'split'
+" }}}
+
+" machem.vim {{{
+  let g:MatchemSemicolonMapping = 1
+" }}}
+
+" maximize.vim {{{
+  " mapping to maximize window
+  if &rtp =~ '\<maximize\>'
+    map <silent> <space><space> :MaximizeWindow<cr>
+
+    " use tab to simplify window switching
+    nnoremap <silent> <tab><tab> :call maximize#NavigateWindows('winc p')<cr>
+    nnoremap <silent> <tab>k :call maximize#NavigateWindows('winc k')<cr>
+    nnoremap <silent> <tab>l :call maximize#NavigateWindows('winc l')<cr>
+    nnoremap <silent> <tab>h :call maximize#NavigateWindows('winc h')<cr>
+    nnoremap <silent> <tab>j :call <SID>NavigateDownWindow()<cr>
+    function! s:NavigateDownWindow()
+      let winnr = winnr()
+      call maximize#NavigateWindows('winc j')
+      if exists('g:ScreenShellBootstrapped') && winnr() == winnr
+        call g:ScreenShellFocus()
+      endif
+    endfunction
+
+    " minimize a window
+    nnoremap <silent> <leader>m
+      \ :let w = winnr()<cr>
+      \ :call maximize#NavigateWindows('winc p')<cr>
+      \ :exec 'MinimizeWindow ' . w<cr>
+      \ :unlet w<cr>
+    nnoremap <silent> <leader>M :MinimizeRestore<cr>
+  endif
+" }}}
+
+" nerdcommenter.vim {{{
+  let g:NERDCreateDefaultMappings = 0
+  let g:NERDRemoveExtraSpaces = 0
+  let g:NERDDefaultAlign = 'start'
+  vmap gc <Plug>NERDCommenterToggle
+  nmap gc <Plug>NERDCommenterToggle
+  vmap gC <Plug>NERDCommenterAlignLeft
+  nmap gC <Plug>NERDCommenterAlignLeft
+" }}}
+
+" notebook.vim {{{
+  let g:NotebookDir = '~/files/notebook/'
+" }}}
+
+" screen.vim {{{
+  let g:ScreenImpl = 'Tmux'
+  vmap <silent> <leader>s :ScreenSend<cr>
+" }}}
+
+" snipmate.vim {{{
+  let snippets_dir = expand('~/.vim/snippets')
+" }}}
+
+" supertab.vim {{{
+  if &rtp =~ '\<supertab\>'
+    let g:SuperTabDefaultCompletionType = 'context'
+    let g:SuperTabContextTextFileTypeExclusions =
+      \ ['htmldjango', 'htmljinja', 'javascript', 'sql']
+
+    " auto select the first result when using 'longest'
+    "let g:SuperTabLongestHighlight = 1
+
+    let g:SuperTabLongestEnhanced = 1
+    let g:SuperTabClosePreviewOnPopupClose = 1
+
+    " map <c-space> to <c-p> completion (useful when supertab 'context'
+    " defaults to something else).
+    imap <nul> <c-r>=SuperTabAlternateCompletion("\<lt>c-p>")<cr>
+
+    autocmd FileType python
+      \ if &completefunc != '' |
+      \   call SuperTabChain(&completefunc, "<c-p>") |
+      \ endif
+  endif
+" }}}
+
+" vimperator.vim {{{
+  augroup vimperator_editor
+    autocmd SwapExists vimperator*.tmp
+      \ :runtime plugin/vimperator.vim | call VimperatorEditorRecover(1)
+  augroup END
+
+" }}}
+
+" vim:ft=vim:fdm=marker

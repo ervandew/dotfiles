@@ -1,0 +1,26 @@
+#!/bin/bash
+
+##
+# Script used to generate the right status for tmux:
+#    set -g status-right "#[fg=green]#(tmux-status-right)"
+#
+# Currently just displays the current git repo/branch info.
+#
+# Requires some bash prompt manipulation as well:
+#
+#  function set_tmux_path() {
+#    if [ -n "$TMUX" ] ; then
+#      tmux setenv TMUXPWD_$(tmux display -p "#I_#P") "$PWD"
+#      # force an immediate refresh
+#      tmux refresh-client -S
+#    fi
+#  }
+#  PROMPT_COMMAND="set_tmux_path"
+##
+
+var=$(tmux display -p "TMUXPWD_#I_#P")
+val=$(tmux show-environment $var 2> /dev/null)
+if [ -n "$val" ] ; then
+  eval $val
+  echo $(cd ${!var} ; git repo)
+fi

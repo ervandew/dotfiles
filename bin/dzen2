@@ -1,0 +1,39 @@
+#!/bin/bash
+
+##
+# Wrapper around dzen2 that allows width and x to be defined as a screen
+# percentage.  The percentage width is define via the new '-wp' arg and
+# percentage x as -xp, both of which must be supplied before any other dzen
+# arguments.
+#
+#   $ dzen2 -wp 30 -xp 60 ...
+##
+
+LAPTOP_WIDTH=1680
+
+# first try external monitor
+SCREEN_SIZE=$(xrandr 2> /dev/null | awk '/^(VGA|DVI|DP)-0 connected/ {print $3}')
+# fall back to laptop monitor
+if [ -z "$SCREEN_SIZE" ] ; then
+  SCREEN_SIZE=$(xrandr 2> /dev/null | awk '/^(LVDS|default) connected/ {print $3}')
+fi
+
+WIDTH=$(echo $SCREEN_SIZE | sed 's/\(.*\)x.*/\1/')
+
+if expr $WIDTH '>' 2000 > /dev/null ; then
+  WIDTH=$(($WIDTH - $LAPTOP_WIDTH))
+fi
+
+while [ 1 ] ; do
+  if [ "$1" == "-wp" ] ; then
+    ARG="$ARG -w `expr $(expr $WIDTH '*' $2) / 100`"
+  elif [ "$1" == "-xp" ] ; then
+    ARG="$ARG -x `expr $(expr $WIDTH '*' $2) / 100`"
+  else
+    break
+  fi
+  shift
+  shift
+done
+
+cat - | /usr/bin/dzen2 $ARG "$@"

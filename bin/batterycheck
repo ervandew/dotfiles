@@ -1,0 +1,25 @@
+#!/bin/bash
+
+##
+# Script which checks the battery charge and sends a libnotify event if the
+# percentage falls below certain thresholds:
+#
+#  60% - sends a warning message
+#  15% - sends a critical error message
+#
+# Intented to be executed from cron or similar.
+# Here is an example cron entry to heck every 10 minutes:
+#
+#   */10 * * * * $HOME/bin/batterycheck
+##
+
+battery="/sys/class/power_supply/BAT0"
+current=`cat $battery/energy_now`
+total=`cat $battery/energy_full`
+percent=$(($(($current * 100)) / $total))
+
+if [ $percent -lt 15 ] ; then
+  DISPLAY=:0.0 notify-send -i gtk-dialog-error -u critical -t 0 "Battery: $percent%"
+elif [ $percent -lt 60 ] ; then
+  DISPLAY=:0.0 notify-send -i gtk-dialog-warning "Battery: $percent%"
+fi

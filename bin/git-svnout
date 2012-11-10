@@ -1,0 +1,61 @@
+#!/bin/bash
+
+##
+# Git command to log outgoing svn commits (commits not yet pushed to svn
+# server).
+#
+#  $ git svnout
+##
+
+# run git log in bunches of 25 and stop when we find commits that exist with
+# a svn id (the commit exists in svn).
+LIMIT=25
+LAST_REVISION="HEAD"
+PAGER=`git config core.pager`
+if [ -z "$PAGER" ] ; then
+  PAGER="less"
+fi
+
+function _svnout(){
+  while [ -n "$LAST_REVISION" ] ; do
+    LOG=`git log -$LIMIT --color $LAST_REVISION | awk --re-interval '
+      BEGIN {
+        FS = "\n"
+        entry = ""
+        recording = 0
+      }
+
+      END {
+        if (entry != ""){
+          print entry
+        }
+      }
+
+      /commit [a-f0-9]{40}/ {
+        if (entry != ""){
+          print entry
+        }
+        entry = ""
+        recording = 1
+      }
+
+      /^[[:space:]]+git-svn-id:/ {
+        entry = ""
+        recording = 0
+      }
+
+      /.*/ {
+        if (recording == 1){
+          entry = entry "\\\n" $1
+        }
+      }
+    '`
+    if [ -n "$LOG" ] ; then
+      echo -e $LOG
+      LAST_REVISION=`echo $LOG | sed -r 's|.*commit ([a-f0-9]{40}).*|\1^|'`
+    else
+      LAST_REVISION=""
+    fi
+  done
+}
+_svnout | $PAGER

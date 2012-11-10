@@ -1,0 +1,32 @@
+#!/bin/bash
+
+##
+# pre-commit hook used to prevent mistakes while amending commits.
+#
+# Prevents the user from amending a merge commit (can be bypassed using git
+# amend alias) and from amending a commit found in other branches.
+##
+
+# Handle amends
+if [ "$3" == HEAD ] ; then
+  if [ ! $(git symbolic-ref HEAD 2> /dev/null) ] ; then
+    exit 0 ; # don't interrupt amending during rebase on detached HEAD
+  fi
+
+  # prevent accidental amends of merge commits
+  parents=$(git cat-file -p HEAD | grep '^parent' | wc -l);
+  if [ $parents -gt 1 -a -z "$NO_VERIFY" ] ; then
+    echo "abort: HEAD is a merge commit (use $ git amend if you really want to amend it)"
+    exit 1
+  fi
+
+  # prevent amending commit found in other branches
+  branches=$(git branch -a --contains $(git log -1 --pretty=tformat:%h) | grep -v $(git brname))
+  if [ -n "$branches" ] ; then
+    echo "abort: the following branches contain the commit to be amended:"
+    for b in $branches ; do echo -e "\t$b" ; done
+    exit 1
+  fi
+fi
+
+exit 0

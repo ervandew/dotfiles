@@ -1,0 +1,43 @@
+#!/bin/bash
+
+function _clone_or_update() {
+  repos=$1
+  dir=~/.vim/bundle/$2
+  if [ -d "$dir" ] ; then
+    echo "update $repos"
+    cd "$dir"
+    git pull > /dev/null
+    cd - &> /dev/null
+  else
+    echo "clone $repos"
+    git clone $repos $dir
+  fi
+}
+
+if [ ! -d "$HOME/.vim/bundle" ] ; then
+  mkdir ~/.vim/bundle
+fi
+
+_clone_or_update git://github.com/tpope/vim-pathogen.git pathogen
+
+if [ ! -f "$HOME/.vim/autoload/pathogen" ] ; then
+  if [ ! -d "$HOME/.vim/autoload" ] ; then
+    mkdir "$HOME/.vim/autoload"
+  fi
+  cd "$HOME/.vim/autoload"
+  ln -s ../bundle/pathogen/autoload/pathogen.vim pathogen.vim
+  cd - &> /dev/null
+fi
+
+_clone_or_update git@github.com:ervandew/snipmate.vim.git snipmate
+_clone_or_update git@github.com:ervandew/nerdcommenter.git nerdcommenter
+_clone_or_update git@github.com:ervandew/increment.vim--Avadhanula.git increment
+_clone_or_update git@github.com:ervandew/python.vim--Vasiliev.git python_syntax
+_clone_or_update git@github.com:ervandew/Jinja.git jinja_syntax
+
+_clone_or_update git://github.com/tpope/vim-endwise.git endwise
+_clone_or_update git://github.com/tpope/vim-repeat.git repeat
+_clone_or_update git://github.com/tpope/vim-surround.git surround
+_clone_or_update git://github.com/chrisbra/CheckAttach.git checkattach
+_clone_or_update git://github.com/vim-scripts/groovy.vim--Ruley.git
+_clone_or_update git://github.com/vim-scripts/python_match.vim.git python_match

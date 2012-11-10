@@ -1,0 +1,116 @@
+[user]
+  name = ervandew
+  email = ervandew@gmail.com
+
+[alias]
+  br = branch
+  co = checkout
+  ci = commit-abs -e
+  st = status -sb
+  ls = ls-files
+  unstage = reset HEAD
+  untrack = rm --cached
+  forget = rm --cached
+  brname = rev-parse --abbrev-ref HEAD
+  root = rev-parse --show-toplevel
+  repo = "!f() { if `git brname > /dev/null` ; then echo $(basename $(git rev-parse --show-toplevel)):$(git brname); fi; }; f"
+
+  # $ git clone git://<host>/.git <target>
+  # Reverse tunnel to allow checkout from a client machine to a server machine.
+  # $ ssh -N <client_host> -R 9418:localhost:9418
+  serve = daemon --reuseaddr --verbose --base-path=. --export-all ./.git
+  serveweb = instaweb
+
+  # amend, but only if the commit to amend isn't available in another branch
+  # (also confirm when attempting to amend a merge commit.)
+  # The pre commit hook ~/.git-template/hooks/prepare-commit-msg will also
+  # perform similar checks to prevent issues should this alias not be used.
+  amend = "!f() { P=$(git cat-file -p HEAD | grep '^parent' | wc -l); if [ $P -gt 1 ] ; then read -p \"HEAD is a merge commit. Are you sure you want to amend it (y/n)? \"; if [ \"$REPLY\" != \"y\" ] ; then return 1; fi; fi; O=$(git branch -a --contains $(git log -1 --pretty=tformat:%h) | grep -v $(git brname)); if [ -n \"$O\" ] ; then echo \"abort: the following branches contain the commit to be amended:\n$O\"; return 1; fi; NO_VERIFY=1 git commit --amend \"$@\"; }; f"
+
+  omerge = !git merge origin/$(git brname)
+  orebase = "!f() { B=$(git brname); git rebasesafe origin/$B; if [ $? -ne 0 ] ; then echo \"abort: Preventing conflicting rebase\"; return; fi; git rebase \"$@\" origin/${B}; }; f"
+
+  rprune = remote prune origin
+  dbranch = "!f() { B=$1; git br -d ${B} && git push origin :heads/${B}; }; f"
+
+  # perform a fetch only if the current FETCH_HEAD is 60 or more minutes old.
+  lfetch = "!f() { T=$((($(date +%s) - $((ls -l --time-style=+%s .git/FETCH_HEAD 2> /dev/null || echo 0) | cut -d ' ' -f6)) / 60)); if [ $T -ge 60 ] ; then git fetch; fi; }; f"
+
+  # $ git rebasesafe <rebase_with>
+  #   checks if any other branches contain the same commits that would be
+  #   rebased on the current branch if rebased with <rebase_with>.
+  # Invoked by ~/.git-template/hooks/pre-rebase to ensure this check always occurs.
+  rebasesafe = "!f() { if [ -z \"$1\" ] ; then echo \"abort: Name of the branch that would be rebased with is required.\"; return; fi; B=$(git brname); A=$(git cherry -v $1); if [ $? -gt 0 ] ; then return ; fi; A=$(echo $A | sed 's/+ \\([a-f0-9]\\+\\) .*/--contains \\1/'); git lfetch; if [ -n \"$A\" ] ; then R=$(git branch -a $A | sed \"/\\<$B\\>/d\"); fi; if [ -z \"$R\" ] ; then echo \"No overlapping branches found.\"; else echo -e \"The following branches overlap, rebase not recommened:\n$R\"; return 1; fi; }; f"
+
+  # $ git mergein <target branch>
+  #   rebases the target branch against the current branch (running rebasesafe
+  #   first), merges the target into the current branch, displays a prompt to
+  #   push the changes to the origin, and finally displays a prompt to delete
+  #   the now merged in branch locally and from the origin.
+  mergein = "!f() { if [ -z \"$1\" ] ; then echo \"abort: Name of the branch to merge into this branch is required.\"; return; fi; B=$(git brname); I=$1; git co $I; git rebasesafe $B; if [ $? -ne 0 ] ; then echo \"abort: Preventing conflicting rebase\"; git co $B; return; fi; git rebase $B; if [ $? -ne 0 ] ; then return; fi; git co $B; git merge $I; git out; read -p \"Push to origin (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git push; fi; read -p \"Delete branch $I (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git dbranch $I; fi; }; f"
+
+  slog = log --pretty=tformat:\"%h %Cblue%ar%Creset %an %Cred%d%Creset %Cgreen%s%Creset\"
+  flog = log -1 --name-status
+  glog = !git slog --graph
+  dlog = "!f() { R=HEAD; if [ -n \"$(echo $1 | grep \"^[a-zA-Z0-9]\\+$\")\" ] ; then R=$1; shift; fi; git log -1 -p $R \"$@\"; }; f"
+
+  # log commits that differ between the current branch and the supplied target
+  blog = "!f() { B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; if [ -z \"$1\" ] ; then B2=master; else B2=$1; fi; echo \"$B1...$B2\"; echo \"  < $B1\"; echo \"  > $B2\"; git log --pretty=tformat:'%m %h %Cblue%ar%Creset %an %Cgreen%s%Creset' $B1...$B2; }; f"
+  # log commits that found in the target branch that are not in the current branch
+  blogin = "!f() { B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; if [ -z \"$1\" ] ; then B2=master; else B2=$1; fi; echo \"$B1...$B2\"; git log --pretty=tformat:'  %h %Cblue%ar%Creset %an %Cgreen%s%Creset' --right-only $B1...$B2; }; f"
+  # log commits that found in the current branch that are not in the target branch
+  blogout = "!f() { B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; if [ -z \"$1\" ] ; then B2=master; else B2=$1; fi; echo \"$B1...$B2\"; git log --pretty=tformat:'  %h %Cblue%ar%Creset %an %Cgreen%s%Creset' --left-only $B1...$B2; }; f"
+
+  in = !git slog ..origin/$(git brname)
+  din = !git log -p ..origin/$(git brname)
+  fin = !git in --name-status
+  sin = !git in --pretty=tformat:\"%h %Cblue%ar%Creset %an %Cgreen%s%Creset\"
+
+  out = !git slog origin/$(git brname)..
+  dout = !git log -p origin/$(git brname)..
+  fout = !git out --name-status
+  sout = !git out --pretty=tformat:\"%h %Cblue%ar%Creset %an %Cgreen%s%Creset\"
+
+  dstash = stash show -p
+
+  # $ git all <command> [<command args>]
+  #   runs the supplied git command against all repositories found in ~/projects
+  all = "!f() { for i in $(find ~/projects/ -maxdepth 3 -name .git -type d -exec dirname {} \\; | sort) ; do echo -e \"\\n### \\e[0;33m$(basename $i)\\e[0m\"; cd $i ; git -c color.ui=always \"$@\" ; done; }; e(){ f \"$@\" | /usr/bin/less -FRX; }; e"
+
+  # opens up the github url comparing the current branch against master or the
+  # optionally supplied branch.
+  ghcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"http://github.com/$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@github.com:\\(.*\\)\\.git .*|\\1|')/compare/$B...$(git brname)\"; }; f"
+
+  # adds a new github remote based on the supplied username.
+  ghremoteadd = "!f() { R=$1; if [ -z \"$R\" ] ; then echo 'abort: remote user name required' ; else git remote add $1 git://$(git remote -v | grep '^origin\\>.*(push)' | sed \"s|.*@\\(github.com\\):.*\\?\\(/.*\\.git\\) .*|\\1/$1\\2|\") && git fetch $1; fi; }; f"
+
+[branch]
+  autosetupmerge = true
+
+[color]
+  ui = auto
+
+[color "diff"]
+  commit = green
+
+[color "status"]
+  changed = blue
+  untracked = white
+
+[core]
+  pager = /usr/bin/less -+$LESS -FRX
+
+[diff]
+  renames = true
+
+[init]
+  templatedir = ~/.git-template
+
+[merge]
+  tool = vimdiff
+
+[mergetool]
+  keepBackup = false
+
+[push]
+  default = current

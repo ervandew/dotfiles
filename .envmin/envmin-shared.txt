@@ -1,0 +1,68 @@
+includes -----------------------
+~/.inputrc .ervandew/.inputrc
+
+.ervandew/bash -----------------
+#!/bin/bash
+bash --rcfile ~/.ervandew/.bashrc
+
+.ervandew/.bashrc --------------
+# add this alias to the shared .bash_aliases or .bashrc file:
+# alias screen-ervandew="SCREENRC=~/.ervandew/.screenrc SCREENDIR=/tmp/screens-ervandew screen -S ervandew"
+
+# If not running interactively, don't do anything
+[ -z "$PS1" ] && return
+
+source ~/.bashrc
+export INPUTRC=$HOME/.ervandew/.inputrc
+
+shopt -s cmdhist
+shopt -s histappend
+export HISTCONTROL=ignoreboth
+export HISTIGNORE="&:??:pwd:clear:exit:shutdown*:reboot"
+export HISTSIZE=1000
+export PS1="\e[0;31m\u@\h\e[0m \w\n\$ "
+
+alias cp="cp -i"
+alias grep="grep --colour=auto"
+alias ls="ls --color"
+alias mv="mv -i"
+alias vi="vim"
+export EDITOR=vim
+
+.ervandew/.screenrc ------------
+startup_message off
+shell $HOME/.ervandew/bash
+hardstatus string "%t (screen %n)"
+vbell on
+
+# restore contents after vim, etc exit.
+altscreen on
+
+# always show the caption (shows that screen is running)
+caption always '%{= Kk}%-w%{= Kw}%n %t%{-}%+w %-= @%H'
+
+# set big scrolling buffer
+defscrollback 5000
+
+#### Key bindings (Ctrl-A, then the binding shown below) ####
+# Terms:
+#   window : analogous to a 'tab' in vim
+#   region : analogous to a 'window' in vim
+bind ^j focus down    # down a region
+bind  j focus down
+bind ^k focus up      # up a region
+bind  k focus up
+bind ^h prev          # previous window
+bind  h prev
+bind ^l next          # next window
+bind  l next
+bind ^t focus top     # top most region
+bind  t focus top
+bind ^b focus bottom  # bottom most region
+bind  b focus bottom
+bind ^s copy          # enter scrollback / copy mode
+bind  s copy
+bind ^x remove
+bind  x remove
+bind ^= resize =
+bind  = resize =

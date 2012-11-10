@@ -1,0 +1,195 @@
+#!/bin/bash
+
+##
+# Script to process an envmin.txt file to generate an executable tar containing
+# a minimum environment which is then optionally transfered to a remote host
+# and expanded into the user's home directory.
+#
+# Example envmin.txt:
+#
+# includes -----------------------
+# ~/.gitconfig
+# ~/.inputrc
+# ~/.vim/colors/dark.vim .vim/colors/
+#
+# .vimrc -------------------------
+# set nocompatible
+# set autoindent
+# set backspace=indent,eol,start
+# set background=dark
+#
+# .screenrc ------------------------
+# startup_message off
+#
+# hardstatus string "%t (screen %n)"
+#
+# # use visual bell
+# vbell on
+#
+# # restore contents after vim, etc exit.
+# altscreen on
+#
+# In the above example an executable tar would be created with the following contents:
+#   .gitconfig
+#   .inputrc
+#   .screenrc
+#   .vimrc
+#   .vim/colors/dark.vim
+#
+# The envmin.txt file is broken up into sections where a section starts with a
+# name followed by a space and at least 6 dashes. The first section uses the
+# reserved name "includes" which is followed with a list of absolute paths to
+# files to be included in the resulting tar. If you would like a file in this
+# list to be contained in a directory within the tar, then that directory
+# should be supplied after the file path as shown with the .vim/colors/dark.vim
+# example above.
+#
+# Subsequent sections are defined as:
+#   <filename> ------
+#   <filecontents>
+#   ...
+#
+# Each of those sections will result in the creation of <filename> whose
+# contents consist of the following lines until the next section is
+# encountered. Note that the '<filename> ------' can include any necessary
+# leading directories you'd like that file to be created in when adding it to
+# the tar:
+#   foo/bar.txt ------
+#   some content for bar.txt
+#
+# Note: when a host to deploy to is provided, this script will also copy over
+# your rsa public key if necessary.
+##
+
+set -o nounset
+
+usage () {
+  echo "Usage: envmin <envmin.txt> [<[username@]host>]"
+}
+
+if [ $# -ne 1 -a $# -ne 2 ] ; then
+  usage
+  exit 1
+fi
+
+if [ ! -f $1 ] ; then
+  echo "'$1' is not a readable file."
+  exit 1
+fi
+
+FILES="$1"
+HOST=""
+if [ $# -eq 2 ] ; then
+  HOST=$2
+fi
+
+cd $(dirname $0)
+CURPATH=`pwd`
+cd - > /dev/null
+mkdir -p $CURPATH/temp/files 2> /dev/null
+
+function cleanup {
+  rm -R $CURPATH/temp
+}
+
+trap cleanup 0
+
+function extract {
+  p=$(dirname $1)
+  if [ "$p" != "." ] ; then
+    mkdir -p $CURPATH/temp/files/$p 2> /dev/null
+  fi
+  f=$(echo "$1" | sed 's|\([./]\)|\\\1|g')
+  sed -e "0,/^$f ------.*/ d" -e "/^.* ------/,$ d" $FILES > $CURPATH/temp/files/$1
+}
+
+function header {
+  sed -e "0,/^__BEGIN_HEADER__/ d" $0 > $CURPATH/temp/header
+}
+
+function includes {
+  OLD_IFS=$IFS
+  IFS=$'\n'
+  for f in `sed -e "0,/^includes ------.*/ d" -e "/^.* ------/,$ d" $FILES` ; do
+    if [ -n "$f" ] ; then
+      d=`echo $f | sed 's|.* \(.*\)|\1|'`
+      if [ $d != $f ] ; then
+        f=`echo $f | sed 's|\(.*\) .*|\1|'`
+        p=$d
+        if [ ! `echo $d | grep '/$'` ] ; then
+          p=`echo $p | sed 's|\(.*/\).*|\1|'`
+          if [ $p == $d ] ; then
+            p=""
+          fi
+        fi
+        if [ -n "$p" ] ; then
+          mkdir -p $CURPATH/temp/files/$p 2> /dev/null
+        fi
+        cp -r `eval echo $f` $CURPATH/temp/files/$d
+      else
+        cp -r `eval echo $f` $CURPATH/temp/files
+      fi
+    fi
+  done
+  IFS=$OLD_IFS
+}
+
+header
+includes
+for f in `grep "^.* --------" $FILES | sed 's/^\(.*\)\s-------.*/\1/'` ; do
+  if [[ $f != 'header' && $f != 'includes' ]] ; then
+    extract $f
+  fi
+done
+
+tar -C $CURPATH/temp/files -zcf $CURPATH/temp/envmin.tar.gz \
+  `ls -A --color=none $CURPATH/temp/files`
+
+cat $CURPATH/temp/header $CURPATH/temp/envmin.tar.gz > $CURPATH/temp/envmin
+chmod 755 $CURPATH/temp/envmin
+
+if [ -n "$HOST" ] ; then
+  identity=~/.ssh/id_rsa
+  if [ -f ~/.ssh/public/id_rsa.pub ] ; then
+    identity=~/.ssh/public/id_rsa.pub
+  fi
+
+  # send ssh id to remote host if it does not already exist
+  ssh -o PasswordAuthentication=no -o IdentityFile=$identity $HOST "exit 0" &> /dev/null
+  identity_exists=$?
+
+  set -o errexit
+
+  if [ $identity_exists -ne 0 ] ; then
+    cat $identity | ssh -o IdentityFile=$identity $HOST "
+      umask 077;
+      test -d ~/.ssh || mkdir ~/.ssh;
+      cat >> ~/.ssh/authorized_keys"
+  fi
+
+  # send envmin contents and extract on the remote host.
+  scp $CURPATH/temp/envmin $HOST:~
+  ssh $HOST "./envmin"
+else
+  mv -i $CURPATH/temp/envmin .
+fi
+
+exit
+
+__BEGIN_HEADER__
+#!/bin/bash
+
+# determine start of archive
+ARCHIVE_START=`awk '/^__BEGIN_ARCHIVE__/ { print NR + 1; exit 0; }' $0`
+
+TAR_VERSION=`tar --version | head -1`
+# Take the archive portion of this file and extract it.
+if [[ "$TAR_VERSION" =~ "GNU" ]] ; then
+  tail -n +$ARCHIVE_START $0 | gzip -dc | tar x --owner=$USER --group=`id -gn` -f -
+else
+  tail -n +$ARCHIVE_START $0 | gzip -dc | tar x -f -
+fi
+
+exit
+
+__BEGIN_ARCHIVE__

@@ -1,0 +1,106 @@
+includes -----------------------
+~/.gitconfig
+~/.inputrc
+~/.tmux.conf
+~/.vimrc
+~/.vim/colors/dark.vim .vim/colors/
+~/projects/vim/supertab/plugin/supertab.vim .vim/plugin/
+~/projects/vim/taglisttoo/plugin/taglisttoo.vim .vim/plugin/
+~/projects/vim/taglisttoo/autoload/* .vim/autoload/
+
+.bash_profile ------------------
+[[ -f ~/.bashrc ]] && . ~/.bashrc
+
+.bashrc ------------------------
+# If not running interactively, don't do anything
+[ -z "$PS1" ] && return
+
+shopt -s checkwinsize
+shopt -s cmdhist
+shopt -s histappend
+export HISTCONTROL=ignoreboth
+export HISTIGNORE="&:??:pwd:clear:exit:shutdown*:reboot"
+export HISTSIZE=1000
+
+WHO=`whoami`
+if [ -n "$SUDO_USER" ] ; then
+  USER=$SUDO_USER
+fi
+
+if [ "$USER" != "$WHO" -o "$USER" == "root" ] ; then
+  export USERHOME=`cat /etc/passwd | grep "\<$WHO\>" | cut -d ':' -f6`
+  export HISTFILE="$USERHOME/.bash_history.$SUDO_USER"
+  export PS1="\e[1;31m\u@\h\e[0m \w\n# "
+else
+  export PS1="\e[0;31m\u@\h\e[0m \w\n\$ "
+fi
+
+alias cp="cp -i"
+alias grep="grep --colour=auto"
+alias ls="ls --color"
+alias mv="mv -i"
+alias vi="vim"
+export EDITOR=vim
+
+MULTIPLEXER=`which tmux 2> /dev/null`
+if [ -z "$MULTIPLEXER" ] ; then
+  MULTIPLEXER=`which screen 2> /dev/null`
+fi
+if [ -n "$MULTIPLEXER" ] ; then
+  SCREEN=`echo "$TERM" | grep "^screen"`
+  if [ -n "$MULTIPLEXER" -a -z "$SUDO_USER" -a -n "$SSH_TTY" -a -z "$SCREEN" ] ; then
+    if [ $(basename $MULTIPLEXER) == "tmux" ] ; then
+      tmux attach || tmux
+    else
+      screen -R
+    fi
+  else
+    if [ -n "$SCREEN" ] ; then
+      # set window title to the short hostname
+      PROMPT_COMMAND='echo -ne "\033k`hostname -s`\033\\"'
+
+      # handle client term w/ no term info on the server (screen-256color)
+      L=`echo $TERM | sed 's/^\(\w\).*/\1/'`
+      if [ ! -f /usr/share/terminfo/$L/$TERM ] ; then
+        export TERM=screen
+      fi
+    fi
+  fi
+fi
+
+.screenrc ------------------------
+startup_message off
+hardstatus string "%t (screen %n)"
+vbell on
+
+# restore contents after vim, etc exit.
+altscreen on
+
+# always show the caption (shows that screen is running)
+caption always '%{= Kk}%-w%{= Kw}%n %t%{-}%+w %-= @%H'
+
+# set big scrolling buffer
+defscrollback 5000
+
+#### Key bindings (Ctrl-A, then the binding shown below) ####
+# Terms:
+#   window : analogous to a 'tab' in vim
+#   region : analogous to a 'window' in vim
+bind ^j focus down    # down a region
+bind  j focus down
+bind ^k focus up      # up a region
+bind  k focus up
+bind ^h prev          # previous window
+bind  h prev
+bind ^l next          # next window
+bind  l next
+bind ^t focus top     # top most region
+bind  t focus top
+bind ^b focus bottom  # bottom most region
+bind  b focus bottom
+bind ^s copy          # enter scrollback / copy mode
+bind  s copy
+bind ^x remove
+bind  x remove
+bind ^= resize =
+bind  = resize =

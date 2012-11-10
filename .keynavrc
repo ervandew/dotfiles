@@ -1,0 +1,39 @@
+clear
+
+alt+semicolon start
+Escape end
+
+# windowzoom doesn't work with xmonad + results in keynav exiting
+#alt+shift+semicolon start, windowzoom
+#w windowzoom
+
+h cut-left
+j cut-down
+k cut-up
+l cut-right
+
+u history-back
+
+# diagonal
+y cut-left,cut-up
+o cut-right,cut-up
+n cut-left,cut-down
+period cut-right,cut-down
+
+shift+h move-left 10
+shift+j move-down 10
+shift+k move-up 10
+shift+l move-right 10
+shift+y move-left,move-up 10
+shift+u move-right,move-up 10
+shift+b move-left,move-down 10
+shift+n move-right,move-down 10
+
+space warp,click 1,end
+shift+space warp,click 1,click 1,end
+ctrl+shift+space warp,click 1,click 1,click 1,end
+ctrl+space warp,start
+
+1 warp,click 1
+2 warp,click 2
+3 warp,click 3

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+##
+# Script which adjusts the volume of all controls at once:
+#   $ volume 3+
+#   $ volume 3-
+##
+
+function usage(){
+  echo "Usage: volume <amount>[+-]"
+  echo "  Ex. $ volume 3+"
+  echo "      $ volume 3-"
+  echo ""
+  echo "  Also supports toggling mute status:"
+  echo "      $ volume toggle"
+  exit
+}
+
+if [ $# -ne 1 ] ; then
+  usage
+fi
+
+if [ "$1" == "toggle" ] ; then
+  amixer -q set Master toggle
+else
+  amixer -q set Master $1
+  percent=$(amixer get Master |
+    grep -m 1 '.*: Playback .*[\d\+%]' |
+    sed 's/.*\[\([0-9]\+%\)\].*/\1/')
+  controls=$(amixer scontrols |
+    sed "s/.* '\([^']\+\)',.*/\1/" |
+    grep -v '\(Master\|Line\|Mic\|Capture\|IEC\)')
+  IFS=$'\n'
+  for control in $controls ; do
+    amixer -q set "$control" $percent unmute
+  done
+fi
