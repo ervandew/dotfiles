@@ -9,15 +9,16 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.UrgencyHook
+import XMonad.Layout.Accordion
+import XMonad.Layout.Combo
 import qualified XMonad.Layout.GridVariants as G
 import XMonad.Layout.LayoutCombinators
-import XMonad.Layout.MagicFocus
-import XMonad.Layout.Magnifier
 import XMonad.Layout.Named
 import XMonad.Layout.PerWorkspace
 import XMonad.Layout.Reflect
 import XMonad.Layout.StackTile
 import XMonad.Layout.Tabbed
+import XMonad.Layout.TwoPane
 import XMonad.Prompt
 import XMonad.Util.EZConfig
 import XMonad.Util.Run(spawnPipe)
@@ -36,14 +37,14 @@ myLayout = avoidStrutsOn[U] $
     onWorkspace "4:vbox"     Full $
     onWorkspace "5:misc"     (named "Tabbed" tabs) $
     onWorkspace "6:misc"     (named "Tabbed" tabs) $
-    named "Magnified" (magnify (maximizeVertical tiled)) |||
-    named "Tiled"     (maximizeVertical tiled) |||
-    named "Tabbed"    tabs
+    named "Accordian/Full"   accordianFull |||
+    named "Tiled"            tiled |||
+    named "Tabbed"           tabs
   where
-    magnify   = magnifiercz' 1.33
-    tabs      = reflectHoriz $ tabbed shrinkText myTabConfig
-    tallgrid  = G.SplitGrid G.T 1 2 (1/2) (10/10) (5/100)
-    tiled     = reflectHoriz $ Tall 1 (3/100) (8/14)
+    accordianFull = (combineTwo (TwoPane (3/100) (1/2)) (Accordion) (Full))
+    tabs          = reflectHoriz $ tabbed shrinkText myTabConfig
+    tallgrid      = G.SplitGrid G.T 1 2 (1/2) (10/10) (5/100)
+    tiled     = reflectHoriz $ Tall 1 (3/100) (1/2)
     myTabConfig = defaultTheme {
       activeColor = "#222222",
       activeTextColor = "#aaaaaa",
@@ -136,7 +137,6 @@ main = do
     `additionalKeysP` [
       ("M-x",       kill),
       ("M-m",       sendMessage $ JumpToLayout "Tabbed"),
-      ("M-S-m",     sendMessage Toggle),
       ("M-u",       focusUrgent),
       ("M-w",       cycleRecentWS [xK_Alt_L] xK_Tab xK_Tab),
       ("M-<Tab>",   bindOnLayout [
