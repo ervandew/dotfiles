@@ -37,6 +37,7 @@
   set scrolloff=5      " always keep 5 lines of context around the cursor
   set shiftwidth=2     " number of spaces used by indenting
   set showcmd          " display incomplete commands
+  set showtabline=2    " always show the tabline
   set spellsuggest=10  " limit number of spelling suggestions to 10.
   set sidescroll=10    " minimum number of columns to scroll
   set sidescrolloff=20 " always keep 10 columns of horizontal context
@@ -87,6 +88,10 @@
   endif
 
   function! TabLine()
+    if tabpagenr('$') == 1 && !exists('t:eclim_project')
+      return ''
+    endif
+
     let line = ''
     for i in range(tabpagenr('$'))
       let n = i + 1
@@ -102,7 +107,19 @@
       if status =~ '^\w\{3,}'
         let name = status
       endif
-      let line .= ' %{"' . (name != '' ? name : '[No Name]') . '"} '
+      if name == ''
+        let name = '[No Name]'
+      endif
+      let project = gettabvar(n, 'eclim_project')
+      if project != ''
+        let dir = eclim#project#util#GetProjectRoot(project)
+        let vcs = vcs#util#GetInfo(dir)
+        if vcs != ''
+          let project = project . '(' . split(vcs, ':')[-1] . ')'
+        endif
+        let name = project . ': ' . name
+      endif
+      let line .= ' %{"' . name . '"} '
       if n > 0 && n != tabpagenr('$')
         let line .= '%#TabLine# | '
       endif
@@ -195,6 +212,28 @@
   nnoremap <silent> gL :exec 'tabmove ' . min([tabpagenr(), tabpagenr('$')])<cr>
   nnoremap <silent> g0 :tabfirst<cr>
   nnoremap <silent> g$ :tablast<cr>
+
+  " alternative to :bd which won't close the current table if deleting the
+  " last buffer on that tab
+  nnoremap <silent> <leader>bd :call <SID>BufferDelete()<cr>
+  function! s:BufferDelete()
+    let bufnr = bufnr('%')
+    let prevent = winnr('$') == 1 && !&modified
+    if prevent
+      new
+    endif
+    " vim doesn't seem to fire BufDelete if we run :bdelete here, so feed the
+    " keys instead so we don't break plugins that rely on BufDelete hooks
+    call feedkeys(":bd " . bufnr . "\<cr>", 't')
+    " try loading a hidden buffer from the current tab using eclim if
+    " available
+    if prevent
+      try
+        call eclim#common#buffers#OpenNextHiddenTabBuffer(bufnr)
+      catch /E117/
+      endtry
+    endif
+  endfunction
 
   " gF is the same as gf + supports jumping to line number (file:100)
   nnoremap gf gF

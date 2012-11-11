@@ -64,6 +64,7 @@ runtime macros/matchit.vim
       \ {'pattern': vimsupported, 'name': 'Tab', 'action': 'tablast | tabnew'},
       \ {'pattern': vimsupported, 'name': 'Edit', 'action': 'edit'},
     \ ]
+  let g:EclimProjectTabTreeAutoOpen = 0
 
   let g:TreeExternalShell = '!urxvt -title terminal &> /dev/null &'
   let g:TreeSettingsFunction = "TreeSettings"
@@ -182,6 +183,10 @@ runtime macros/matchit.vim
       \   call SuperTabChain(&completefunc, "<c-p>") |
       \ endif
   endif
+" }}}
+
+" taglisttoo.vim {{{
+  nnoremap <silent> <leader>t :call taglisttoo#taglist#Taglist({'pick': 1})<cr>
 " }}}
 
 " vimperator.vim {{{
