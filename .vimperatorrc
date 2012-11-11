@@ -147,7 +147,7 @@ highlight Title color: #cf9ebe;
 highlight URL color: #8eb157;
 
 highlight Hint color: #ccc; background: rgba(0, 0, 0, 0.6); border-radius: 3px; margin: .5em 0 0 -.5em; padding: 1px;
-highlight HintElem background: rgba(154, 154, 154, 0.6); border-radius: 3px; color: #333;
+highlight HintElem background: rgba(154, 154, 154, 0.2); border-radius: 3px; color: inherit;
 highlight HintActive background-color: #46a3d9; border-radius: 3px; color: #333;
 
 " }}}
