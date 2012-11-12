@@ -107,9 +107,9 @@ hi SpellLocal ctermfg=green   ctermbg=none cterm=bold,underline gui=bold,underli
 " }}}
 
 " Tabs {{{
-hi TabLine     ctermfg=241   ctermbg=235 cterm=NONE guifg=#626262 guibg=#262626 gui=NONE
-hi TabLineSel  ctermfg=white ctermbg=235 cterm=NONE guifg=#CCCCCC guibg=#262626 gui=NONE
-hi TabLineFill ctermfg=NONE  ctermbg=235 cterm=NONE guifg=NONE    guibg=#262626 gui=NONE
+hi TabLine     ctermfg=241   ctermbg=236 cterm=NONE guifg=#626262 guibg=#303030 gui=NONE
+hi TabLineSel  ctermfg=white ctermbg=236 cterm=NONE guifg=#CCCCCC guibg=#303030 gui=NONE
+hi TabLineFill ctermfg=NONE  ctermbg=236 cterm=NONE guifg=NONE    guibg=#303030 gui=NONE
 " }}}
 
 " vim:nowrap:ft=vim:fdm=marker
