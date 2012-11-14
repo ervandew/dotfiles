@@ -13,6 +13,7 @@
   set backspace=2      " backspace over indent, eol, start
   set background=dark  " set the background to dark
   set cedit=<esc>      " <esc> on the command (:) mode goes to command edit.
+  set clipboard+=unnamed
   set complete-=i      " exclude include files
   set complete-=t      " exclude tags
   set complete-=u      " exclude unloaded buffers
@@ -154,10 +155,6 @@
   " use - to jump to front of text since _ requires an extra key
   nnoremap - _
 
-  " map Y and D to put the text on the clipboard and primary x selection.
-  vnoremap <silent> Y "*y:let @+ = @"<cr>
-  vnoremap <silent> D "*d:let @+ = @"<cr>
-
   " redraw screen + clear search highlights + update diffs
   nnoremap <silent> <c-l> :nohl \| diffu<cr><c-l>
   nnoremap <silent> <c-l><c-l> :syn sync minlines=100<cr>
@@ -296,7 +293,7 @@
     " pick out which window has focus
     if &term =~ '^\(rxvt-unicode\|.*256color\)' || has('gui_running')
       autocmd WinLeave * setlocal nocursorline
-      autocmd CursorHold,WinEnter *
+      autocmd WinEnter,VimEnter *
         \ exec 'setlocal ' . (&ft == 'qf' ? 'no' : '') . 'cursorline'
     endif
   endif
