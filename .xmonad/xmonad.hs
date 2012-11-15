@@ -155,12 +155,12 @@ main = do
       ("M-<F1>",    spawn $ "(setxkbmap -query | grep -q 'layout:\\s\\+us') " ++
                             "&& setxkbmap dvp || setxkbmap us"),
       -- audio keys
-      ("<XF86AudioPlay>",        spawn $ "~/bin/player toggle"),
-      ("<XF86Forward>",          spawn $ "~/bin/player next"),
-      ("<XF86Back>",             spawn $ "~/bin/player prev"),
-      ("<XF86AudioMute>",        spawn $ "~/bin/volume toggle"),
-      ("<XF86AudioRaiseVolume>", spawn $ "~/bin/volume 3+"),
-      ("<XF86AudioLowerVolume>", spawn $ "~/bin/volume 3-") ]
+      ("M-S-<Right>",       spawn $ "~/bin/player toggle"),
+      ("M-<Right>",         spawn $ "~/bin/player next"),
+      ("M-<Left>",          spawn $ "~/bin/player prev"),
+      ("M-S-<Up>",          spawn $ "~/bin/volume toggle"),
+      ("M-<Up>",            spawn $ "~/bin/volume 3+"),
+      ("M-<Down>",          spawn $ "~/bin/volume 3-") ]
     `removeKeysP` [ ("M-r") ]
 
   xmonad config
