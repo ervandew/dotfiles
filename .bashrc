@@ -110,7 +110,7 @@
 
   # load user bash completions
   if [ -d ~/.bash_completion.d ] ; then
-    for bc in `find ~/.bash_completion.d -type f -name '*.sh'` ; do
+    for bc in `find ~/.bash_completion.d -type f -o -type l -name '*.sh'` ; do
       . $bc
     done
   fi
