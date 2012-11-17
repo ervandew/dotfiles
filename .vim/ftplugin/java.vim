@@ -1,5 +1,8 @@
 " Author: Eric Van Dewoestine
 
+" highlight System.out.println(), System.err.println(), and printStackTrace()
+let java_highlight_debug = 1
+
 setlocal textwidth=80
 
 nnoremap <silent> <buffer> <cr> :JavaSearchContext<cr>
