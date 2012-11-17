@@ -169,6 +169,10 @@
   " toggle diff of the current buffer
   nmap <expr> <leader>d &diff ? ":diffoff\<cr>" : ":diffthis\<cr>"
 
+  " toggle quickfix/location lists
+  nmap <expr> <leader>ct &ft == 'qf' ? ":cclose\<cr>" : ":copen\<cr>""
+  nmap <expr> <leader>lt &ft == 'qf' ? ":lclose\<cr>" : ":lopen\<cr>""
+
   " write and go to next quickfix/location list result
   nmap <leader>cn :call <SID>NextError('c', 0)<cr>
   nmap <leader>cf :call <SID>NextError('c', 1)<cr>
@@ -221,7 +225,7 @@
     endif
     " vim doesn't seem to fire BufDelete if we run :bdelete here, so feed the
     " keys instead so we don't break plugins that rely on BufDelete hooks
-    call feedkeys(":bd " . bufnr . "\<cr>", 't')
+    call feedkeys(":bd " . bufnr . "\<cr>\<c-l>", 'nt')
     " try loading a hidden buffer from the current tab using eclim if
     " available
     if prevent
@@ -248,16 +252,6 @@
 " }}}
 
 " commands {{{
-  " convenience since i sometime hold down shift a bit too long
-  command! Messages messages
-
-  " quickfix/loclist command to use the full vim width even if vim is
-  " currently vertically split.
-  command! -nargs=0 Copen :botright copen
-  command! -nargs=0 COpen :botright copen
-  command! -nargs=0 Lopen :botright lopen
-  command! -nargs=0 LOpen :botright lopen
-
   " print the syntax name applied to the text under the cursor.
   command! -nargs=0 Syntax
     \ echohl Statement |
