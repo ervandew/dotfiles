@@ -48,6 +48,8 @@ runtime macros/matchit.vim
   nnoremap <silent> <leader>> :LocateFile<cr>
   nnoremap <silent> <leader>b :BuffersToggle<cr>
 
+  nnoremap <silent> <leader>/ :ProjectTreeToggle<cr>
+
   " update project tree's default actions to exclude several extensions for
   " files that vim can't read.
   let vimsupported = '^.*\(\.\(' .
