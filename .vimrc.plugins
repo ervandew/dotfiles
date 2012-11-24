@@ -26,6 +26,9 @@ runtime macros/matchit.vim
 " eclim.vim {{{
   let g:EclimLargeFileEnabled = 1
 
+  " fallback to my ag plugin for non-project searching
+  let g:EclimLocateFileNonProjectScope = 'ag'
+
   let g:EclimOpenUrlInVimPatterns = [
       \ '\.\(dtd\|xml\|xsd\)$',
       \ '\.txt$',
