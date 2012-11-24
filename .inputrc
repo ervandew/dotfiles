@@ -6,33 +6,31 @@ set visible-stats on
 
 tab: complete
 
-# use vi for everything ! :)
+# use vi for everything! :)
 set editing-mode vi
 
-$if mode=vi
-  # \e[A : up arrow
-  # \e[B : down arrow
+# stay on the home row away from the arrow keys
+"\C-h": backward-char
+"\C-l": forward-char
 
+$if mode=vi
   # this block adds mappings for vi-command mode
   set keymap vi-command
 
   # these search the history using the text before the cursor
-  "\e[A": history-search-backward
-  "\e[B": history-search-forward
-  "\C-p": history-search-backward
-  "\C-n": history-search-forward
-  #"k": history-search-backward
-  #"j": history-search-forward
+  "\C-k": history-search-backward
+  "\C-j": history-search-forward
+
+  "\C-h": backward-char
+  "\C-l": forward-char
 
   # this block adds mappings for vi-insert mode
   set keymap vi-insert
 
   # these search the history using the text before the cursor
-  "\e[A": history-search-backward
-  "\e[B": history-search-forward
-  "\C-p": history-search-backward
-  "\C-n": history-search-forward
+  "\C-k": history-search-backward
+  "\C-j": history-search-forward
 $endif
 
-# if we want to include another inputrc file
+# include another inputrc file
 #$include /etc/inputrc
