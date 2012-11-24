@@ -39,15 +39,6 @@
     export HISTFILE="$USERHOME/.bash_history.$SUDO_USER"
     export BASH_PS1="${red}\u${blue}@\h${NONE} \w\n# "
   else
-    #_git_branch_name() {
-    #  branch=`cd "$PWD" ; git brname`
-    #  if [ -n "$branch" ] ; then
-    #    # don't print default branch for my home repos
-    #    if [ "$branch" != "master" -o "$(git root)" != "$HOME" ] ; then
-    #      echo -e " $gray(git:$branch)$NONE"
-    #    fi
-    #  fi
-    #}
     _virtualenv_name() {
       if [ -n "$VIRTUAL_ENV" ] ; then
         echo -e " $gray(ve:$(basename $VIRTUAL_ENV))$NONE"
