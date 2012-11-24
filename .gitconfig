@@ -6,6 +6,7 @@
   br = branch
   co = checkout
   ci = commit-abs -e
+  cp = cherry-pick
   st = status -sb
   ls = ls-files
   unstage = reset HEAD
