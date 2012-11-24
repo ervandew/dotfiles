@@ -5,6 +5,7 @@
 let mapleader = ','
 
 " firefox settings
+set! browser.download.manager.showAlertOnComplete=false
 set! browser.download.manager.showWhenStarting=false
 set! browser.download.lastDir=~/downloads
 set! browser.download.useDownloadDir=false
@@ -26,7 +27,7 @@ set! extensions.firebug.showQuickInfoBox=false
 
 " vimperator settings
 set autocomplete=false
-set editor=urxvt\ -e\ vim -c "set spell! spelllang=en_us"
+set editor=gvim\ -f\ -c\ \"set\ spell!\ spelllang=en_us\"
 set noscrollbars
 set hintmatching=wordstartswith
 set hlsearch
