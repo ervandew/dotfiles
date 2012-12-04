@@ -142,8 +142,8 @@ for f in `grep "^.* --------" $FILES | sed 's/^\(.*\)\s-------.*/\1/'` ; do
   fi
 done
 
-tar -C $CURPATH/temp/files -zcf $CURPATH/temp/envmin.tar.gz \
-  `ls -A --color=none $CURPATH/temp/files`
+tar -C $CURPATH/temp/files -hzcf $CURPATH/temp/envmin.tar.gz \
+  $(ls -A --color=none $CURPATH/temp/files)
 
 cat $CURPATH/temp/header $CURPATH/temp/envmin.tar.gz > $CURPATH/temp/envmin
 chmod 755 $CURPATH/temp/envmin
