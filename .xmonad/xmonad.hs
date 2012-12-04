@@ -75,7 +75,6 @@ myManageHook = composeAll [
     name      =? "player"          --> viewShift "3:media",
     className =? "Gimp"            --> viewShift "3:media",
     className =? "VirtualBox"      --> viewShift "4:vbox",
-    className =? "nxclient"        --> viewShift "4:vbox",
     -- gimp insists on floating, so prevent that.
     role =? "gimp-image-window"    --> ask >>= doF . W.sink
   ] <+> manageScratchPad
