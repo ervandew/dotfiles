@@ -2,6 +2,6 @@
 # to adjust the 'Window' and 'Base' colors).
 
 gtk-font-name="Bitstream Vera Sans 8"
-include "/usr/share/themes/Zukitwo-Dark/gtk-2.0/gtkrc"
+include "/usr/share/themes/Greybird/gtk-2.0/gtkrc"
 
 # vim:nowrap
