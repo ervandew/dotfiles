@@ -1,0 +1,55 @@
+#!/bin/bash
+
+##
+# Script to toggle an external monitor on/off.
+##
+
+function usage(){
+  echo "Usage: monitor <on|off|toggle>"
+  exit 1
+}
+
+function _on(){
+  for display in $(xrandr | grep "\(LVDS\|VGA\|DP\|DVI\)-\?[01] connected" | cut -d' ' -f1) ; do
+    xrandr --output $display --auto
+  done
+
+  external_display=$(xrandr | grep "^\(VGA\|DP\|DVI\)-\?[01] connected" | cut -d' ' -f1)
+  if [ -n "$external_display" ] ; then
+    laptop_display=$(xrandr | grep "^LVDS-\?[01] connected" | cut -d' ' -f1)
+    if [ -n "$external_display" -a -n "$laptop_display" ] ; then
+      xrandr --output $external_display --left-of $laptop_display
+      xrandr --output $external_display --primary
+    fi
+  fi
+}
+
+function _off(){
+  external_display=$(xrandr | grep "^\(VGA\|DP\|DVI\)-\?[01] connected" | cut -d' ' -f1)
+  xrandr --output $external_display --off
+}
+
+function _toggle(){
+  if xrandr | grep "^\(VGA\|DVI\|DP\)-\?[01] connected [0-9]" > /dev/null ; then
+    _off
+  else
+    _on
+  fi
+}
+
+if [ $# -ne 1 ] ; then
+  echo "abort: invalid number of arguments."
+  usage
+fi
+
+case $1 in
+  on)
+    _on ;;
+  off)
+    _off ;;
+  toggle)
+    _toggle ;;
+  *)
+    echo "abort: unrecognized command: $1"
+    usage
+esac

@@ -102,7 +102,18 @@ myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vbox", "5:misc", "6:misc"]
 noScratchPad ws = if ws == "NSP" then "" else ws
 
 main = do
-  xmproc <- spawnPipe ("~/bin/dzen2 -wp 45 -ta l -h 16 -x 0 -y 0")
+  dzenXmonadBar <- spawnPipe "~/bin/dzen2 -wp 45 -ta l -h 16 -x 0 -y 0"
+  spawn "xset -b"
+  spawn "xset r rate 250 30"
+  spawn "xsetroot -cursor_name left_ptr"
+  spawn "setxkbmap -option ctrl:nocaps"
+  spawn "xrdb -load ~/.Xresources"
+  spawn "feh --bg-tile ~/.x-background.png"
+  spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 45 -wp 55 -h 16 -ta r &"
+  spawn "pkill dunst ; dunst -config ~/.dunstrc &"
+  spawn "pkill keynav ; keynav &"
+  spawn "pkill unclutter ; unclutter -idle 2 -root -noevents &"
+  spawn "pkill xcompmgr ; xcompmgr -c -r0 &"
   config <-
     withWindowNavigation(xK_k, xK_h, xK_j, xK_l) $
     withUrgencyHook NoUrgencyHook $
@@ -116,9 +127,9 @@ main = do
       manageHook         = manageDocks <+> myManageHook <+> manageHook defaultConfig,
       layoutHook         = myLayout,
       startupHook        = setWMName "LG3D", -- pre java 7 workaround for some apps
-      focusFollowsMouse = False,
+      focusFollowsMouse  = False,
       logHook            = dynamicLogWithPP dzenPP {
-        ppOutput  = hPutStrLn xmproc,
+        ppOutput  = hPutStrLn dzenXmonadBar,
         ppSep     = " | ",
         ppCurrent = dzenColor "#5884b0" barBackground . wrap " [" "] ",
         ppVisible = dzenColor "#58738d" barBackground . wrap " " " ",
@@ -150,7 +161,8 @@ main = do
       ("M-t",       spawn $ "pkill stalonetray || stalonetray -bg '#232323' -i 16"),
       ("M-z",       spawn $ "alock -cursor theme:name=xtr -auth pam"),
       ("M-S-C-s",   spawn $ "~/bin/shutdown gui"),
-      ("M-q",       spawn $ "xmonad --restart; pkill xcompmgr && xcompmgr -c -r0 &"),
+      ("M-q",       spawn $ "xmonad --restart"),
+      ("M-S-C-m",   spawn $ "~/bin/monitor toggle ; xmonad --restart"),
       -- toggle between programmers dvorak and us qwerty
       ("M-<F1>",    spawn $ "(setxkbmap -query | grep -q 'layout:\\s\\+us') " ++
                             "&& setxkbmap dvp || setxkbmap us"),

@@ -13,61 +13,6 @@ _JAVA_AWT_WM_NONREPARENTING=1 ; export _JAVA_AWT_WM_NONREPARENTING
 
 # }}}
 
-# X Settings {{{
-
-# account for possible low default resolution on external monitor
-if [ -n "`xrandr | grep '^VGA-0 connected'`" ] ; then
-  xrandr --output VGA-0 --auto
-elif [ -n "`xrandr | grep '^DVI-0 connected'`" ] ; then
-  xrandr --output DVI-0 --auto
-fi
-
-# turn off beeps:
-xset -b
-
-# increase the keyboard repeat-rate:
-xset r rate 250 30
-
-# add local fonts
-xset +fp /usr/share/fonts/local
-xset fp rehash
-
-# set a cursor since xmonad doesn't
-xsetroot -cursor_name left_ptr
-
-# set keymap options:
-xmodmap ~/.Xmodmap
-
-# disable caps lock
-setxkbmap -option ctrl:nocaps
-
-# ensure our x resources are loaded
-xrdb -load ~/.Xresources
-
-# }}}
-
-# Desktop apps {{{
-
-# hide mouse cursor after specified idle time:
-unclutter -idle 2 -root -noevents &
-
-# start keynav
-keynav &
-
-# set background
-feh --bg-tile ~/.x-background.png
-
-# start conky/dzen
-conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 45 -wp 55 -h 16 -ta r &
-
-# start compositing manager to fade out inactive windows
-xcompmgr -c -r0 &
-
-# start dunst to display dbus notification messages
-dunst -config ~/.dunstrc &
-
-# }}}
-
 # Keyring, mail, etc. {{{
 
 # start gnome-keyring-daemon
@@ -88,7 +33,16 @@ if [ -n "$(which dropboxd 2> /dev/null)" ] ; then
   dropboxd &
 fi
 
+if [ -d ~/.xinitrc.d ] ; then
+  for xrc in `find ~/.xinitrc.d -type f -o -type l -name '*.sh' | sort` ; do
+    . $xrc
+  done
+fi
+
 # }}}
+
+# setup external monitor if connected
+~/bin/monitor on
 
 # start eclim
 /opt/eclipse/eclimd start
