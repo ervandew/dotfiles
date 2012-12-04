@@ -28,6 +28,7 @@
   set laststatus=2     " always show the status line.
   " show all tabs as >- and tailing spaces as -
   set list listchars=precedes:<,extends:>,tab:>-,trail:-
+  set mouse=a          " primarily here so that paste w/ mouse works better
   set nobackup         " do not keep a backup file
   set number           " show line numbers
   " set the printer name to use (see http://localhost:631/printers/)
