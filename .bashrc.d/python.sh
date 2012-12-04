@@ -1,7 +1,7 @@
 export PYTHONSTARTUP="$HOME/.pystartup"
 
 # for virtualenv wrapper
-if [ "$USER" != "root" ] ; then
+if [ "$USER" != "root" -a -f "/usr/bin/virtualenvwrapper.sh" ] ; then
   export WORKON_HOME=$HOME/.virtualenv
   source /usr/bin/virtualenvwrapper.sh
 
