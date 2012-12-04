@@ -4,5 +4,19 @@ update_interval 1.0
 total_run_times 0
 use_spacer none
 
+# Examples of conkyrc.cputemp:
+# On Arch or Ubuntu 12.10+:
+#   ${platform coretemp.0 temp 2}
+# On Ubuntu 12.04-:
+#   ${acpitemp}
+# Other:
+#   ${hwmon 0 temp 4}
+
+# Example of conkyrc.mail
+# Personal and Work email counts:
+#   p(${new_mails $HOME/mail/personal/INBOX}) w(${new_mails $HOME/mail/work/INBOX})
+# Single email account:
+#   ${new_mails $HOME/mail/personal/INBOX}
+
 TEXT
-^p(5)^i($HOME/.dzen/icons/cpu.xbm)^pa(20)${cpu}% ${freq_g}g ${hwmon 0 temp 4}°^pa(100) | ^i($HOME/.dzen/icons/mem.xbm) $memperc%/$swapperc% ^pa(180)| ${if_gw}${if_up wlan0}^i($HOME/.dzen/icons/wifi.xbm)^i($HOME/.dzen/icons/down.xbm)${downspeedf wlan0}k ^pa(250)^i($HOME/.dzen/icons/up.xbm)${upspeedf wlan0}k ^pa(300)${endif}${if_up eth0}^i($HOME/.dzen/icons/net.xbm)^i($HOME/.dzen/icons/down.xbm)${downspeedf eth0}k ^pa(250)^i($HOME/.dzen/icons/up.xbm)${upspeedf eth0}k ^pa(300)${endif}${endif} | / ${fs_used_perc /}% (${diskio})^pa(410) | ${execp cat $HOME/.dzen/conkyrc.mail} | ${if_mixer_mute}^i(/home/ervandew/.dzen/icons/vol-mute.xbm)${else}^i(/home/ervandew/.dzen/icons/vol.xbm) ${mixer}%${endif}${if_existing /sys/class/power_supply/BAT0} | ^i($HOME/.dzen/icons/bat.xbm) ${battery_short}${endif}${if_up tun0} | ^fg(\#c4c466)vpn^fg()${endif} | ${tztime UTC %m/%d %H:%M UTC} | ^fg(\#5884b0)${time %a %b %d %H:%M }
+^p(5)^i($HOME/.dzen/icons/cpu.xbm)^pa(20)${cpu}% ${freq_g}g ${if_existing /home/ervandew/.dzen/conkyrc.cputemp}${execp cat $HOME/.dzen/conkyrc.cputemp}°^pa(100) ${endif}| ^i($HOME/.dzen/icons/mem.xbm) $memperc%/$swapperc% ^pa(180)| ${if_gw}${if_up wlan0}^i($HOME/.dzen/icons/wifi.xbm)^i($HOME/.dzen/icons/down.xbm)${downspeedf wlan0}k ^pa(250)^i($HOME/.dzen/icons/up.xbm)${upspeedf wlan0}k ^pa(300)${endif}${if_up eth0}^i($HOME/.dzen/icons/net.xbm)^i($HOME/.dzen/icons/down.xbm)${downspeedf eth0}k ^pa(250)^i($HOME/.dzen/icons/up.xbm)${upspeedf eth0}k ^pa(300)${endif}${endif} | / ${fs_used_perc /}% (${diskio})^pa(410) ${if_existing /home/ervandew/.dzen/conkyrc.mail}| ^i($HOME/.dzen/icons/mail.xbm) ${execp cat $HOME/.dzen/conkyrc.mail} ${endif}${if_existing /dev/mixer}| ${if_mixer_mute}^i($HOME/.dzen/icons/vol-mute.xbm)${else}^i($HOME/.dzen/icons/vol.xbm) ${mixer}%${endif}${endif}${if_existing /sys/class/power_supply/BAT0} | ^i($HOME/.dzen/icons/bat.xbm) ${battery_short}${endif}${if_up tun0} | ^fg(\#c4c466)vpn^fg()${endif} | ${tztime UTC %m/%d %H:%M UTC} | ^fg(\#5884b0)${time %a %b %d %H:%M }
