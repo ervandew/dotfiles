@@ -169,7 +169,7 @@ main = do
       ("M-S-<Right>",       spawn $ "~/bin/player toggle"),
       ("M-<Right>",         spawn $ "~/bin/player next"),
       ("M-<Left>",          spawn $ "~/bin/player prev"),
-      ("M-S-<Up>",          spawn $ "~/bin/volume toggle"),
+      ("M-S-<Left>",        spawn $ "~/bin/volume toggle"),
       ("M-<Up>",            spawn $ "~/bin/volume 3+"),
       ("M-<Down>",          spawn $ "~/bin/volume 3-") ]
     `removeKeysP` [ ("M-r") ]
