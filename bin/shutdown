@@ -10,9 +10,9 @@
 #       reboot:    Reboot the OS.
 #       suspend:   Suspend the OS.
 #
-# Uses systemctrl to perform the shutdown, reboot, or suspend so you can
-# register your own services to peform actions. Here is an example where I
-# register a sleep target to lock my screen on suspend:
+# If available, this script uses systemctrl to perform the shutdown, reboot, or
+# suspend so you can register your own services to perform actions. Here is an
+# example where I register a sleep target to lock my screen on suspend:
 #
 #   $ vim /etc/systemd/system/display-lock.service
 #     [Unit]
@@ -27,8 +27,29 @@
 #     WantedBy=sleep.target
 #   $ systemctl enable display-lock.service
 #
-# You can also register scripts to be run before the systemctl command by
-# creating a ~/.shutdown.d directory and place your scripts into one of:
+# If systemctl is not available then this script will fallback to using
+# /sbin/shutdown, /sbin/reboot, and pm-suspend. pm-suspend also supports hooks
+# for executing code on suspend and resume. Here is an example which accomplishes
+# the same screen locking on suspend as the example for for systemctl above:
+#
+#   $ vim /etc/pm/sleep.d/00lock
+#     #!/bin/bash
+#     case $1 in
+#       suspend)
+#         DISPLAY=:0.0 sudo -u ervandew alock -cursor theme:name=xtr -auth pam &
+#       resume)
+#         ;;
+#       hibernate)
+#         ;;
+#       thaw)
+#         ;;
+#       *)
+#         ;;
+#     esac
+#
+# You can also register scripts to be run before the systemctl, or equivalent,
+# command by creating a ~/.shutdown.d directory and place your scripts into one
+# of:
 #
 #   ~/.shutdown.d/shutdown/  Scripts run before poweroff / reboot.
 #   ~/.shutdown.d/suspend/   Scripts run before suspend.
@@ -43,13 +64,27 @@ SUDO=sudo
 function _shutdown(){
   _hooks shutdown
   echo "$1..."
-  $SUDO systemctl $1
+  if [ -e /usr/bin/systemctl ] ; then
+    $SUDO systemctl $1
+  else
+    if [ "$1" == "reboot" ] ; then
+      $SUDO /sbin/reboot
+    elif [ "$1" == "poweroff" ] ; then
+      $SUDO /sbin/shutdown -h now
+    fi
+  fi
 }
 
 function _suspend(){
   _hooks suspend
   echo "suspend..."
-  $SUDO systemctl suspend
+  if [ -e /usr/bin/systemctl ] ; then
+    $SUDO systemctl suspend
+  elif [ -e /usr/sbin/pm-suspend ] ; then
+    $SUDO pm-suspend
+  else
+    echo "Neither systemctl nor pm-suspend found."
+  fi
   _hooks resume
   echo "resumed."
 }
