@@ -20,7 +20,7 @@ fi
 
 _clone_or_update git://github.com/tpope/vim-pathogen.git pathogen
 
-if [ ! -f "$HOME/.vim/autoload/pathogen" ] ; then
+if [ ! -f "$HOME/.vim/autoload/pathogen.vim" ] ; then
   if [ ! -d "$HOME/.vim/autoload" ] ; then
     mkdir "$HOME/.vim/autoload"
   fi
