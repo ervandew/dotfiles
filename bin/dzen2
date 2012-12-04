@@ -12,10 +12,10 @@
 LAPTOP_WIDTH=1680
 
 # first try external monitor
-SCREEN_SIZE=$(xrandr 2> /dev/null | awk '/^(VGA|DVI|DP)-0 connected/ {print $3}')
+SCREEN_SIZE=$(xrandr 2> /dev/null | awk '/^(VGA|DVI|DP)-?[01] connected [0-9]/ {print $3}')
 # fall back to laptop monitor
 if [ -z "$SCREEN_SIZE" ] ; then
-  SCREEN_SIZE=$(xrandr 2> /dev/null | awk '/^(LVDS|default) connected/ {print $3}')
+  SCREEN_SIZE=$(xrandr 2> /dev/null | awk '/^(LVDS(-?[01])?|default) connected [0-9]/ {print $3}')
 fi
 
 WIDTH=$(echo $SCREEN_SIZE | sed 's/\(.*\)x.*/\1/')
