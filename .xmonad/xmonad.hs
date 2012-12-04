@@ -11,7 +11,6 @@ import XMonad.Hooks.SetWMName
 import XMonad.Hooks.UrgencyHook
 import XMonad.Layout.Accordion
 import XMonad.Layout.Combo
-import qualified XMonad.Layout.GridVariants as G
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Named
 import XMonad.Layout.PerWorkspace
@@ -32,7 +31,7 @@ import Data.Ratio
 import System.IO
 
 myLayout = avoidStrutsOn[U] $
-    onWorkspace "2:im/mail"  (named "Grid" tallgrid ||| named "Tabbed" tabs) $
+    onWorkspace "2:im/mail"  (named "StackTwo" stackTwo ||| named "Tabbed" tabs) $
     onWorkspace "3:media"    (named "Tabbed" tabs) $
     onWorkspace "4:vbox"     Full $
     onWorkspace "5:misc"     (named "Tabbed" tabs) $
@@ -42,9 +41,9 @@ myLayout = avoidStrutsOn[U] $
     named "Tabbed"           tabs
   where
     accordianFull = (combineTwo (TwoPane (3/100) (1/2)) (Accordion) (Full))
+    stackTwo      = (combineTwo (StackTile 1 (3/100) (1/2)) (TwoPane (3/100) (1/2)) (Full))
     tabs          = reflectHoriz $ tabbed shrinkText myTabConfig
-    tallgrid      = G.SplitGrid G.T 1 2 (1/2) (10/10) (5/100)
-    tiled     = reflectHoriz $ Tall 1 (3/100) (1/2)
+    tiled         = reflectHoriz $ Tall 1 (3/100) (1/2)
     myTabConfig = defaultTheme {
       activeColor = "#222222",
       activeTextColor = "#aaaaaa",
