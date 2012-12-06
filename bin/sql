@@ -191,6 +191,8 @@ function runscript() {
       # handle gzipped files
       if [ "${SQL_FILE##*.}" == "gz" ] ; then
         CAT=zcat
+      elif [ "${SQL_FILE##*.}" == "xz" ] ; then
+        CAT=xzcat
       fi
       time $CAT $SQL_FILE | $client "$@"
       exit
