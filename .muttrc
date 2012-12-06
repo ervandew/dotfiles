@@ -55,6 +55,8 @@ bind index \# sync-mailbox
 bind editor <Tab> complete-query
 bind editor ^T complete
 
+macro attach s <save-entry><bol>~/downloads/<eol>
+
 # key bindings / macros for use with offlineimap {{{
   # with offlineimap + gmail, this is equivalent to gmail's 'Archive'
   bind index a delete-message
