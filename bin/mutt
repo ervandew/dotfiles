@@ -5,7 +5,7 @@
 # according to the available ~/.muttrc.* files.
 ##
 
-accounts=$(ls -1 ~/.muttrc.* 2> /dev/null | sed 's|.*\.muttrc\.\(.*\)|\1|' | grep -v "\.swp$")
+accounts=$(ls -1 ~/.muttrc.* 2> /dev/null | grep -v "\.swp$" | sed 's|.*\.muttrc\.\(.*\)|\1|')
 count=$(echo $accounts | wc -w)
 if [ $count -eq 0 ] ; then
   echo "No .muttrc.* accounts found."
