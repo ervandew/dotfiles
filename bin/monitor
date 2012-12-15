@@ -10,11 +10,11 @@ function usage(){
 }
 
 function _on(){
-  for display in $(xrandr | grep "\(LVDS\|VGA\|DP\|DVI\)-\?[01] connected" | cut -d' ' -f1) ; do
+  for display in $(xrandr | grep "\(LVDS\|VGA\|DP\|DVI\|HDMI\)-\?[01] connected" | cut -d' ' -f1) ; do
     xrandr --output $display --auto
   done
 
-  external_display=$(xrandr | grep "^\(VGA\|DP\|DVI\)-\?[01] connected" | cut -d' ' -f1)
+  external_display=$(xrandr | grep "^\(VGA\|DP\|DVI\|HDMI\)-\?[01] connected" | cut -d' ' -f1)
   if [ -n "$external_display" ] ; then
     laptop_display=$(xrandr | grep "^LVDS-\?[01] connected" | cut -d' ' -f1)
     if [ -n "$external_display" -a -n "$laptop_display" ] ; then
@@ -25,12 +25,12 @@ function _on(){
 }
 
 function _off(){
-  external_display=$(xrandr | grep "^\(VGA\|DP\|DVI\)-\?[01] connected" | cut -d' ' -f1)
+  external_display=$(xrandr | grep "^\(VGA\|DP\|DVI\|HDMI\)-\?[01] connected" | cut -d' ' -f1)
   xrandr --output $external_display --off
 }
 
 function _toggle(){
-  if xrandr | grep "^\(VGA\|DVI\|DP\)-\?[01] connected [0-9]" > /dev/null ; then
+  if xrandr | grep "^\(VGA\|DVI\|DP\|HDMI\)-\?[01] connected [0-9]" > /dev/null ; then
     _off
   else
     _on
