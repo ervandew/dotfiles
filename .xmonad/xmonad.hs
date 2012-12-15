@@ -144,33 +144,29 @@ main = do
          | (i, k) <- zip myWorkspaces [xK_1 .. xK_9]
          , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
     `additionalKeysP` [
-      ("M-x",       kill),
-      ("M-m",       sendMessage $ JumpToLayout "Tabbed"),
-      ("M-u",       focusUrgent),
-      ("M-w",       cycleRecentWS [xK_Alt_L] xK_Tab xK_Tab),
-      ("M-<Tab>",   bindOnLayout [
-                        ("Tabbed", windows W.focusUp),
-                        ("", windows W.focusDown)]),
-      ("M-S-<Tab>", bindOnLayout [
-                        ("Tabbed", windows W.focusDown),
-                        ("", windows W.focusUp)]),
-      ("M-S-s",     withFocused $ windows . W.sink),
-      ("M-p",       scratchpadSpawnActionTerminal myTerminal),
-      ("M-t",       spawn $ "pkill stalonetray || stalonetray -bg '#232323' -i 16"),
-      ("M-z",       spawn $ "alock -cursor theme:name=xtr -auth pam"),
-      ("M-S-C-s",   spawn $ "~/bin/shutdown gui"),
-      ("M-q",       spawn $ "xmonad --restart"),
-      ("M-S-C-m",   spawn $ "~/bin/monitor toggle ; xmonad --restart"),
-      -- toggle between programmers dvorak and us qwerty
-      ("M-<F1>",    spawn $ "(setxkbmap -query | grep -q 'layout:\\s\\+us') " ++
-                            "&& setxkbmap dvp || setxkbmap us"),
-      -- audio keys
-      ("M-S-<Right>",       spawn $ "~/bin/player toggle"),
-      ("M-<Right>",         spawn $ "~/bin/player next"),
-      ("M-<Left>",          spawn $ "~/bin/player prev"),
-      ("M-S-<Left>",        spawn $ "~/bin/volume toggle"),
-      ("M-<Up>",            spawn $ "~/bin/volume 3+"),
-      ("M-<Down>",          spawn $ "~/bin/volume 3-") ]
+      ("M-x",         kill),
+      ("M-m",         sendMessage $ JumpToLayout "Tabbed"),
+      ("M-u",         focusUrgent),
+      ("M-w",         cycleRecentWS [xK_Alt_L] xK_Tab xK_Tab),
+      ("M-<Tab>",     bindOnLayout [
+                          ("Tabbed", windows W.focusUp),
+                          ("", windows W.focusDown)]),
+      ("M-S-<Tab>",   bindOnLayout [
+                          ("Tabbed", windows W.focusDown),
+                          ("", windows W.focusUp)]),
+      ("M-S-s",       withFocused $ windows . W.sink),
+      ("M-p",         scratchpadSpawnActionTerminal myTerminal),
+      ("M-t",         spawn $ "pkill stalonetray || stalonetray -bg '#232323' -i 16"),
+      ("M-z",         spawn $ "alock -cursor theme:name=xtr -auth pam"),
+      ("M-S-C-s",     spawn $ "~/bin/shutdown gui"),
+      ("M-q",         spawn $ "xmonad --restart"),
+      ("M-S-C-m",     spawn $ "~/bin/monitor toggle ; xmonad --restart"),
+      ("M-S-<Right>", spawn $ "~/bin/player toggle"),
+      ("M-<Right>",   spawn $ "~/bin/player next"),
+      ("M-<Left>",    spawn $ "~/bin/player prev"),
+      ("M-S-<Left>",  spawn $ "~/bin/volume toggle"),
+      ("M-<Up>",      spawn $ "~/bin/volume 3+"),
+      ("M-<Down>",    spawn $ "~/bin/volume 3-") ]
     `removeKeysP` [ ("M-r") ]
 
   xmonad config
