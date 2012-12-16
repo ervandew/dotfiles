@@ -4,6 +4,7 @@ import XMonad.Actions.PerLayoutKeys
 import XMonad.Actions.UpdatePointer
 import XMonad.Actions.WindowNavigation
 import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.FadeInactive
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
@@ -115,7 +116,7 @@ main = do
   config <-
     withWindowNavigation(xK_k, xK_h, xK_j, xK_l) $
     withUrgencyHook NoUrgencyHook $
-    defaultConfig {
+    ewmh $ defaultConfig {
       borderWidth        = 1,
       modMask            = mod1Mask,
       terminal           = myTerminal,
