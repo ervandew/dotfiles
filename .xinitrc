@@ -18,7 +18,7 @@ _JAVA_AWT_WM_NONREPARENTING=1 ; export _JAVA_AWT_WM_NONREPARENTING
 # start gnome-keyring-daemon
 # see the following for getting gnome-keyring to unlock at startup w/ slim:
 # https://wiki.archlinux.org/index.php/SLiM#SLiM_and_Gnome_Keyring
-eval $(gnome-keyring-daemon --start --components=pkcs11,secrets,ssh)
+eval $(gnome-keyring-daemon --start --components=gpg,pkcs11,secrets,ssh)
 export GNOME_KEYRING_CONTROL
 export GNOME_KEYRING_PID
 export GPG_AGENT_INFO
