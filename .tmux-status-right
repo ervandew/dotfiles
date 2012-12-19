@@ -20,6 +20,12 @@
 
 var=$(tmux display -p "TMUXPWD_#I_#P")
 val=$(tmux show-environment $var 2> /dev/null)
+
+# tmux show-environment prior to 1.7 doesn't support showing a single var
+if [ -z "$val" ] ; then
+  val=$(tmux show-environment | grep "^$var=")
+fi
+
 if [ -n "$val" ] ; then
   eval $val
   echo $(cd ${!var} ; git repo)
