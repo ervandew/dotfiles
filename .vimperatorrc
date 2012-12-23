@@ -44,6 +44,10 @@ set wildmode=list:longest,full
 
 " Mappings {{{
 
+" map down/up are smoother than the default j/k
+map j <Down>
+map k <Up>
+
 " go to next/prev tab
 map gh gT
 map gl gt
