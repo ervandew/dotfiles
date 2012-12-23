@@ -100,16 +100,41 @@ hi DiffText    ctermfg=26  ctermbg=250  cterm=NONE guifg=#4186be guibg=#cccccc g
 " }}}
 
 " Spellcheck {{{
-hi SpellBad   ctermfg=red     ctermbg=none cterm=bold,underline gui=bold,underline guifg=#cf6171
-hi SpellCap   ctermfg=blue    ctermbg=none cterm=bold,underline gui=bold,underline guifg=#4186be
-hi SpellRare  ctermfg=magenta ctermbg=none cterm=bold,underline gui=bold,underline guifg=#cf9ebe
-hi SpellLocal ctermfg=green   ctermbg=none cterm=bold,underline gui=bold,underline guifg=green
+hi SpellBad     ctermfg=red     ctermbg=none cterm=bold,underline gui=bold,underline guifg=#cf6171
+hi SpellCap     ctermfg=blue    ctermbg=none cterm=bold,underline gui=bold,underline guifg=#4186be
+hi SpellRare    ctermfg=magenta ctermbg=none cterm=bold,underline gui=bold,underline guifg=#cf9ebe
+hi SpellLocal   ctermfg=green   ctermbg=none cterm=bold,underline gui=bold,underline guifg=green
 " }}}
 
 " Tabs {{{
 hi TabLine     ctermfg=241   ctermbg=236 cterm=NONE guifg=#626262 guibg=#303030 gui=NONE
 hi TabLineSel  ctermfg=white ctermbg=236 cterm=NONE guifg=#CCCCCC guibg=#303030 gui=NONE
 hi TabLineFill ctermfg=NONE  ctermbg=236 cterm=NONE guifg=NONE    guibg=#303030 gui=NONE
+" }}}
+
+" Colors for terms with fewer than 256 colors. {{{
+if &t_Co == 8
+  hi Comment      ctermfg=gray   ctermbg=NONE   cterm=NONE
+  hi Folded       ctermfg=gray   ctermbg=NONE   cterm=NONE
+  hi Ignore       ctermfg=gray   ctermbg=NONE   cterm=NONE
+  hi Conditional  ctermfg=cyan   ctermbg=NONE   cterm=NONE
+  hi Directory    ctermfg=cyan   ctermbg=NONE   cterm=NONE
+  hi Keyword      ctermfg=cyan   ctermbg=NONE   cterm=NONE
+  hi Operator     ctermfg=cyan   ctermbg=NONE   cterm=NONE
+  hi PreProc      ctermfg=cyan   ctermbg=NONE   cterm=NONE
+  hi Statement    ctermfg=cyan   ctermbg=NONE   cterm=NONE
+  hi Type         ctermfg=cyan   ctermbg=NONE   cterm=NONE
+  hi SpellCap     ctermfg=cyan   ctermbg=NONE   cterm=bold,underline
+  hi Search       ctermfg=black  ctermbg=gray   cterm=NONE
+  hi Visual       ctermfg=black  ctermbg=gray   cterm=NONE
+  hi StatusLine   ctermfg=black  ctermbg=gray   cterm=NONE
+  hi StatusLineNC ctermfg=white  ctermbg=gray   cterm=bold
+  hi Pmenu        ctermfg=black  ctermbg=gray   cterm=NONE
+  hi PmenuSel     ctermfg=green  ctermbg=black  cterm=NONE
+  hi PmenuSbar    ctermfg=gray   ctermbg=NONE   cterm=NONE
+  hi CursorLineNr ctermfg=white  ctermbg=NONE   cterm=bold
+  hi TabLineSel   ctermfg=white  ctermbg=NONE   cterm=bold
+endif
 " }}}
 
 " vim:nowrap:ft=vim:fdm=marker

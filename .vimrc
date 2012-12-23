@@ -5,9 +5,7 @@
   " disable vi compatability mode
   set nocompatible
 
-  if &term =~ '^\(rxvt-unicode\|.*256color\)' || has('gui_running')
-    colorscheme dark     " set the color scheme
-  endif
+  colorscheme dark     " set the color scheme
 
   set autoindent       " always set autoindenting on
   set backspace=2      " backspace over indent, eol, start
