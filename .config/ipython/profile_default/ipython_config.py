@@ -65,7 +65,7 @@ c.TerminalIPythonApp.display_banner = True
 # c.TerminalIPythonApp.quick = False
 
 # A list of dotted module names of IPython extensions to load.
-# c.TerminalIPythonApp.extensions = []
+c.TerminalIPythonApp.extensions = ['autoreload']
 
 # The Logging format template
 # c.TerminalIPythonApp.log_format = '[%(name)s] %(message)s'
