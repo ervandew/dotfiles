@@ -38,8 +38,9 @@ fi
 
 # }}}
 
-# setup external monitor if connected
-~/bin/monitor on
+# intialize display outputs
+~/bin/monitor internal on
+~/bin/monitor external on
 
 # start eclim
 /opt/eclipse/eclimd start

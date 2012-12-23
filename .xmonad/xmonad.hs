@@ -161,7 +161,7 @@ main = do
       ("M-z",         spawn $ "alock -cursor theme:name=xtr -auth pam"),
       ("M-S-C-s",     spawn $ "~/bin/shutdown gui"),
       ("M-q",         spawn $ "xmonad --restart"),
-      ("M-S-C-m",     spawn $ "~/bin/monitor toggle ; xmonad --restart"),
+      ("M-S-C-m",     spawn $ "~/bin/monitor external toggle ; xmonad --restart"),
       ("M-S-<Right>", spawn $ "~/bin/player toggle"),
       ("M-<Right>",   spawn $ "~/bin/player next"),
       ("M-<Left>",    spawn $ "~/bin/player prev"),

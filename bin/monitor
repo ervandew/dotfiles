@@ -1,55 +1,96 @@
 #!/bin/bash
 
 ##
-# Script to toggle an external monitor on/off.
+# Script to toggle an internal/external monitor on/off.
+#
+# FIXME:
+#  - Doesn't handle more than one external monitor.
+#  - External is always set to the left of the internal so that dzen show up on
+#    the larger screen. Need to find out how to pin dzen to the 'primary'
+#    output regardless of whether it's left or right.
 ##
 
+INTERNAL="^LVDS-\?[01] connected"
+EXTERNAL="^\(VGA\|DP\|DVI\|HDMI\)-\?[01] connected"
+ON="[0-9]"
+
 function usage(){
-  echo "Usage: monitor <on|off|toggle>"
+  echo "Usage: monitor <internal|external> <on|off|toggle>"
   exit 1
 }
 
 function _on(){
-  for display in $(xrandr | grep "\(LVDS\|VGA\|DP\|DVI\|HDMI\)-\?[01] connected" | cut -d' ' -f1) ; do
-    xrandr --output $display --auto
-  done
+  output=$(_monitor $1)
+  if [ -z "$output" ] ; then
+    return
+  fi
+  xrandr --output $output --auto
 
-  external_display=$(xrandr | grep "^\(VGA\|DP\|DVI\|HDMI\)-\?[01] connected" | cut -d' ' -f1)
-  if [ -n "$external_display" ] ; then
-    laptop_display=$(xrandr | grep "^LVDS-\?[01] connected" | cut -d' ' -f1)
-    if [ -n "$external_display" -a -n "$laptop_display" ] ; then
-      xrandr --output $external_display --left-of $laptop_display
-      xrandr --output $external_display --primary
-    fi
+  internal=$(_monitor internal is_on)
+  external=$(_monitor external is_on)
+  if [ -n "$external" -a -n "$internal" ] ; then
+    xrandr --output $external --left-of $internal
+    xrandr --output $external --primary
   fi
 }
 
 function _off(){
-  external_display=$(xrandr | grep "^\(VGA\|DP\|DVI\|HDMI\)-\?[01] connected" | cut -d' ' -f1)
-  xrandr --output $external_display --off
+  output=$(_monitor $1)
+  if [ -z "$output" ] ; then
+    return
+  fi
+
+  if [[ "$1" == "external" && -z "$(_monitor internal is_on)" ]] ; then
+    echo "abort: preventing turning off of all outputs"
+    return
+  elif [[ "$1" == "internal" && -z "$(_monitor external is_on)" ]] ; then
+    echo "abort: preventing turning off of all outputs"
+    return
+  fi
+  xrandr --output $output --off
 }
 
 function _toggle(){
-  if xrandr | grep "^\(VGA\|DVI\|DP\|HDMI\)-\?[01] connected [0-9]" > /dev/null ; then
-    _off
+  if [ -z "$(_monitor $1 is_on)" ] ; then
+    _on $1
   else
-    _on
+    _off $1
   fi
 }
 
-if [ $# -ne 1 ] ; then
+function _monitor(){
+  eval pattern="\$$(echo $1 | tr '[:lower:]' '[:upper:]')"
+  if [ "$pattern" == "\$" ] ; then
+    return
+  fi
+
+  if [ "$2" == "is_on" ] ; then
+    pattern="$pattern $ON"
+  fi
+  echo "$(xrandr | grep "$pattern" | cut -d' ' -f1)"
+}
+
+if [ $# -ne 2 ] ; then
   echo "abort: invalid number of arguments."
   usage
 fi
 
 case $1 in
-  on)
-    _on ;;
-  off)
-    _off ;;
-  toggle)
-    _toggle ;;
+  internal) ;;
+  external) ;;
   *)
-    echo "abort: unrecognized command: $1"
+    echo "abort: unrecognized monitor: $1"
+    usage
+esac
+
+case $2 in
+  on)
+    _on $1 ;;
+  off)
+    _off $1 ;;
+  toggle)
+    _toggle $1 ;;
+  *)
+    echo "abort: unrecognized command: $2"
     usage
 esac
