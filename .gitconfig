@@ -14,7 +14,7 @@
   forget = rm --cached
   brname = rev-parse --abbrev-ref HEAD
   root = rev-parse --show-toplevel
-  repo = "!f() { if `git brname > /dev/null` ; then echo $(basename $(git rev-parse --show-toplevel)):$(git brname); fi; }; f"
+  repo = "!f() { if [ -n \"$(git brname 2> /dev/null)\" ] ; then echo $(basename $(git rev-parse --show-toplevel)):$(git brname); else exit 1; fi; }; f"
 
   # $ git clone git://<host>/.git <target>
   # Reverse tunnel to allow checkout from a client machine to a server machine.
