@@ -48,7 +48,11 @@
     # screen required content to auto set the shell title base on last command typed
     export SCREEN_PS1='\[\033k\033\\\]'
 
-    export BASH_PS1="${blue}\u@\h${NONE} \w\$(_virtualenv_name)\n"$SCREEN_PS1'\$ '
+    PS1_COLOR=${blue}
+    if [ "$TERM" == "linux" ] ; then
+      PS1_COLOR=${white}
+    fi
+    export BASH_PS1="$PS1_COLOR\u@\h${NONE} \w\$(_virtualenv_name)\n"$SCREEN_PS1'\$ '
   fi
   export PS1=$BASH_PS1
 
