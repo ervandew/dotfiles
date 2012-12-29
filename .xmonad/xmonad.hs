@@ -105,7 +105,7 @@ main = do
   spawn "xset -b"
   spawn "xset r rate 250 30"
   spawn "xsetroot -cursor_name left_ptr"
-  spawn "setxkbmap -option ctrl:nocaps"
+  spawn "xmodmap ~/.Xmodmap"
   spawn "xrdb -load ~/.Xresources"
   spawn "feh --bg-tile ~/.x-background.png"
   spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 45 -wp 55 -h 16 -ta r &"
@@ -162,12 +162,18 @@ main = do
       ("M-S-C-s",     spawn $ "~/bin/shutdown gui"),
       ("M-q",         spawn $ "xmonad --restart"),
       ("M-S-C-m",     spawn $ "~/bin/monitor external toggle ; xmonad --restart"),
-      ("M-S-<Right>", spawn $ "~/bin/player toggle"),
-      ("M-<Right>",   spawn $ "~/bin/player next"),
-      ("M-<Left>",    spawn $ "~/bin/player prev"),
-      ("M-S-<Left>",  spawn $ "~/bin/volume toggle"),
-      ("M-<Up>",      spawn $ "~/bin/volume 3+"),
-      ("M-<Down>",    spawn $ "~/bin/volume 3-") ]
+
+      -- media mappings, mnemonics based on the shift version of the key:
+      --   &   - pause/play
+      --   *   - (un)mute
+      --   <,> - prev/next track
+      --   -,+ - increase/decrease volume
+      ("M-7",         spawn $ "~/bin/player toggle"),
+      ("M-.",         spawn $ "~/bin/player next"),
+      ("M-,",         spawn $ "~/bin/player prev"),
+      ("M-8",         spawn $ "~/bin/volume toggle"),
+      ("M-=",         spawn $ "~/bin/volume 3+"),
+      ("M--",         spawn $ "~/bin/volume 3-") ]
     `removeKeysP` [ ("M-r") ]
 
   xmonad config
