@@ -18,7 +18,7 @@ if [ "$USER" != "root" -a -f "/usr/bin/virtualenvwrapper.sh" ] ; then
 
     # support re-calling postactivate to ensure any additional setup isn't lost
     # when starting screen from postactivate
-    if [ -n "$VIRTUAL_ENV_SCREEN" ] ; then
+    if [ -n "$VIRTUAL_ENV_SCREEN" -a -f "$VIRTUAL_ENV/bin/postactivate" ] ; then
       source $VIRTUAL_ENV/bin/postactivate
     fi
   fi
