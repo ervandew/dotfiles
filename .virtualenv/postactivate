@@ -12,8 +12,9 @@ if [ -z "$SCREEN" -a -z "$VIRTUAL_ENV_SCREEN" ] ; then
   export VIRTUAL_PATH=$PATH
   export VIRTUAL_ENV_SCREEN=1
   cdproject
-  tmux
+  tmux -L $(basename $VIRTUAL_ENV)
   deactivate
+  unset VIRTUAL_PATH
   unset VIRTUAL_ENV_SCREEN
   cd - > /dev/null
 fi
