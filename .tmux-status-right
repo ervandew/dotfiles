@@ -28,5 +28,5 @@ fi
 
 if [ -n "$val" ] ; then
   eval $val
-  echo $(cd ${!var} ; git repo)
+  echo $(cd ${!var} ; git repo || hg branch)
 fi
