@@ -57,14 +57,7 @@
   set wildmode=longest:full,full
   set wrap             " wrap text
 
-  set statusline=%<%f%{FF()}\ %{M()}\ %h%r%=%-10.(%l,%c%V\ b=%n,w=%{winnr()}%)\ %P
-  " modified func that shows a new file not yet modified/written as 'modified'
-  function! M()
-    return &modified || (
-      \ &buftype == '' &&
-      \ expand('%') != '' &&
-      \ !filereadable(expand('%'))) ? '+' : ''
-  endfunction
+  set statusline=%<%f%{FF()}\ %M\ %h%r%=%-10.(%l,%c%V\ b=%n,w=%{winnr()}%)\ %P
   " show in the status line if the file is in dos format.
   function! FF()
     return &ff == 'unix'  ?  ''  :  ' [' . &ff . ']'
@@ -113,10 +106,14 @@
       let project = gettabvar(n, 'eclim_project')
       if project != ''
         let dir = eclim#project#util#GetProjectRoot(project)
-        let vcs = vcs#util#GetInfo(dir)
-        if vcs != ''
-          let project = project . '(' . split(vcs, ':')[-1] . ')'
-        endif
+        try
+          let vcs = vcs#util#GetInfo(dir)
+          if vcs != ''
+            let project = project . '(' . split(vcs, ':')[-1] . ')'
+          endif
+        catch
+          " ignore
+        endtry
         let name = project . ': ' . name
       endif
       let line .= ' %{"' . name . '"} '
@@ -246,11 +243,11 @@
   " map gF now to be the new window version of original gF
   nnoremap gF <c-w>F
 
-  " toggle spelling with <F10> (normal or insert mode)
-  nnoremap <silent> <F10>
+  " toggle spelling with <c-z> (normal or insert mode)
+  nnoremap <silent> <c-z>
     \ :setlocal spell! spelllang=en_us \|
     \ :echohl Statement \| echo 'spell check ' . (&spell ? 'on' : 'off') \| echohl None<cr>
-  imap <F10> <c-o><F10>
+  imap <c-z> <c-o><c-z>
 
   " Make p in Visual mode replace the selected text with the " register.
   xnoremap p <esc>:let reg = @"<cr>gvs<c-r>=reg<cr><esc>
