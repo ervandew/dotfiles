@@ -64,23 +64,15 @@ map <silent> gf :emenu Tools.Web Developer.Page Source<cr>
 " disable backspace from navigating up a dir
 map <BS> <Nop>
 
+" disable <c-h> from opening the history sidebar
+map <c-h> <Nop>
+
 " reassign 'd' to 'D' and disable original 'd'
 noremap D d
 map d <Nop>
 
 " mimic vim and have ctrl-c exit command mode
 cmap <c-c> <esc>
-
-" mappings to alleviate need for using arrow keys
-cmap <c-j> <down>
-cmap <c-k> <up>
-cmap <c-h> <left>
-cmap <c-l> <right>
-
-imap <c-j> <down>
-imap <c-k> <up>
-imap <c-h> <left>
-imap <c-l> <right>
 
 " hacky vim like paste from selection register
 cmap <c-r>* <s-insert>

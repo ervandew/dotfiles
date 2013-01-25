@@ -1,0 +1,27 @@
+! Standard keyboards, make caps lock the left control
+!clear Lock
+!clear Control
+!keycode 66 = Control_L
+!add Control = Control_L Control_R
+!! Former Control_L -> Mode_switch
+!keycode 37 = Mode_switch
+!! Super_L -> Mode_switch
+!keycode 133 = Mode_switch
+
+! HHKB2
+clear Control
+keycode 37 = Control_L
+keycode 100 = Control_R
+add Control = Control_L Control_R
+keycode 102 = Mode_switch
+
+! Mode_switch + h: Left
+! Mode_switch + j: Down
+! Mode_switch + k: Up
+! Mode_switch + l: Right
+! Mode_switch + Backspace: Delete
+keycode 43 = h H Left
+keycode 44 = j J Down
+keycode 45 = k K Up
+keycode 46 = l L Right
+keycode 22 = BackSpace BackSpace Delete

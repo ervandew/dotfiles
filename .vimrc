@@ -132,12 +132,6 @@
   " sets the value of <Leader>
   let mapleader=","
 
-  " command mappings to alleviate need for using arrow keys
-  cnoremap <c-j> <down>
-  cnoremap <c-k> <up>
-  cnoremap <c-h> <left>
-  cnoremap <c-l> <right>
-
   " scrolling just the viewpane
   nnoremap <c-j> <c-e>
   nnoremap <c-k> <c-y>
