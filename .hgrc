@@ -4,6 +4,7 @@ merge=vimdiff
 
 [defaults]
 commit=-v
+log=-f
 pull=-v
 qnew=-e
 revert=--no-backup
@@ -28,12 +29,15 @@ rebase=
 record=
 
 [alias]
-slog=log --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
-flog=log --style=$HOME/.hgflog
-sout=out --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
-fout=out --style=$HOME/.hgflog
-sin=in --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
-fin=in --style=$HOME/.hgflog
+amend=commit --amend
+bdiff=!hg log -p -b .
+blog=!hg log -b .
+slog=!hg log -f --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
+flog=!hg log -f --style=$HOME/.hgflog
+sout=!hg out --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
+fout=!hg out --style=$HOME/.hgflog
+sin=!hg in --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
+fin=!hg in --style=$HOME/.hgflog
 qstatus=status --rev qparent:qtip
 qst=status --rev qparent:qtip
 
@@ -48,7 +52,7 @@ status.ignored=black
 
 [merge-tools]
 vimdiff.executable=vim
-vimdiff.args=-d $base $local $output $other -c "wincw J"
+vimdiff.args=-d $base $local $output $other +close
 
 [pager]
 pager=/usr/bin/less -+$LESS -FRX
