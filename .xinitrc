@@ -31,7 +31,7 @@ export SSH_AUTH_SOCK
 ~/bin/offlineimap &
 
 if [ -d ~/.xinitrc.d ] ; then
-  for xrc in `find ~/.xinitrc.d -type f -o -type l -name '*.sh' | sort` ; do
+  for xrc in `find ~/.xinitrc.d -name '*.sh' | sort` ; do
     . $xrc
   done
 fi

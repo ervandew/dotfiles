@@ -209,7 +209,7 @@
 
 # load user bash scripts
 if [ -d ~/.bashrc.d ] ; then
-  for brc in `find ~/.bashrc.d -type f -o -type l -name '*.sh' | sort` ; do
+  for brc in `find ~/.bashrc.d -name '*.sh' | sort` ; do
     . $brc
   done
 fi
