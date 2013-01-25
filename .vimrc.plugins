@@ -112,7 +112,7 @@ runtime macros/matchit.vim
 " }}}
 
 " machem.vim {{{
-  let g:MatchemSemicolonMapping = 1
+  let g:MatchemEndOfLineMapping = 1
 " }}}
 
 " maximize.vim {{{
