@@ -26,6 +26,14 @@
 #       database.
 # Make sure each entry has a trailing comma to separate it from the next entry.
 #
+# The connction string format also supports a password placeholder allowing you
+# to pull the password from your keyring using
+# http://github.com/ervandew/keyring. In this example the
+# <password:myuser@mystaginghost> will be replaced with the password from your
+# keyring under the key myuser@mystaginghost:
+#
+#     mysql:staging: -h mystaginghost -u myuser -p<password:myuser@mystaginghost> mydb,
+#
 # Note: the instance name 'other' is reserved and when chosen from the list,
 # will result in a series of prompts for the necessary data to connect to an
 # arbitrary database of that type.
@@ -216,6 +224,16 @@ function runchoice() {
 
   if [ -n "$(echo $PRODUCTION | grep "\<$instance\>")" ] ; then
     IS_PRODUCTION=1
+  fi
+
+  if [[ "$CONNECTION" =~ \<password:.*\> ]] ; then
+    key=$(echo "$CONNECTION" | sed 's|.*<password:\(.*\?\)>.*|\1|')
+    pass=$(keyring get $key 2> /dev/null)
+    if [ -z "$pass" ] ; then
+      echo "abort: unabled to find password for key: $key"
+      exit 1;
+    fi
+    CONNECTION=$(echo "$CONNECTION" | sed "s|<password:\(.*\?\)>|$pass|")
   fi
 
   if [ "$TYPE" == "mysql" ] ; then
