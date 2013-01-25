@@ -107,6 +107,8 @@ main = do
   spawn "xsetroot -cursor_name left_ptr"
   spawn "xmodmap ~/.Xmodmap"
   spawn "xrdb -load ~/.Xresources"
+  spawn "synclient VertEdgeScroll=1 HorizEdgeScroll=1 HorizTwoFingerScroll=1"
+  spawn "synclient RBCornerButton=3 LBCornerButton=2"
   spawn "feh --bg-tile ~/.x-background.png"
   spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 45 -wp 55 -h 16 -ta r &"
   spawn "pkill dunst ; dunst -config ~/.dunstrc &"
