@@ -227,8 +227,8 @@
   nnoremap <silent> g0 :tabfirst<cr>
   nnoremap <silent> g$ :tablast<cr>
 
-  " alternative to :bd which won't close the current table if deleting the
-  " last buffer on that tab
+  " alternative to :bd which won't close the current tab if deleting the last
+  " buffer on that tab
   nnoremap <silent> <leader>bd :call <SID>BufferDelete()<cr>
   function! s:BufferDelete()
     let bufnr = bufnr('%')
@@ -251,7 +251,7 @@
 
   " gF is the same as gf + supports jumping to line number (file:100)
   nnoremap gf gF
-  " map gF now to be the new window version of original gF
+  " map gF now to be the new window version of original gf
   nnoremap gF <c-w>F
 
   " toggle spelling with <c-z> (normal or insert mode)
@@ -260,8 +260,8 @@
     \ :echohl Statement \| echo 'spell check ' . (&spell ? 'on' : 'off') \| echohl None<cr>
   imap <c-z> <c-o><c-z>
 
-  " Make p in Visual mode replace the selected text with the " register.
-  xnoremap p <esc>:let reg = @"<cr>gvs<c-r>=reg<cr><esc>
+  " preserve the " register when pasting over a visual selection
+  xnoremap p <esc>:let reg = @"<cr>gvp:let @" = reg<cr>
 " }}}
 
 " commands {{{
