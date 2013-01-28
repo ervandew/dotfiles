@@ -27,6 +27,7 @@ pager=
 parentrevspec=
 rebase=
 record=
+hgshelve=
 
 [alias]
 amend=commit --amend
