@@ -113,8 +113,8 @@ main = do
   spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 45 -wp 55 -h 16 -ta r &"
   spawn "pkill dunst ; dunst -config ~/.dunstrc &"
   spawn "pkill keynav ; keynav &"
-  spawn "pkill unclutter ; unclutter -idle 2 -root -noevents &"
   spawn "pkill xcompmgr ; xcompmgr -c -r0 &"
+  spawn "pkill -9 unclutter ; unclutter -idle 2 -root -noevents &"
   config <-
     withWindowNavigation(xK_k, xK_h, xK_j, xK_l) $
     withUrgencyHook NoUrgencyHook $
