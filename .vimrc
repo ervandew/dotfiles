@@ -105,15 +105,32 @@
       endif
       let project = gettabvar(n, 'eclim_project')
       if project != ''
-        let dir = eclim#project#util#GetProjectRoot(project)
-        try
-          let vcs = vcs#util#GetInfo(dir)
-          if vcs != ''
-            let project = project . '(' . split(vcs, ':')[-1] . ')'
-          endif
-        catch
-          " ignore
-        endtry
+        " only show the vcs branch for the current tab so as to reduce time
+        " spent on system calls when there are several tabs.
+        if tabpagenr() == n
+          let dir = eclim#project#util#GetProjectRoot(project)
+          try
+            " not using vcs#util#GetInfo() because vim calls this function too
+            " often (entering insert mode, scrolling started, etc) and getting
+            " calling hg branch in particular is slow enough to cause
+            " rendering issues in vim (phantom characters), but reading the
+            " branch file is nice and fast.
+            let type = vcs#util#GetVcsType()
+            let branch = ''
+            if type == 'git'
+              let branch = substitute(system('git rev-parse --abbrev-ref HEAD'), '\n$', '', '')
+            elseif type == 'hg'
+              let dothg = finddir('.hg', escape(getcwd(), ' ') . ';')
+              let lines = readfile(dothg . '/branch')
+              let branch = len(lines) > 0 ? lines[0] : ''
+            endif
+            if branch != ''
+              let project = project . '(' . branch . ')'
+            endif
+          catch
+            " ignore
+          endtry
+        endif
         let name = project . ': ' . name
       endif
       let line .= ' %{"' . name . '"} '
