@@ -50,6 +50,7 @@
   set tabstop=2        " set the default tab width
   set timeoutlen=500   " timeout on mappings in .5 second
   set updatetime=1000  " timeout in millis for CursorHold event and swap writting.
+  set virtualedit=all  " prevent the cursor from bouncing around columns while scrolling.
   set visualbell t_vb= " turn off system beeps and visual flash
   set wildignore+=*.pyc,*.pyo,__pycache__/**
   set wildmenu         " for command completion, show menu of available results
@@ -262,6 +263,14 @@
 
   " preserve the " register when pasting over a visual selection
   xnoremap p <esc>:let reg = @"<cr>gvp:let @" = reg<cr>
+
+  " virtualedit mappings
+  function! s:VirtualEditEOL()
+    if &ve != '' && virtcol('.') > col('$')
+      normal! $
+    endif
+  endfunction
+  nnoremap p :call <SID>VirtualEditEOL()<cr>p
 " }}}
 
 " commands {{{
