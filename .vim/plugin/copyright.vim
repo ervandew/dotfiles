@@ -8,7 +8,7 @@
 "   the copyright accordingly.
 "
 " License: {{{
-"   Copyright (c) 2009 - 2012, Eric Van Dewoestine
+"   Copyright (c) 2009 - 2013, Eric Van Dewoestine
 "   All rights reserved.
 "
 "   Redistribution and use of this software in source and binary forms, with
@@ -84,6 +84,7 @@ function! s:UpdateCopyright() " {{{
     return
   endif
 
+  let winview = winsaveview()
   let pos = getpos('.')
   try
     call cursor(1, 1)
@@ -121,8 +122,10 @@ function! s:UpdateCopyright() " {{{
       let sub = '\1' . s:year
     endif
     call setline(lnum, substitute(line, g:CopyrightPattern, sub, ''))
+    redraw " prevent the hit enter prompt
   finally
     call setpos('.', pos)
+    call winrestview(winview)
     let b:copyright_checked = 1
   endtry
 endfunction " }}}
