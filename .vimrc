@@ -265,12 +265,12 @@
   xnoremap p <esc>:let reg = @"<cr>gvp:let @" = reg<cr>
 
   " virtualedit mappings
-  function! s:VirtualEditEOL()
-    if &ve != '' && virtcol('.') > col('$')
-      normal! $
-    endif
+  function! s:VirtualEditEOLExpr()
+    return virtcol('.') > col('$') ? '$' : ''
   endfunction
-  nnoremap p :call <SID>VirtualEditEOL()<cr>p
+  nnoremap <expr> a <SID>VirtualEditEOLExpr() . 'a'
+  nnoremap <expr> i <SID>VirtualEditEOLExpr() . 'i'
+  nnoremap <expr> p <SID>VirtualEditEOLExpr() . '"' . v:register . 'p'
 " }}}
 
 " commands {{{
