@@ -31,14 +31,15 @@ hgshelve=
 
 [alias]
 amend=commit --amend
+close=!hg commit --close -m "close $(hg branch)"
 bdiff=!hg log -p -b .
-blog=!hg log -b .
-slog=!hg log -f --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
-flog=!hg log -f --style=$HOME/.hgflog
-sout=!hg out --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
-fout=!hg out --style=$HOME/.hgflog
-sin=!hg in --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n"
-fin=!hg in --style=$HOME/.hgflog
+blog=!hg log -b . $@
+slog=!hg log -f --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n" $@
+flog=!hg log -f --style=$HOME/.hgflog $@
+sout=!hg out --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n" $@
+fout=!hg out --style=$HOME/.hgflog $@
+sin=!hg in --template "{rev}:{node|short}: {date|age} by {author} {desc|firstline|strip}\n" $@
+fin=!hg in --style=$HOME/.hgflog $@
 qstatus=status --rev qparent:qtip
 qst=status --rev qparent:qtip
 
