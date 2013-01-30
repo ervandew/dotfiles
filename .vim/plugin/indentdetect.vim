@@ -17,10 +17,17 @@
 "       let g:IndentDetectDefaults = {
 "           \ '~/my/project/root/': {'shiftwidth': 4, 'tabstop': 4}
 "         \ }
+"
+"   g:IndentDetectForce: dictionary just like g:IndentDetectDefaults, but used
+"   to force all matching files to use the supplied settings, bypassing any
+"   indent detection.
 
 " Global Variables {{{
 if !exists('g:IndentDetectDefaults')
   let g:IndentDetectDefaults = {}
+endif
+if !exists('g:IndentDetectForce')
+  let g:IndentDetectForce = {}
 endif
 " }}}
 
@@ -50,6 +57,28 @@ function! s:IndentDetect() " {{{
 
   " exit if all options have been set in the modeline
   if len(options) == 0
+    return
+  endif
+
+  " look for configured forced options
+  let forced = 0
+  for key in keys(g:IndentDetectForce)
+    if expand('%:p') =~ expand(key)
+      let forced = 1
+      if index(options, 'tabstop') != -1
+        exec 'setlocal tabstop=' .
+          \ get(g:IndentDetectForce[key], 'tabstop', &tabstop)
+      endif
+
+      if index(options, 'shiftwidth') != -1
+        exec 'setlocal shiftwidth=' .
+          \ get(g:IndentDetectForce[key], 'shiftwidth', &shiftwidth)
+      endif
+    endif
+  endfor
+
+  " if we applied forced options, then we're done.
+  if forced
     return
   endif
 
