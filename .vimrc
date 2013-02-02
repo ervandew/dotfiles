@@ -287,6 +287,31 @@
     let [line1, line2] = a:line1 < a:line2 ? [a:line1, a:line2] : [a:line2, a:line1]
     exec line1 . ',' . line2 . '!jshon -SC'
   endfunction
+
+  command! -range Incr :call <SID>Incr()
+  function! s:Incr()
+    let [l1, l2] = [line("'<"), line("'>")]
+    let [c1, c2] = [col("'<"), col("'>")]
+    if c1 > c2
+      let [c1, c2] = [c2, c1]
+    end
+
+    if c1 == c2
+      let pattern = '\(.*\)\(\%' . c1 . 'c\d\+\)\(.*\)'
+    else
+      let pattern = '\(.*\%' . c1 . 'c.*\)\(\d\+\)\(.*\%' . (c2 + 1) . 'c.*\)'
+    endif
+
+    let start = str2nr(substitute(getline(l1), pattern, '\2', ''))
+    let incr = 1
+    for lnum in range(l1, l2, l1 < l2 ? 1 : -1)[1:]
+      if getline(lnum) =~ pattern
+        exec lnum . 's/' . pattern . '/\1' . (start + incr) . '\3/'
+        let incr += 1
+      endif
+    endfor
+    call cursor(line("'<"), col("'<"))
+  endfunction
 " }}}
 
 " autocommands {{{
