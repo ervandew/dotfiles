@@ -860,6 +860,7 @@ my $maps = {};
 my $imap = undef;
 
 # maps for insert mode
+# EV: manually add insert mappings here since we can't do it via vim_moderc
 my $imaps
   = {
      # CTRL-R, insert register
@@ -1038,6 +1039,12 @@ sub insert_ctrl_a {
     # p or <c-p>
     }elsif ($char eq 'p' || $key == 16){
         Irssi::command('window previous');
+    # w or <c-w>
+    }elsif ($char eq 'w' || $key == 23){
+        Irssi::command('window last');
+    # a number
+    }elsif ($char =~ '\d+'){
+        Irssi::command("window goto $char");
     }
 }
 
