@@ -155,7 +155,7 @@ runtime macros/matchit.vim
 " }}}
 
 " notebook.vim {{{
-  let g:NotebookDir = '~/files/notebook/'
+  let g:NotebookDir = '~/notebook/'
 " }}}
 
 " screen.vim {{{
