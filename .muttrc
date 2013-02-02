@@ -27,8 +27,10 @@ set noprompt_after
 set date_format="%Y-%m-%d %H:%M:%S"
 set index_format="%4C %4c %S%Z %D %-25.25F %?M?(%3M)&     ? %s"
 set sort=threads
-set sort_aux=reverse-date-received
+set sort_aux=reverse-last-date-received
 set sort_browser=reverse-date
+set sort_re # thread based on regex
+set reply_regexp = "^(([Rr][Ee]?(\[[0-9]+\])?: *)?(\[[^]]+\] *)?)*"
 
 set signature="echo eric|"
 
