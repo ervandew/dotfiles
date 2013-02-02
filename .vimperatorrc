@@ -5,6 +5,10 @@
 let mapleader = ','
 
 " firefox settings
+" limit cache to 10mb since I'll be using ramdisk and only visit a few sites
+" with regularity and firefox will exceed this limit by quit a bit
+set! browser.cache.disk.capacity=10240
+" download settings
 set! browser.download.manager.showAlertOnComplete=false
 set! browser.download.manager.showWhenStarting=false
 set! browser.download.lastDir=~/downloads
