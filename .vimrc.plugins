@@ -148,6 +148,7 @@ runtime macros/matchit.vim
   let g:NERDCreateDefaultMappings = 0
   let g:NERDRemoveExtraSpaces = 0
   let g:NERDDefaultAlign = 'start'
+  let g:NERDDefaultDelims = {'left': '#'}
   vmap gc <Plug>NERDCommenterToggle
   nmap gc <Plug>NERDCommenterToggle
   vmap gC <Plug>NERDCommenterAlignLeft
