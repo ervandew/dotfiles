@@ -105,6 +105,7 @@ main = do
   spawn "xset -b"
   spawn "xset r rate 250 30"
   spawn "xsetroot -cursor_name left_ptr"
+  spawn "hsetroot -solid '#333333'"
   spawn "xmodmap ~/.Xmodmap"
   spawn "xrdb -load ~/.Xresources"
   spawn "synclient ClickFinger1=3"
