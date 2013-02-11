@@ -120,7 +120,7 @@ function _hooks (){
 
   IFS=$'\n'
   for hook in $(ls -1 $dir) ; do
-    $dir/$hook
+    SUDO=$SUDO $dir/$hook
   done
 }
 
