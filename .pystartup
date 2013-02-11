@@ -1,14 +1,5 @@
 # Enable readline support, history, and completion.
 
-import atexit, os, readline, rlcompleter
-
-home = os.environ.get('USERHOME', os.environ.get('HOME'))
-historyPath = os.path.expanduser("%s/.pyhistory" % home)
-
-if os.path.exists(historyPath):
-  readline.read_history_file(historyPath)
-
-atexit.register(readline.write_history_file, historyPath)
-del os, atexit, readline, rlcompleter, historyPath
+import readline, rlcompleter
 
 # vim:ft=python
