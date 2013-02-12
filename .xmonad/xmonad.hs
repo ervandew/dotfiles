@@ -110,7 +110,6 @@ main = do
   spawn "xrdb -load ~/.Xresources"
   spawn "synclient ClickFinger1=3"
   spawn "synclient HorizTwoFingerScroll=1"
-  spawn "feh --bg-tile ~/.x-background.png"
   spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 45 -wp 55 -h 16 -ta r &"
   spawn "pkill dunst ; dunst -config ~/.dunstrc &"
   spawn "pkill keynav ; keynav &"
@@ -139,7 +138,7 @@ main = do
         ppLayout  = dzenColor barForeground barBackground . wrap "{ " " }",
         ppTitle   = dzenColor "#8eb157" barBackground . shorten 75,
         ppUrgent  = dzenColor "#bb4b4b" barBackground . dzenStrip
-      } >> fadeInactiveLogHook 0.5 >> updatePointer (Relative 0.97 0.97)
+      } >> fadeInactiveLogHook 0.5 >> updatePointer (Relative 1 1)
     }
     -- change workspace keybindings to not be "greedy" (move my focus to the
     -- screen displaying the workspace instead of moving the workspace to my
@@ -160,6 +159,7 @@ main = do
                           ("", windows W.focusUp)]),
       ("M-S-s",       withFocused $ windows . W.sink),
       ("M-p",         scratchpadSpawnActionTerminal myTerminal),
+      ("M-S-p",       spawn $ "~/bin/keyring prompt"),
       ("M-t",         spawn $ "pkill stalonetray || stalonetray -bg '#232323' -i 16"),
       ("M-z",         spawn $ "alock -cursor theme:name=xtr -auth pam"),
       ("M-S-C-s",     spawn $ "~/bin/shutdown gui"),
