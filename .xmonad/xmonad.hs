@@ -159,7 +159,7 @@ main = do
                           ("", windows W.focusUp)]),
       ("M-S-s",       withFocused $ windows . W.sink),
       ("M-p",         scratchpadSpawnActionTerminal myTerminal),
-      ("M-S-p",       spawn $ "~/bin/keyring prompt"),
+      ("M-S-p",       spawn $ "~/bin/keyring prompt --paste"),
       ("M-t",         spawn $ "pkill stalonetray || stalonetray -bg '#232323' -i 16"),
       ("M-z",         spawn $ "alock -cursor theme:name=xtr -auth pam"),
       ("M-S-C-s",     spawn $ "~/bin/shutdown gui"),
