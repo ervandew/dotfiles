@@ -108,7 +108,6 @@ main = do
   spawn "hsetroot -solid '#333333'"
   spawn "xmodmap ~/.Xmodmap"
   spawn "xrdb -load ~/.Xresources"
-  spawn "synclient ClickFinger1=3"
   spawn "synclient HorizTwoFingerScroll=1"
   spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 45 -wp 55 -h 16 -ta r &"
   spawn "pkill dunst ; dunst -config ~/.dunstrc &"
