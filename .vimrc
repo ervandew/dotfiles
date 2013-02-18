@@ -11,7 +11,7 @@
   set backspace=2      " backspace over indent, eol, start
   set background=dark  " set the background to dark
   set cedit=<esc>      " <esc> on the command (:) mode goes to command edit.
-  set clipboard+=unnamed
+  set clipboard=unnamed
   set complete-=i      " exclude include files
   set complete-=t      " exclude tags
   set complete-=u      " exclude unloaded buffers
