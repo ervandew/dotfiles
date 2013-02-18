@@ -9,26 +9,19 @@
 #   $ dzen2 -wp 30 -xp 60 ...
 ##
 
-LAPTOP_WIDTH=1680
-
-# first try external monitor
-SCREEN_SIZE=$(xrandr 2> /dev/null | awk '/^(VGA|DVI|DP)-?[01] connected [0-9]/ {print $3}')
-# fall back to laptop monitor
-if [ -z "$SCREEN_SIZE" ] ; then
-  SCREEN_SIZE=$(xrandr 2> /dev/null | awk '/^(LVDS(-?[01])?|default) connected [0-9]/ {print $3}')
-fi
-
-WIDTH=$(echo $SCREEN_SIZE | sed 's/\(.*\)x.*/\1/')
-
-if expr $WIDTH '>' 2000 > /dev/null ; then
-  WIDTH=$(($WIDTH - $LAPTOP_WIDTH))
+external="^\(VGA\|DVI\|DP\)-[01]"
+internal="^\(LVDS\)-[01]"
+pattern="connected \(primary \)\?\([0-9]\+\)x.*$"
+width=$(xrandr 2> /dev/null | grep "$external $pattern" | sed "s/$external $pattern/\3/")
+if [ -z "$width" ] ; then
+  width=$(xrandr 2> /dev/null | grep "$internal $pattern" | sed "s/$internal $pattern/\3/")
 fi
 
 while [ 1 ] ; do
   if [ "$1" == "-wp" ] ; then
-    ARG="$ARG -w `expr $(expr $WIDTH '*' $2) / 100`"
+    arg="$arg -w `expr $(expr $width '*' $2) / 100`"
   elif [ "$1" == "-xp" ] ; then
-    ARG="$ARG -x `expr $(expr $WIDTH '*' $2) / 100`"
+    arg="$arg -x `expr $(expr $width '*' $2) / 100`"
   else
     break
   fi
@@ -36,4 +29,4 @@ while [ 1 ] ; do
   shift
 done
 
-cat - | /usr/bin/dzen2 $ARG "$@"
+cat - | /usr/bin/dzen2 $arg "$@"

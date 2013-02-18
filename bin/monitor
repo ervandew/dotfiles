@@ -12,7 +12,7 @@
 
 INTERNAL="^LVDS-\?[01] connected"
 EXTERNAL="^\(VGA\|DP\|DVI\|HDMI\)-\?[01] connected"
-ON="[0-9]"
+ON="\(primary \)\?[0-9]"
 
 function usage(){
   echo "Usage: monitor <internal|external> <on|off|toggle>"
