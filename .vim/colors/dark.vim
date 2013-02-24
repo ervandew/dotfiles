@@ -133,6 +133,10 @@ if &t_Co == 8
   hi PmenuSel     ctermfg=green  ctermbg=black  cterm=NONE
   hi PmenuSbar    ctermfg=gray   ctermbg=NONE   cterm=NONE
   hi CursorLineNr ctermfg=white  ctermbg=NONE   cterm=bold
+  hi DiffAdd      ctermfg=black  ctermbg=green  cterm=NONE
+  hi DiffDelete   ctermfg=white  ctermbg=red    cterm=NONE
+  hi DiffChange   ctermfg=white  ctermbg=blue   cterm=NONE
+  hi DiffText     ctermfg=black  ctermbg=gray   cterm=bold
   hi TabLineSel   ctermfg=white  ctermbg=NONE   cterm=bold
 endif
 " }}}
