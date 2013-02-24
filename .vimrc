@@ -111,15 +111,18 @@
         if tabpagenr() == n
           let dir = eclim#project#util#GetProjectRoot(project)
           try
-            " not using vcs#util#GetInfo() because vim calls this function too
-            " often (entering insert mode, scrolling started, etc) and getting
-            " calling hg branch in particular is slow enough to cause
-            " rendering issues in vim (phantom characters), but reading the
-            " branch file is nice and fast.
+            " don't perform any system calls in here because vim calls this
+            " function too often (entering insert mode, scrolling started,
+            " etc) and all kinds of oditities can crop up (rendering issues w/
+            " phantom characters, p starts behaving like P, other weird
+            " stuff). limiting external interaction to file reads seems to be
+            " safe so far.
             let type = vcs#util#GetVcsType()
             let branch = ''
             if type == 'git'
-              let branch = substitute(system('git rev-parse --abbrev-ref HEAD'), '\n$', '', '')
+              let dotgit = finddir('.git', escape(getcwd(), ' ') . ';')
+              let lines = readfile(dotgit . '/HEAD')
+              let branch = len(lines) > 0 ? substitute(lines[0], 'ref: refs/heads/', '', '') : ''
             elseif type == 'hg'
               let dothg = finddir('.hg', escape(getcwd(), ' ') . ';')
               let lines = readfile(dothg . '/branch')
