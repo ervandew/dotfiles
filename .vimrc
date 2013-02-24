@@ -245,13 +245,41 @@
   " preserve the " register when pasting over a visual selection
   xnoremap p <esc>:let reg = @"<cr>gvp:let @" = reg<cr>
 
-  " virtualedit mappings
-  function! s:VirtualEditEOLExpr()
-    return virtcol('.') > col('$') ? '$' : ''
+  " virtualedit mappings to start insert no farther than the end of the actual
+  " line
+  function! s:VirtualEditEOLExpr(keys)
+    " when starting insert on an empty line, start it at the correct indent
+    if !len(getline('.')) && line('$') != 1
+      " gross hack to temporarily set lazy redraw so the text doesn't shift
+      " around when deleting the line, then using O to start a new one at the
+      " correct indentation.
+      set lz
+      augroup temp_lz
+        autocmd!
+        autocmd CursorHold,CursorHoldI,InsertLeave <buffer> set nolz | autocmd! temp_lz
+      augroup END
+      return line('.') == line('$') ? "ddo" : "ddO"
+    endif
+    return (virtcol('.') > col('$') ? '$' : '') . a:keys
   endfunction
-  nnoremap <expr> a <SID>VirtualEditEOLExpr() . 'a'
-  nnoremap <expr> i <SID>VirtualEditEOLExpr() . 'i'
-  nnoremap <expr> p <SID>VirtualEditEOLExpr() . '"' . v:register . 'p'
+  nnoremap <expr> <silent> a <SID>VirtualEditEOLExpr('a')
+  nnoremap <expr> <silent> i <SID>VirtualEditEOLExpr('i')
+
+  " we only really need this command for its '-count=1' so that the paste
+  " mapping below can accept a count and the yank mapping can take a range.
+  command! -count=1 VirtualEditDisable set ve=
+  " temporarily disable virtual edit when pasting/yanking to avoid behavior of
+  " paste/yank in virtualedit mode (pasting past the end of the line, trailing
+  " spaces on yank, etc).
+  nnoremap <expr> <silent> p
+    \ ':VirtualEditDisable<cr>' .
+    \ (v:count ? v:count : '') . (v:register != '"' ? '"' . v:register : '') . 'p' .
+    \ ':set ve=all<cr>'
+  xnoremap <expr> <silent> y
+    \ ':VirtualEditDisable<cr>' .
+    \ 'gv' . (v:register != '"' ? '"' . v:register : '') . 'y' .
+    \ ':set ve=all<cr>'
+
 " }}}
 
 " commands {{{
