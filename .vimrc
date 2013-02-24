@@ -231,28 +231,6 @@
   nnoremap <silent> g0 :tabfirst<cr>
   nnoremap <silent> g$ :tablast<cr>
 
-  " alternative to :bd which won't close the current tab if deleting the last
-  " buffer on that tab
-  nnoremap <silent> <leader>bd :call <SID>BufferDelete()<cr>
-  function! s:BufferDelete()
-    let bufnr = bufnr('%')
-    let prevent = winnr('$') == 1 && !&modified
-    if prevent
-      new
-    endif
-    " vim doesn't seem to fire BufDelete if we run :bdelete here, so feed the
-    " keys instead so we don't break plugins that rely on BufDelete hooks
-    call feedkeys(":bd " . bufnr . "\<cr>\<c-l>", 'nt')
-    " try loading a hidden buffer from the current tab using eclim if
-    " available
-    if prevent
-      try
-        call eclim#common#buffers#OpenNextHiddenTabBuffer(bufnr)
-      catch /E117/
-      endtry
-    endif
-  endfunction
-
   " gF is the same as gf + supports jumping to line number (file:100)
   nnoremap gf gF
   " map gF now to be the new window version of original gf
@@ -277,6 +255,29 @@
 " }}}
 
 " commands {{{
+  " replace :bd with version which won't close the current tab if deleting the
+  " last buffer on that tab
+  cabbrev <expr> bd getcmdtype() == ':' && getcmdpos() == 3 ? 'BD' : 'bd'
+  command! -bang BD :call <SID>BufferDelete('<bang>')
+  function! s:BufferDelete(bang)
+    let bufnr = bufnr('%')
+    let prevent = winnr('$') == 1 && !&modified
+    if prevent
+      new
+    endif
+    " vim doesn't seem to fire BufDelete if we run :bdelete here, so feed the
+    " keys instead so we don't break plugins that rely on BufDelete hooks
+    call feedkeys(":bd" . a:bang . " " . bufnr . "\<cr>", 'nt')
+    " try loading a hidden buffer from the current tab using eclim if
+    " available
+    if prevent
+      try
+        call eclim#common#buffers#OpenNextHiddenTabBuffer(bufnr)
+      catch /E117/
+      endtry
+    endif
+  endfunction
+
   " print the syntax name applied to the text under the cursor.
   command! -nargs=0 Syntax
     \ echohl Statement |
