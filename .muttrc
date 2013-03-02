@@ -35,7 +35,7 @@ set reply_regexp = "^(([Rr][Ee]?(\[[0-9]+\])?: *)?(\[[^]]+\] *)?)*"
 set signature="echo eric|"
 
 auto_view text/html
-alternative_order text/plain
+alternative_order text/plain text/enriched text/html
 
 # This starts all threads collapsed (and may collapse them when not in use)
 folder-hook . exec collapse-all
@@ -57,6 +57,14 @@ bind index \# sync-mailbox
 bind editor <Tab> complete-query
 bind editor ^T complete
 
+# use a graphical browser configured via mailcap like so:
+#  # bound as <return> on attachments view in mutt
+#  text/html;firefox %s &; test=test -n "$DISPLAY"; needsterminal;
+#  # default command for mutt to use when viewing html emails w/ no text version
+#  text/html;w3m -I %{charset} -T text/html; copiousoutput;
+bind attach <return> view-mailcap
+
+# default saving of attachments to ~/downloads
 macro attach s <save-entry><bol>~/downloads/<eol>
 
 # key bindings / macros for use with offlineimap {{{

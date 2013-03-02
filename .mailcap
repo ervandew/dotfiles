@@ -14,29 +14,32 @@
 ###
 
 # images
-image/bmp;geeqie %s
-image/gif;geeqie %s
-image/ilbm;geeqie %s
-image/jpg;geeqie %s
-image/jpeg;geeqie %s
-image/png;geeqie %s
-image/tiff;geeqie %s
-image/x-png;geeqie %s
-image/x-ilbm;geeqie %s
+image/bmp;feh %s
+image/gif;feh %s
+image/ilbm;feh %s
+image/jpg;feh %s
+image/jpeg;feh %s
+image/png;feh %s
+image/tiff;feh %s
+image/x-png;feh %s
+image/x-ilbm;feh %s
 image/vnd.adobe.photoshop;psdview %s
-image/pdf;evince %s
 
 # text, html, xml
 text/plain;vim %s
 text/xml;vim %s
-text/html;elinks -dump %s; copiousoutput; nametemplate=%s.html
-#text/html;firefox %s; nametemplate=%s.html
-application/rtf;abiword %s
+
+# bound as <return> on attachments view in mutt
+text/html;firefox %s &; test=test -n "$DISPLAY"; needsterminal;
+# default command for mutt to use when viewing html emails w/ no text version
+text/html;w3m -I %{charset} -T text/html; copiousoutput;
 
 # pdf
 application/pdf;evince %s
+image/pdf;evince %s
 
 # word, excel
+application/rtf;abiword %s
 application/msword;abiword %s
 #application/vnd.openxmlformats-officedocument.wordprocessingml.document;abiword %s # .docx
 application/excel;gnumeric %s; copiousoutput; nametemplate=%s.xls
