@@ -77,7 +77,10 @@ function runmysql() {
 
   # execute mysql normally with any user supplied args
   if [ -n "$IS_PRODUCTION" -a -e "$(which rlwrap 2> /dev/null)" ] ; then
-    rlwrap -a --prompt-colour='1;31' mysql --prompt "$instance> " "$@"
+    rlwrap \
+      -a'Enter password:' \
+      --prompt-colour='1;31' \
+      mysql --prompt "$instance> " "$@"
   else
     runclient mysql mysql --prompt "$instance> " "$@"
   fi
