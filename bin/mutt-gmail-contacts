@@ -1,0 +1,65 @@
+#!/bin/bash
+
+##
+# Script to wrap googlecl to provide contact completion for mutt.
+#
+# Googlecl only permits querying on the contact name, so this script will grab
+# all contacts from google and filter locally.
+#
+# Mutt config usage:
+#  set query_command="~/bin/mutt-gmail-contacts me@domain.com '%s'"
+#
+# Note: to initialize authenticating with google, run a googlecl command once
+# from the command line and follow the instructions to authorize it:
+#   $ google -u me@domain.com contacts list-groups
+##
+
+function usage() {
+  echo "Usage: mutt-gmail-contacts <account_email> <query_string>"
+}
+
+if [ $# -lt 1 -o $# -gt 2 ] ; then
+  usage
+  exit 1
+fi
+
+# hopefully at some point we can let google filter for us.
+#results=$(google -u $1 contacts list --delimiter=' <' --fields=name,email "(?i).*$2")
+results=$(
+  google -u $1 contacts list --delimiter=' <' --fields=name,email --title= |
+  grep -i "$2"
+)
+
+echo # mutt ignores the first line of the output
+IFS=$'\n'
+for result in $results ; do
+  result="$result>"
+
+  # skip results with no email address
+  if [[ $result =~ \<None\> ]] ; then
+    continue
+  fi
+
+  name=$(echo $result | sed 's|\(.*\) <.*|\1|')
+  email=$(echo $result | sed 's|.* <\(.*\)>|\1|')
+
+  # create a line per email if the result contains multi email addresses
+  if [[ $result =~ \<.*,' ' ]] ; then
+    IFS=$','
+    emails=$email
+    for email in $emails ; do
+      email=$(echo $email | sed 's|\s*\w\+\s||')
+      if [ "$name" == "None" ] ; then
+        echo "$email <$email>"
+      else
+        echo "$name <$email>"
+      fi
+    done
+    IFS=$'\n'
+  else
+    if [ "$name" == "None" ] ; then
+      name=$email
+    fi
+    echo "$name <$email>"
+  fi
+done
