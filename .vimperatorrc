@@ -134,13 +134,14 @@ au VimperatorLeavePre .* js try{ var file = Components.classes["@mozilla.org/fil
 
 " Highlight {{{
 
+style * #liberator-statusline { font-size: 12px; font-family: terminus; }
+
 highlight ContentSeparator border-top: 1px solid #444;
 
 highlight Normal background-color: #222; color: #dadada;
 
 highlight CmdLine background-color: #222; color: #dadada;
-highlight CmdLine>* font-size: 12px; font-family: terminus;
-highlight StatusLine color: #cccccc; font-weight: normal; font-size: 12px; font-family: terminus;
+highlight StatusLine color: #cccccc; font-weight: normal;
 highlight LineNr color: orange;
 
 highlight CompDesc font-size: 10px;
