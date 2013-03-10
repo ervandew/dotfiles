@@ -35,8 +35,8 @@ text/html;firefox %s &; test=test -n "$DISPLAY"; needsterminal;
 text/html;w3m -I %{charset} -T text/html; copiousoutput;
 
 # pdf
-application/pdf;evince %s
-image/pdf;evince %s
+application/pdf;apvlv %s
+image/pdf;apvlv %s
 
 # word, excel
 application/rtf;abiword %s
