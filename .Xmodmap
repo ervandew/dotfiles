@@ -20,8 +20,12 @@ keycode 102 = Mode_switch
 ! Mode_switch + k: Up
 ! Mode_switch + l: Right
 ! Mode_switch + Backspace: Delete
+! Mode_switch + 4: End
+! Mode_switch + 0: Home
 keycode 43 = h H Left
 keycode 44 = j J Down
 keycode 45 = k K Up
 keycode 46 = l L Right
 keycode 22 = BackSpace BackSpace Delete
+keycode 13 = 4 dollar End
+keycode 19 = 0 parenright Home
