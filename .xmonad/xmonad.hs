@@ -32,17 +32,22 @@ import Data.Ratio
 import System.IO
 
 myLayout = avoidStrutsOn[U] $
-    onWorkspace "2:im/mail"  (named "StackTwo" stackTwo ||| named "Tabbed" tabs) $
+    onWorkspace "2:im/mail"  (
+      named "StackTwoByOne" stackTwoByOne |||
+      named "Tiled" tiled |||
+      named "Tabbed" tabs) $
     onWorkspace "3:media"    (named "Tabbed" tabs) $
     onWorkspace "4:vbox"     Full $
     onWorkspace "5:misc"     (named "Tabbed" tabs) $
     onWorkspace "6:misc"     (named "Tabbed" tabs) $
     named "Accordian/Full"   accordianFull |||
     named "Tiled"            tiled |||
+    named "StackTwo"         stackTwo |||
     named "Tabbed"           tabs
   where
     accordianFull = (combineTwo (TwoPane (3/100) (1/2)) (Accordion) (Full))
-    stackTwo      = (combineTwo (StackTile 1 (3/100) (1/2)) (TwoPane (3/100) (1/2)) (Full))
+    stackTwo      = (combineTwo (StackTile 1 (3/100) (1/2)) (Full) (Full))
+    stackTwoByOne = (combineTwo (StackTile 1 (3/100) (1/2)) (TwoPane (3/100) (1/2)) (Full))
     tabs          = reflectHoriz $ tabbed shrinkText myTabConfig
     tiled         = reflectHoriz $ Tall 1 (3/100) (1/2)
     myTabConfig = defaultTheme {
