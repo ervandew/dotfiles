@@ -6,6 +6,7 @@ merge=vimdiff
 commit=-v
 log=-f
 pull=-v
+push=-b .
 qnew=-e
 revert=--no-backup
 update=-v
