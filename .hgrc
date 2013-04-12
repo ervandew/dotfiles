@@ -28,6 +28,7 @@ pager=
 parentrevspec=
 rebase=
 record=
+transplant=
 hgshelve=
 
 [alias]
@@ -43,6 +44,7 @@ sin=!hg in --template "{rev}:{node|short}: {date|age} by {author} {desc|firstlin
 fin=!hg in --style=$HOME/.hgflog $@
 qstatus=status --rev qparent:qtip
 qst=status --rev qparent:qtip
+contains=!hg log -r "descendants($1) and head()"
 
 [color]
 status.modified=blue
