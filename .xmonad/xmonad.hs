@@ -47,7 +47,9 @@ myLayout = avoidStrutsOn[U] $
   where
     accordianFull = (combineTwo (TwoPane (3/100) (1/2)) (Accordion) (Full))
     stackTwo      = (combineTwo (StackTile 1 (3/100) (1/2)) (Full) (Full))
-    stackTwoByOne = (combineTwo (StackTile 1 (3/100) (1/2)) (TwoPane (3/100) (1/2)) (Full))
+    stackTwoByOne = reflectVert $ (combineTwo
+        (StackTile 1 (3/100) (1/2))
+        (TwoPane (3/100) (1/2)) (Full))
     tabs          = reflectHoriz $ tabbed shrinkText myTabConfig
     tiled         = reflectHoriz $ Tall 1 (3/100) (1/2)
     myTabConfig = defaultTheme {
