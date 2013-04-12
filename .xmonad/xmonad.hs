@@ -37,7 +37,7 @@ myLayout = avoidStrutsOn[U] $
       named "Tiled" tiled |||
       named "Tabbed" tabs) $
     onWorkspace "3:media"    (named "Tabbed" tabs) $
-    onWorkspace "4:vbox"     Full $
+    onWorkspace "4:vm"       Full $
     onWorkspace "5:misc"     (named "Tabbed" tabs) $
     onWorkspace "6:misc"     (named "Tabbed" tabs) $
     named "Accordian/Full"   accordianFull |||
@@ -80,7 +80,8 @@ myManageHook = composeAll [
     name      =? "mutt"            --> viewShift "2:im/mail",
     name      =? "player"          --> viewShift "3:media",
     className =? "Gimp"            --> viewShift "3:media",
-    className =? "VirtualBox"      --> viewShift "4:vbox",
+    name      =? "QEMU"            --> viewShift "4:vm",
+    className =? "VirtualBox"      --> viewShift "4:vm",
     -- gimp insists on floating, so prevent that.
     role =? "gimp-image-window"    --> ask >>= doF . W.sink
   ] <+> manageScratchPad
@@ -101,7 +102,7 @@ myXPConfig = defaultXPConfig {
   historyFilter = deleteAllDuplicates}
 
 myTerminal = "urxvt"
-myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vbox", "5:misc", "6:misc"]
+myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm", "5:misc", "6:misc"]
 
 noScratchPad ws = if ws == "NSP" then "" else ws
 
