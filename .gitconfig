@@ -5,7 +5,7 @@
 [alias]
   br = branch
   co = checkout
-  ci = commit-abs -e
+  ci = !git -c status.relativePaths=false commit -e
   cp = cherry-pick
   st = status -sb
   ls = ls-files
