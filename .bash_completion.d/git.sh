@@ -20,15 +20,11 @@ __git_aliased_command() {
       echo "log"
       return
       ;;
-    codb)
-      echo "branch"
-      return
-      ;;
     dbranch | mergein | rebasesafe)
       echo "branch"
       return
       ;;
-    ghcompare)
+    ghcompare | glcompare | glpullrequest)
       echo "branch"
       return
       ;;
