@@ -152,7 +152,7 @@
 
   alias envmin="~/bin/envmin ~/.envmin/envmin.txt"
 
-  alias whatismyip="curl -s http://www.whatismyip.org; echo ''"
+  alias whatismyip="wget -qnv -O - http://checkip.dyndns.org/ | grep -oP '\d+\.\d+\.\d+\.\d+'"
   alias wireless="sudo -E ~/bin/wireless"
   alias openvpn="sudo -E ~/bin/openvpn"
   alias ppp="sudo -E ~/bin/ppp"
