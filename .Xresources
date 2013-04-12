@@ -81,8 +81,8 @@ xterm*boldFont: -misc-fixed-bold-r-normal--13-120-*-*-c-80-*-*
 ! rxvt-unicode extensions {{{
 
 ! configure perl extensions
-URxvt*perl-lib: /home/ervandew/projects/urxvt-vim-scrollback
-URxvt*perl-ext-common: vim-scrollback
+URxvt*perl-lib: /home/ervandew/.urxvt
+URxvt*perl-ext-common: url-select,vim-scrollback
 
 ! used by matcher and vim-scrollback
 URxvt*urlLauncher: xdg-open
@@ -90,6 +90,10 @@ URxvt*urlLauncher: xdg-open
 ! configure matcher
 !URxvt.matcher.rend.0: fg6 Bold
 URxvt.matcher.rend.0: fg6
+
+! configure url-select
+URxvt.url-select: Mod1-o
+URxvt.url-select.launcher: xdg-open
 
 ! configure vim-scrollback
 URxvt.vim-scrollback: Mod1-s
