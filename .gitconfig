@@ -84,10 +84,13 @@
 
   # opens up the github url comparing the current branch against master or the
   # optionally supplied branch.
-  ghcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"http://github.com/$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@github.com:\\(.*\\)\\.git .*|\\1|')/compare/$B...$(git brname)\"; }; f"
+  ghcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://github.com/$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@github.com:\\(.*\\)\\.git .*|\\1|')/compare/$B...$(git brname)\"; }; f"
 
   # adds a new github remote based on the supplied username.
   ghremoteadd = "!f() { R=$1; if [ -z \"$R\" ] ; then echo 'abort: remote user name required' ; else git remote add $1 git://$(git remote -v | grep '^origin\\>.*(push)' | sed \"s|.*@\\(github.com\\):.*\\?\\(/.*\\.git\\) .*|\\1/$1\\2|\") && git fetch $1; fi; }; f"
+
+  glcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@\\(.*\\):\\(.*\\)\\.git .*|\\1/\\2|')/compare/$B...$(git brname)\"; }; f"
+  glpullrequest = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@\\(.*\\):\\(.*\\)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$(git brname)&merge_request[target_branch]=$B\"; }; f"
 
 [branch]
   autosetupmerge = true
