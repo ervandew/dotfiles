@@ -60,11 +60,11 @@
   dlog = "!f() { R=HEAD; if [ -n \"$(echo $1 | grep \"^[a-zA-Z0-9]\\+$\")\" ] ; then R=$1; shift; fi; git log -1 -p $R \"$@\"; }; f"
 
   # log commits that differ between the current branch and the supplied target
-  blog = "!f() { B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; if [ -z \"$1\" ] ; then B2=master; else B2=$1; fi; echo \"$B1...$B2\"; echo \"  < $B1\"; echo \"  > $B2\"; git log --pretty=tformat:'%m %h %Cblue%ar%Creset %an %Cgreen%s%Creset' $B1...$B2; }; f"
-  # log commits that found in the target branch that are not in the current branch
-  blogin = "!f() { B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; if [ -z \"$1\" ] ; then B2=master; else B2=$1; fi; echo \"$B1...$B2\"; git log --pretty=tformat:'  %h %Cblue%ar%Creset %an %Cgreen%s%Creset' --right-only $B1...$B2; }; f"
-  # log commits that found in the current branch that are not in the target branch
-  blogout = "!f() { B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; if [ -z \"$1\" ] ; then B2=master; else B2=$1; fi; echo \"$B1...$B2\"; git log --pretty=tformat:'  %h %Cblue%ar%Creset %an %Cgreen%s%Creset' --left-only $B1...$B2; }; f"
+  blog = "!f() { ARGS=\"\"; while [[ \"$1\" =~ ^- ]] ; do ARGS=\"$ARGS $1\"; shift; done; B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; if [ -z \"$1\" ] ; then B2=master; else B2=$1; fi; echo \"$B1...$B2\"; echo \"  < $B1\"; echo \"  > $B2\"; git log $ARGS --pretty=tformat:'%m %h %Cblue%ar%Creset %an %Cgreen%s%Creset' $B1...$B2; }; f"
+  # log commits that are found in the target branch that are not in the current branch
+  blogin = !git blog --right-only
+  # log commits that are found in the current branch that are not in the target branch
+  blogout = !git blog --left-only
 
   in = !git slog ..origin/$(git brname)
   din = !git log -p ..origin/$(git brname)
