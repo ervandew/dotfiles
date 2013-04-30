@@ -15,8 +15,6 @@ function _player() {
     fi
   done
 
-  echo "current = $current"
-
   # no current player, default to last one in the list
   if [ -z "$current" ] ; then
     _$player $1
@@ -38,7 +36,7 @@ function _mpc() {
     return $?
   fi
 
-  /usr/bin/mpc -q $1
+  /usr/bin/mpc -q $1 2> /dev/null
 }
 
 function _mocp() {
