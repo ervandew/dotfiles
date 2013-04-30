@@ -8,7 +8,7 @@
 #  15% - sends a critical error message
 #
 # Intented to be executed from cron or similar.
-# Here is an example cron entry to heck every 10 minutes:
+# Here is an example cron entry to check every 10 minutes:
 #
 #   */10 * * * * $HOME/bin/batterycheck
 ##
