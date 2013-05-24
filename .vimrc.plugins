@@ -1,7 +1,7 @@
 " Author: Eric Van Dewoestine
 
-call pathogen#runtime_append_all_bundles()
-call pathogen#runtime_prepend_subdirectories('~/projects/vim')
+call pathogen#infect()
+call pathogen#infect('~/projects/vim/{}')
 call pathogen#helptags()
 
 runtime macros/matchit.vim
@@ -129,7 +129,7 @@ runtime macros/matchit.vim
     function! s:NavigateDownWindow()
       let winnr = winnr()
       call maximize#NavigateWindows('winc j')
-      if exists('g:ScreenShellBootstrapped') && winnr() == winnr
+      if exists('g:ScreenShellFocus') && winnr() == winnr
         call g:ScreenShellFocus()
       endif
     endfunction
@@ -160,7 +160,6 @@ runtime macros/matchit.vim
 " }}}
 
 " screen.vim {{{
-  let g:ScreenImpl = 'Tmux'
   vmap <silent> <leader>s :ScreenSend<cr>
 " }}}
 
