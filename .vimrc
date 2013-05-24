@@ -168,6 +168,14 @@
   nnoremap <silent> <tab>l :winc l<cr>
   nnoremap <silent> <tab>h :winc h<cr>
   nnoremap <silent> <tab>m :winc x<cr>
+  nnoremap <silent> <tab>j :call <SID>NavigateDownWindow()<cr>
+  function! s:NavigateDownWindow()
+    let winnr = winnr()
+    winc j
+    if exists('g:ScreenShellFocus') && winnr() == winnr
+      call g:ScreenShellFocus()
+    endif
+  endfunction
 
   " back tick works like single quote for jumping to a mark, but restores the
   " column position too.
