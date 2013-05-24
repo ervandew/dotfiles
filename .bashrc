@@ -116,6 +116,16 @@
   alias cd-="cd -"
   alias cd..="cd .."
 
+  # make dirs, then cd into it.
+  function mcd() {
+    # run in a subshell to prevent preexec from polluting $_
+    args=$(printf " %q" "$@")
+    dir=$(bash -c "mkdir $args && echo \$_")
+    if [ -n "$dir" ] ; then
+      cd $dir
+    fi
+  }
+
   # system aliases
   alias cp="cp -i"
   alias ls="ls --color"
