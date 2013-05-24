@@ -1,3 +1,8 @@
+##
+# Note: OSX users will need to install gnused and change all sed references in
+# the aliases below to 'gsed'.
+##
+
 [user]
   name = ervandew
   email = ervandew@gmail.com
@@ -32,10 +37,10 @@
   orebase = "!f() { B=$(git brname); git rebasesafe origin/$B; if [ $? -ne 0 ] ; then echo \"abort: Preventing conflicting rebase\"; return; fi; git rebase \"$@\" origin/${B}; }; f"
 
   rprune = remote prune origin
-  dbranch = "!f() { B=$1; git br -d ${B} && git push origin :heads/${B}; }; f"
+  dbranch = "!f() { B=$1; git br -d ${B} && if [ -n \"$(git remote)\" ] ; then git push origin :heads/${B}; fi; }; f"
 
   # perform a fetch only if the current FETCH_HEAD is 60 or more minutes old.
-  lfetch = "!f() { T=$((($(date +%s) - $((ls -l --time-style=+%s .git/FETCH_HEAD 2> /dev/null || echo 0) | cut -d ' ' -f6)) / 60)); if [ $T -ge 60 ] ; then git fetch; fi; }; f"
+  lfetch = "!f() { if [ -z \"$(git remote)\" ] ; then return; fi; T=$((($(date +%s) - $((ls -l --time-style=+%s .git/FETCH_HEAD 2> /dev/null || echo 0) | cut -d ' ' -f6)) / 60)); if [ $T -ge 60 ] ; then git fetch; fi; }; f"
 
   # $ git rebasesafe <rebase_with>
   #   checks if any other branches contain the same commits that would be
@@ -52,7 +57,7 @@
   #   - display a prompt to push the changes to the origin
   #   - finally display a prompt to delete the now merged in branch locally
   #     and from the origin.
-  mergein = "!f() { if [ -z \"$1\" ] ; then echo \"abort: Name of the branch to merge into this branch is required.\"; return; fi; B=$(git brname); I=$1; git co $I; git rebasesafe $B; if [ $? -ne 0 ] ; then echo \"abort: Preventing conflicting rebase\"; git co $B; return; fi; git rebase $B; if [ $? -ne 0 ] ; then return; fi; git rebase -i $B; read -p \"Continue to merge $(git brname) into $B) (y/n)? \"; if [ \"$REPLY\" != \"y\" ] ; then return; fi; git co $B; git merge $I; git out; read -p \"Push to origin (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git push; fi; read -p \"Delete branch $I (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git dbranch $I; fi; }; f"
+  mergein = "!f() { if [ -z \"$1\" ] ; then echo \"abort: Name of the branch to merge into this branch is required.\"; return; fi; B=$(git brname); I=$1; if [ \"$B\" == \"$I\" ] ; then echo \"abort: Attempting to merge $B into itself.\"; return; fi; git co $I; git rebasesafe $B; if [ $? -ne 0 ] ; then echo \"abort: Preventing conflicting rebase\"; git co $B; return; fi; git rebase $B; if [ $? -ne 0 ] ; then return; fi; git rebase -i $B; if [ \"$(git brname)\" == \"HEAD\" ] ; then return; fi; read -p \"Continue to merge $(git brname) into $B) (y/n)? \"; if [ \"$REPLY\" != \"y\" ] ; then return; fi; git co $B; git merge $I; if [ -n \"$(git remote)\" ] ; then git out; read -p \"Push to origin (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git push; fi; fi; read -p \"Delete branch $I (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git dbranch $I; fi; }; f"
 
   slog = log --pretty=tformat:\"%h %Cblue%ar%Creset %an %Cred%d%Creset %Cgreen%s%Creset\"
   flog = log -1 --name-status
@@ -89,6 +94,7 @@
   # adds a new github remote based on the supplied username.
   ghremoteadd = "!f() { R=$1; if [ -z \"$R\" ] ; then echo 'abort: remote user name required' ; else git remote add $1 git://$(git remote -v | grep '^origin\\>.*(push)' | sed \"s|.*@\\(github.com\\):.*\\?\\(/.*\\.git\\) .*|\\1/$1\\2|\") && git fetch $1; fi; }; f"
 
+  # aliases for working with gitlab
   glcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@\\(.*\\):\\(.*\\)\\.git .*|\\1/\\2|')/compare/$B...$(git brname)\"; }; f"
   glpullrequest = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@\\(.*\\):\\(.*\\)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$(git brname)&merge_request[target_branch]=$B\"; }; f"
 
@@ -126,3 +132,6 @@
 
 [rerere]
   enabled = true
+
+[tig "color"]
+  cursor = default color236 bold
