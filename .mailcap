@@ -28,6 +28,10 @@ image/vnd.adobe.photoshop;psdview %s
 # text, html, xml
 text/plain;vim %s
 text/xml;vim %s
+text/x-diff;vim %s
+
+# miscellaneous file types can end up as this (md/markdown is one)
+application/octet-stream;vim %s
 
 # bound as <return> on attachments view in mutt
 text/html;firefox %s &; test=test -n "$DISPLAY"; needsterminal;
