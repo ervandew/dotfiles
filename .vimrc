@@ -59,8 +59,12 @@
   set wrap             " wrap text
 
   set statusline=%<%f%{FF()}\ %M\ %h%r%=%-10.(%l,%c%V\ b=%n,w=%{winnr()}%)\ %P
-  " show in the status line if the file is in dos format.
+  " show in the status line if the file is in dos format (handle quickfix title
+  " here as well).
   function! FF()
+    if &ft == 'qf'
+      return exists('w:quickfix_title') ? ' ' . w:quickfix_title : ''
+    endif
     return &ff == 'unix'  ?  ''  :  ' [' . &ff . ']'
   endfunction
 
