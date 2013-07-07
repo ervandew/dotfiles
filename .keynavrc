@@ -1,24 +1,20 @@
 clear
 
-alt+semicolon start
+alt+semicolon start, windowzoom
+alt+shift+semicolon start
 Escape end
-
-# windowzoom doesn't work with xmonad + results in keynav exiting
-#alt+shift+semicolon start, windowzoom
-#w windowzoom
 
 h cut-left
 j cut-down
 k cut-up
 l cut-right
-
 u history-back
 
 # diagonal
-y cut-left,cut-up
-o cut-right,cut-up
-n cut-left,cut-down
-period cut-right,cut-down
+y cut-left, cut-up
+o cut-right, cut-up
+n cut-left, cut-down
+period cut-right, cut-down
 
 shift+h move-left 10
 shift+j move-down 10
