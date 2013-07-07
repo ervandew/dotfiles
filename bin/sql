@@ -196,6 +196,11 @@ function runscript() {
     fi
 
     if [ -n "$SQL_FILE" ] ; then
+      if [ -n "$IS_PRODUCTION" ] ; then
+        echo "Preventing running of script against db marked in PRODUCTION."
+        exit 1;
+      fi
+
       echo "Running sql file: $1"
       shift
       CAT=cat
