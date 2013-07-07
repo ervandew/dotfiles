@@ -232,8 +232,14 @@ function runchoice() {
   if [[ "$CONNECTION" =~ \<password:.*\> ]] ; then
     key=$(echo "$CONNECTION" | sed 's|.*<password:\(.*\?\)>.*|\1|')
     pass=$(keyring get $key 2> /dev/null)
+
+    # try again, ignoring virtualenv path
+    if [ -n "$VIRTUAL_ENV" -a -z "$path" ] ; then
+      pass=$(PATH=$(echo $VIRTUAL_PATH | sed "s|$VIRTUAL_ENV/bin:||") keyring get $key 2> /dev/null)
+    fi
+
     if [ -z "$pass" ] ; then
-      echo "abort: unabled to find password for key: $key"
+      echo "abort: unable to find password for key: $key"
       exit 1;
     fi
     CONNECTION=$(echo "$CONNECTION" | sed "s|<password:\(.*\?\)>|$pass|")
