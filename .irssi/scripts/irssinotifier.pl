@@ -111,13 +111,19 @@ sub should_send_notification {
     my $ignored_servers_string = Irssi::settings_get_str("irssinotifier_ignored_servers");
     if ($ignored_servers_string) {
         my @ignored_servers = split(/ /, $ignored_servers_string);
-        my $server;
-
-        foreach $server (@ignored_servers) {
-            if (lc($server) eq lc($lastServer->{tag})) {
-                return 0; # ignored server
-            }
+        if (grep { lc($lastServer->{tag}) =~ /$_/i } @ignored_servers) {
+            return 0; # Ignored server
         }
+
+        # EV: Using the above logic instead so that I can ignore servers using
+        # regex patterns like 'xmpp:.*@gmail.com' to ignore gtalk messages that
+        # I already receive notifications for.
+        #my $server;
+        #foreach $server (@ignored_servers) {
+        #    if (lc($server) eq lc($lastServer->{tag})) {
+        #        return 0; # ignored server
+        #    }
+        #}
     }
 
     my $ignored_channels_string = Irssi::settings_get_str("irssinotifier_ignored_channels");

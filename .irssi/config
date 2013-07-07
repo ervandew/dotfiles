@@ -17,6 +17,7 @@ settings = {
     awl_display_key_active = "[%N$N|$H$C$S]";
     neat_maxlength = "10";
     neat_colors = "rRgGyYmMcC";
+    irssinotifier_ignored_servers = "xmpp:.*@gmail.com";
   };
   "fe-common/xmpp" = { xmpp_strip_resource = "yes"; };
 };
