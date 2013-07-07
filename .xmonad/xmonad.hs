@@ -77,15 +77,15 @@ avoidMaster = W.modify' $ \c -> case c of
     otherwise           -> c
 
 myManageHook = composeAll [
-    currentWs =? "1:main"          --> doF avoidMaster,
-    name      =? "irssi"           --> viewShift "2:im/mail",
-    name      =? "mutt"            --> viewShift "2:im/mail",
-    name      =? "player"          --> viewShift "3:media",
-    className =? "Gimp"            --> viewShift "3:media",
-    name      =? "QEMU"            --> viewShift "4:vm",
-    className =? "VirtualBox"      --> viewShift "4:vm",
+    currentWs =? "1:main"             --> doF avoidMaster,
+    name      =? "irssi"              --> viewShift "2:im/mail",
+    name      =? "mutt"               --> viewShift "2:im/mail",
+    name      =? "player"             --> viewShift "3:media",
+    className =? "Gimp"               --> viewShift "3:media",
+    className =? "qemu-system-x86_64" --> viewShift "4:vm",
+    className =? "VirtualBox"         --> viewShift "4:vm",
     -- gimp insists on floating, so prevent that.
-    role =? "gimp-image-window"    --> ask >>= doF . W.sink
+    role =? "gimp-image-window"       --> ask >>= doF . W.sink
   ] <+> manageScratchPad
   where
     name = stringProperty "WM_NAME"
