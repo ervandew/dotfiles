@@ -96,7 +96,7 @@
 
   # aliases for working with gitlab
   glcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@\\(.*\\):\\(.*\\)\\.git .*|\\1/\\2|')/compare/$B...$(git brname)\"; }; f"
-  glpullrequest = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@\\(.*\\):\\(.*\\)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$(git brname)&merge_request[target_branch]=$B\"; }; f"
+  glpullrequest = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; A=$(git brname); xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@\\(.*\\):\\(.*\\)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
 
 [branch]
   autosetupmerge = true
