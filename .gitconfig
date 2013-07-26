@@ -1,8 +1,3 @@
-##
-# Note: OSX users will need to install gnused and change all sed references in
-# the aliases below to 'gsed'.
-##
-
 [user]
   name = ervandew
   email = ervandew@gmail.com
@@ -46,7 +41,7 @@
   #   checks if any other branches contain the same commits that would be
   #   rebased on the current branch if rebased with <rebase_with>.
   # Invoked by ~/.git-template/hooks/pre-rebase to ensure this check always occurs.
-  rebasesafe = "!f() { if [ -z \"$1\" ] ; then echo \"abort: Name of the branch that would be rebased with is required.\"; return; fi; B=$(git brname); A=$(git cherry -v $1); if [ $? -gt 0 ] ; then return ; fi; A=$(echo $A | sed 's/+ \\([a-f0-9]\\+\\) .*/--contains \\1/'); git lfetch; if [ -n \"$A\" ] ; then R=$(git branch -a $A | sed \"/\\<$B\\>/d\"); fi; if [ -z \"$R\" ] ; then echo \"No overlapping branches found.\"; else echo -e \"The following branches overlap, rebase not recommened:\n$R\"; return 1; fi; }; f"
+  rebasesafe = "!f() { if [ -z \"$1\" ] ; then echo \"abort: Name of the branch that would be rebased with is required.\"; return; fi; B=$(git brname); A=$(git cherry -v $1); if [ $? -gt 0 ] ; then return ; fi; A=$(echo $A | perl -pe 's|\\+ ([a-f0-9]+) .*|--contains \\1|'); git lfetch; if [ -n \"$A\" ] ; then R=$(git branch -a $A | perl -ne \"print unless /\\b$B\\b/\"); fi; if [ -z \"$R\" ] ; then echo \"No overlapping branches found.\"; else echo -e \"The following branches overlap, rebase not recommened:\n$R\"; return 1; fi; }; f"
 
   # $ git mergein <target branch>
   #   - rebase the target branch against the current branch (running rebasesafe
@@ -89,14 +84,14 @@
 
   # opens up the github url comparing the current branch against master or the
   # optionally supplied branch.
-  ghcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://github.com/$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@github.com:\\(.*\\)\\.git .*|\\1|')/compare/$B...$(git brname)\"; }; f"
+  ghcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://github.com/$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@github.com:(.*)\\.git .*|\\1|')/compare/$B...$(git brname)\"; }; f"
 
   # adds a new github remote based on the supplied username.
-  ghremoteadd = "!f() { R=$1; if [ -z \"$R\" ] ; then echo 'abort: remote user name required' ; else git remote add $1 git://$(git remote -v | grep '^origin\\>.*(push)' | sed \"s|.*@\\(github.com\\):.*\\?\\(/.*\\.git\\) .*|\\1/$1\\2|\") && git fetch $1; fi; }; f"
+  ghremoteadd = "!f() { R=$1; if [ -z \"$R\" ] ; then echo 'abort: remote user name required' ; else git remote add $1 git://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe \"s|.*@(github.com):.*?(/.*\\.git) .*|\\1/$1\\2|\") && git fetch $1; fi; }; f"
 
   # aliases for working with gitlab
-  glcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@\\(.*\\):\\(.*\\)\\.git .*|\\1/\\2|')/compare/$B...$(git brname)\"; }; f"
-  glpullrequest = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; A=$(git brname); xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | sed 's|.*@\\(.*\\):\\(.*\\)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
+  glcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/compare/$B...$(git brname)\"; }; f"
+  glpullrequest = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; A=$(git brname); xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
 
 [branch]
   autosetupmerge = true
