@@ -74,6 +74,7 @@ runtime macros/matchit.vim
   let g:TreeExternalShell = '!urxvt -title terminal &> /dev/null &'
   let g:TreeSettingsFunction = "TreeSettings"
   let g:TreeExpandSingleDirs = 1
+  let g:TreeIndent = 2
 
   function! TreeSettings()
     call eclim#tree#RegisterFileAction('.*\.doc$',
