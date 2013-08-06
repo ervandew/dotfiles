@@ -1,0 +1,1 @@
+${if_up IFACE}^i($HOME/.dzen/icons/ICON.xbm)^i($HOME/.dzen/icons/down.xbm)${downspeedf IFACE}k ^pa(230)^i($HOME/.dzen/icons/up.xbm)${upspeedf IFACE}k ^pa(280)${endif}
