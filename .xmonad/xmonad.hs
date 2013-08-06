@@ -109,7 +109,7 @@ myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm", "5:misc", "6:misc"]
 noScratchPad ws = if ws == "NSP" then "" else ws
 
 main = do
-  dzenXmonadBar <- spawnPipe "~/bin/dzen2 -wp 45 -ta l -h 16 -x 0 -y 0"
+  dzenXmonadBar <- spawnPipe "~/bin/dzen2 -wp 40 -ta l -h 16 -x 0 -y 0"
   spawn "xset -b"
   spawn "xset r rate 250 30"
   spawn "xsetroot -cursor_name left_ptr"
@@ -117,7 +117,7 @@ main = do
   spawn "xmodmap ~/.Xmodmap"
   spawn "xrdb -load ~/.Xresources"
   spawn "synclient HorizTwoFingerScroll=1"
-  spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 45 -wp 55 -h 16 -ta r &"
+  spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 40 -wp 60 -h 16 -ta r &"
   spawn "pkill dunst ; dunst -config ~/.dunstrc &"
   spawn "pkill keynav ; keynav &"
   spawn "pkill xcompmgr ; xcompmgr -c -r0 &"
