@@ -1,0 +1,110 @@
+#!/bin/bash
+
+##
+# Git utility to add the ability to create and use list indexes for use with
+# various git aliases.
+#
+# Installation:
+#   Put this script anywhere in your system's path.
+#
+# Usage:
+#   1. First create git aliases in your .gitconfig which create indexed lists:
+#      Ex.
+#         br = !git -c color.ui=always branch "$@" | git pick '^\\s+(.*)'
+#         st = !git -c color.ui=always status -sb | git pick '^\\s*[AMDR?]+\\s*(.*)'
+#      Those aliases pipe the branch list and status list to git-pick for it to
+#      parse and index. We force git to use colors even though the output is
+#      piped, so that we still retain the colors in the console output. The
+#      pattern supplied to 'git pick' is used to define how to pull items from
+#      the resulting output (or input from git pick's perspective). Notice that
+#      we use single quotes around the pattern and have to double escape the
+#      backslashes here to appease git's config parser.
+#   2. Once you have your list generating aliases, you can then create aliases
+#      which can act on those lists:
+#      Ex.
+#        co = pick checkout
+#        ad = pick add --all
+#        ...
+#      The first arg to the git pick command for these aliases must be a valid
+#      git command or alias along with any default args. With these aliases you
+#      can now supply either branch, path, etc names as usual, or you can
+#      supply one or more numbers (or a range like 2-5) corresponding to the
+#      index values pre-pended to the lines outputted by our 'br' and 'st'
+#      aliases found in step #1.
+##
+set -e
+
+IFS=$'\n'
+
+GITDIR=`git rev-parse --git-dir 2> /dev/null`
+GITPICK="$GITDIR/git-pick-list"
+
+function _list(){
+  IFS=''
+  count=0
+  ignore="^#"
+  pattern=$1
+  rm -f $GITPICK
+  while read -r line ; do
+    if [[ "$line" =~ $ignore ]] ; then
+      echo "     $line"
+      continue
+    fi
+
+    # remove terminal color codes
+    item=$(echo $line | perl -pe 's|\e\[\d*m||g')
+
+    if [ -n "$pattern" ] ; then
+      if [[ ! "$item" =~ $pattern ]] ; then
+        echo "     $line"
+        continue
+      fi
+      item=$(echo $item | perl -pe "s|$pattern|\\1|g")
+    fi
+
+    echo $item >> $GITPICK
+    printf "\e[38;5;239m[%2s]\e[0m %s\n" $count "$line"
+    count=$(($count + 1))
+  done
+}
+
+function _expand(){
+  files=()
+  if [ -f $GITPICK ] ; then
+    for line in $(cat $GITPICK) ; do
+      files+=($line)
+    done
+  fi
+
+  for arg in "$@" ; do
+    result=$arg
+    indexes=()
+    # individual index
+    if [[ $arg =~ ^[0-9]+$ ]] ; then
+      indexes=($arg)
+    # range
+    elif [[ $arg =~ ^[0-9]+-[0-9]+$ ]] ; then
+      indexes=($(seq ${arg%-*} ${arg#*-}))
+    fi
+
+    if [ ${#indexes[@]} -gt 0 ] ; then
+      for index in ${indexes[@]} ; do
+        result=${files[$index]}
+        if [ -z "$result" ] ; then
+          echo "git-pick: failed to resolve index: $index" 1>&2
+          exit 1
+        fi
+        printf "%s\n" "$result"
+      done
+    else
+      printf "%s\n" "$result"
+    fi
+  done
+}
+
+if [ -t 0 ] ; then
+  expanded=$(_expand "$@") || exit $?
+  git $expanded
+else
+  _list  "$@"
+fi
