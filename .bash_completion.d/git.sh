@@ -17,18 +17,31 @@ save_function __git_aliased_command __git_aliased_command_orig
 __git_aliased_command() {
   case "$1" in
     blog | blogin | blogout)
-      echo "log"
-      return
-      ;;
+      echo "log" ; return ;;
     dbranch | mergein | rebasesafe)
-      echo "branch"
-      return
-      ;;
+      echo "branch" ; return ;;
     ghcompare | glcompare | glpullrequest)
-      echo "branch"
-      return
-      ;;
+      echo "branch" ; return ;;
   esac
+
+  # handle pick aliases
+  rhs=$(git --git-dir="$(__gitdir)" config --get "alias.$1" | perl -pe 's|\\||g')
+  pick=\\bpick\\b
+  if [[ "$rhs" =~ $pick ]] ; then
+    # aliases acting on lists
+    cmd=$(echo $rhs | perl -pe 's|.*\bpick\s+([a-zA-Z0-9-_]+).*|\1|')
+    if [ "$cmd" != "$rhs" ] ; then
+      echo "$cmd"
+      return
+    fi
+    # list aliases
+    cmd=$(echo $rhs | perl -pe 's|.*?git\s+(?:-\S+\s+\S+\s+)*([a-zA-Z0-9-_]+).*|\1|')
+    if [ "$cmd" != "$rhs" ] ; then
+      echo "$cmd"
+      return
+    fi
+  fi
+
   __git_aliased_command_orig "$@"
 }
 

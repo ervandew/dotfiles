@@ -8,14 +8,12 @@
   root = rev-parse --show-toplevel
   repo = "!f() { if [ -n \"$(git brname 2> /dev/null)\" ] ; then echo $(basename $(git rev-parse --show-toplevel)):$(git brname); else exit 1; fi; }; f"
 
-  log-oneline = log --pretty=tformat:\"%h %Cblue%ar%Creset %an %Cred%d%Creset %Cgreen%s%Creset\"
-
   # git aliases using my git-pick script to support numbered index args
 
   # generate list indexes
   br = !git -c color.ui=always branch "$@" | git pick '^\\s+(.*)'
   st = !git -c color.ui=always status -sb | git pick '^\\s*[AMDR?]+\\s*(.*)'
-  slog = !git -c color.ui=always log-oneline "$@" | git pick '^(\\w+) .*'
+  slog = !git -c color.ui=always log --pretty=tformat:\"%h %Cblue%ar%Creset %an %Cred%d%Creset %Cgreen%s%Creset\" "$@" | git pick '^(\\w+) .*'
 
   # act on list indexes
   ci = !git -c status.relativePaths=false pick commit -e
@@ -47,7 +45,7 @@
   orebase = "!f() { B=$(git brname); git rebasesafe origin/$B; if [ $? -ne 0 ] ; then echo \"abort: Preventing conflicting rebase\"; return; fi; git rebase \"$@\" origin/${B}; }; f"
 
   rprune = remote prune origin
-  dbranch = "!f() { B=$1; git br -d ${B} && if [ -n \"$(git remote)\" ] ; then git push origin :heads/${B}; fi; }; f"
+  dbranch = "!f() { B=$1; git branch -d ${B} && if [ -n \"$(git remote)\" ] ; then git push origin :heads/${B}; fi; }; f"
 
   # perform a fetch only if the current FETCH_HEAD is 60 or more minutes old.
   lfetch = "!f() { if [ -z \"$(git remote)\" ] ; then return; fi; T=$((($(date +%s) - $((ls -l --time-style=+%s .git/FETCH_HEAD 2> /dev/null || echo 0) | cut -d ' ' -f6)) / 60)); if [ $T -ge 60 ] ; then git fetch; fi; }; f"
