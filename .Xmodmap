@@ -1,18 +1,12 @@
-! Standard keyboards, make caps lock the left control
-!clear Lock
-!clear Control
-!keycode 66 = Control_L
-!add Control = Control_L Control_R
-!! Former Control_L -> Mode_switch
-!keycode 37 = Mode_switch
-!! Super_L -> Mode_switch
-!keycode 133 = Mode_switch
+! Majority of this is intented to provide consistent mappings across keyboards
+! which otherwise may have different function layer layouts. Also the function
+! key is usually on the far right for 60% boards, but I prefer it on the far
+! left.
 
-! HHKB2
-clear Control
-keycode 37 = Control_L
-keycode 100 = Control_R
-add Control = Control_L Control_R
+! Windows keys on typical keyboards (make it the function layer key)
+keycode 133 = Mode_switch
+! HHKB2: left labeled alt/opt key (i swap alt via the dip switch, so make the
+! prev alt my function layer key)
 keycode 102 = Mode_switch
 
 ! Mode_switch + h: Left
@@ -29,3 +23,20 @@ keycode 46 = l L Right
 keycode 22 = BackSpace BackSpace Delete
 keycode 13 = 4 dollar End
 keycode 19 = 0 parenright Home
+
+! 60% keyboards w/ esc where `~ would be (hhkb2 has an additional key on the
+! top row for this, but most 60% boards push those to the function layer, or
+! worse push esc to the function layer):
+! Mode_switch + ': `
+! Mode_switch + \: ~
+keycode 48 = apostrophe quotedbl grave
+keycode 51 = backslash bar asciitilde
+
+! Standard keyboards, make caps lock the left control
+!clear Lock
+!clear Control
+!keycode 66 = Control_L
+!add Control = Control_L Control_R
+!! Former Control_L -> Mode_switch
+!keycode 37 = Mode_switch
+!! Super_L -> Mode_switch
