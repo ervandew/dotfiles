@@ -5,6 +5,8 @@
 [alias]
   ls = ls-files
   brname = rev-parse --abbrev-ref HEAD
+  brexists = "!f() { git show-ref --verify --quiet refs/heads/$1; }; f"
+  brdefault = "!f() { if $(git brexists staging) ; then echo staging ; else echo master; fi; }; f"
   root = rev-parse --show-toplevel
   repo = "!f() { if [ -n \"$(git brname 2> /dev/null)\" ] ; then echo $(basename $(git rev-parse --show-toplevel)):$(git brname); else exit 1; fi; }; f"
 
@@ -68,7 +70,7 @@
   mergein = "!f() { if [ -z \"$1\" ] ; then echo \"abort: Name of the branch to merge into this branch is required.\"; return; fi; B=$(git brname); I=$1; if [ \"$B\" == \"$I\" ] ; then echo \"abort: Attempting to merge $B into itself.\"; return; fi; git co $I; git rebasesafe $B; if [ $? -ne 0 ] ; then echo \"abort: Preventing conflicting rebase\"; git co $B; return; fi; git rebase $B; if [ $? -ne 0 ] ; then return; fi; git rebase -i $B; if [ \"$(git brname)\" == \"HEAD\" ] ; then return; fi; read -p \"Continue to merge $(git brname) into $B) (y/n)? \"; if [ \"$REPLY\" != \"y\" ] ; then return; fi; git co $B; git merge $I; if [ -n \"$(git remote)\" ] ; then git out; read -p \"Push to origin (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git push; fi; fi; read -p \"Delete branch $I (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git dbranch $I; fi; }; f"
 
   # log commits that differ between the current branch and the supplied target
-  blog = "!f() { ARGS=\"\"; while [[ \"$1\" =~ ^- ]] ; do ARGS=\"$ARGS $1\"; shift; done; B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; if [ -z \"$1\" ] ; then B2=master; else B2=$1; fi; echo \"$B1...$B2\"; echo \"  < $B1\"; echo \"  > $B2\"; git log $ARGS --pretty=tformat:'%m %h %Cblue%ar%Creset %an %Cgreen%s%Creset' $B1...$B2; }; f"
+  blog = "!f() { ARGS=\"\"; while [[ \"$1\" =~ ^- ]] ; do ARGS=\"$ARGS $1\"; shift; done; B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; if [ -z \"$1\" ] ; then B2=$(git brdefault); else B2=$1; fi; echo \"$B1...$B2\"; echo \"  < $B1\"; echo \"  > $B2\"; git log $ARGS --pretty=tformat:'%m %h %Cblue%ar%Creset %an %Cgreen%s%Creset' $B1...$B2; }; f"
   # log commits that are found in the target branch that are not in the current branch
   blogin = !git blog --right-only
   # log commits that are found in the current branch that are not in the target branch
@@ -92,16 +94,16 @@
   #   runs the supplied git command against all repositories found in ~/projects
   all = "!f() { for i in $(find ~/projects/ -maxdepth 3 -name .git -type d -exec dirname {} \\; | sort) ; do echo -e \"\\n### \\e[0;33m$(basename $i)\\e[0m\"; cd $i ; git -c color.ui=always \"$@\" ; done; }; e(){ f \"$@\" | /usr/bin/less -FRX; }; e"
 
-  # opens up the github url comparing the current branch against master or the
+  # opens up the github url comparing the current branch against the default or the
   # optionally supplied branch.
-  ghcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://github.com/$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@github.com:(.*)\\.git .*|\\1|')/compare/$B...$(git brname)\"; }; f"
+  ghcompare = "!f() { B=${1-$(git brdefault)}; A=${2-$(git brname)}; xdg-open \"https://github.com/$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@github.com:(.*)\\.git .*|\\1|')/compare/$B...$A\"; }; f"
 
   # adds a new github remote based on the supplied username.
   ghremoteadd = "!f() { R=$1; if [ -z \"$R\" ] ; then echo 'abort: remote user name required' ; else git remote add $1 git://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe \"s|.*@(github.com):.*?(/.*\\.git) .*|\\1/$1\\2|\") && git fetch $1; fi; }; f"
 
   # aliases for working with gitlab
-  glcompare = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/compare/$B...$(git brname)\"; }; f"
-  glpullrequest = "!f() { B=$1; if [ -z \"$B\" ] ; then B=master; fi; A=$(git brname); xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
+  glcompare = "!f() { B=${1-$(git brdefault)}; A=${2-$(git brname)}; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/compare/$B...$A\"; }; f"
+  glpullrequest = "!f() { B=${1-$(git brdefault)}; A=${2-$(git brname)}; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
 
 [branch]
   autosetupmerge = true
