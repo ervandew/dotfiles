@@ -67,6 +67,10 @@ map gL :tabmove +1<cr>
 " :viewsource!
 map <silent> gf :emenu Tools.Web Developer.Page Source<cr>
 
+" disable bookmark mappings
+map a <Nop>
+map A <Nop>
+
 " disable backspace from navigating up a dir
 map <BS> <Nop>
 
