@@ -10,15 +10,18 @@
 # Usage:
 #   1. First create git aliases in your .gitconfig which create indexed lists:
 #      Ex.
-#         br = !git -c color.ui=always branch "$@" | git pick '^\\s+(.*)'
-#         st = !git -c color.ui=always status -sb | git pick '^\\s*[AMDR?]+\\s*(.*)'
+#        br = !git -c color.ui=always branch "$@" | git pick '^\\s+(.*)'
+#        st = !git -c color.ui=always status -sb | git pick '^\\s*[AMDR?]+\\s*(?:.* -> )?(.*)'
 #      Those aliases pipe the branch list and status list to git-pick for it to
 #      parse and index. We force git to use colors even though the output is
-#      piped, so that we still retain the colors in the console output. The
-#      pattern supplied to 'git pick' is used to define how to pull items from
-#      the resulting output (or input from git pick's perspective). Notice that
-#      we use single quotes around the pattern and have to double escape the
-#      backslashes here to appease git's config parser.
+#      piped, so that git-pick can still retain the colors in the console
+#      output it produces. The pattern supplied to 'git pick' is used to define
+#      how to pull items from the resulting output (or input from git pick's
+#      perspective). Notice that we use single quotes around the pattern and
+#      have to double escape the backslashes here to appease git's config
+#      parser. Also note that git-pick uses perl for the pattern matching so
+#      you can utilize the features of perl's regular expression patterns not
+#      otherwise found in bash, sed, etc.
 #   2. Once you have your list generating aliases, you can then create aliases
 #      which can act on those lists:
 #      Ex.
@@ -55,7 +58,7 @@ function _list(){
     item=$(echo $line | perl -pe 's|\e\[\d*m||g')
 
     if [ -n "$pattern" ] ; then
-      if [[ ! "$item" =~ $pattern ]] ; then
+      if [ ! -z "$(echo $item | perl -ne "print unless /$pattern/")" ] ; then
         echo "     $line"
         continue
       fi
