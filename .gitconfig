@@ -12,16 +12,16 @@
 
   # generate list indexes
   br = !git -c color.ui=always branch "$@" | git pick '^\\s+(.*)'
-  st = !git -c color.ui=always status -sb | git pick '^\\s*[AMDR?]+\\s*(.*)'
+  st = !git -c color.ui=always status -sb | git pick '^\\s*[AMDR?]+\\s*(?:.* -> )?(.*)'
   slog = !git -c color.ui=always log --pretty=tformat:\"%h %Cblue%ar%Creset %an %Cred%d%Creset %Cgreen%s%Creset\" "$@" | git pick '^(\\w+) .*'
 
   # act on list indexes
   ci = !git -c status.relativePaths=false pick commit -e
   co = pick checkout
-  ad = pick add --all
+  d = pick diff
+  a = pick add --all
   rs = pick reset
   cp = pick cherry-pick
-  dif = pick diff
   unstage = pick reset HEAD
   untrack = pick rm --cached
   forget = pick rm --cached
