@@ -39,8 +39,17 @@ set -e
 
 IFS=$'\n'
 
+# attempt to have a separate list per terminal to prevent using a number from a
+# list generated elsewhere.
+ID="tty-$(basename $(tty))"
+if [ -n "$TMUX" ] ; then
+  ID="tmux-$(echo $(basename $TMUX) | sed 's|,|-|g')-$(echo $TMUX_PANE | sed 's|%||')"
+elif [ -n "$WIDOWID" ] ; then
+  ID="window-$WINDOWID"
+fi
+
 GITDIR=`git rev-parse --git-dir 2> /dev/null`
-GITPICK="$GITDIR/git-pick-list"
+GITPICK="$GITDIR/git-pick-list-$ID"
 
 function _list(){
   IFS=''
@@ -104,6 +113,9 @@ function _expand(){
     fi
   done
 }
+
+# before every run, remove pick lists older than 5 minutes
+find .git -name "git-pick-list*" -mmin +5 -delete
 
 if [ -t 0 ] ; then
   expanded=$(_expand "$@") || exit $?
