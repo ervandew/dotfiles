@@ -307,7 +307,7 @@
     endif
     " vim doesn't seem to fire BufDelete if we run :bdelete here, so feed the
     " keys instead so we don't break plugins that rely on BufDelete hooks
-    call feedkeys(":bd" . a:bang . " " . bufnr . "\<cr>", 'nt')
+    call feedkeys(":bd" . a:bang . " " . bufnr . "\<cr>", 'n')
     " try loading a hidden buffer from the current tab using eclim if
     " available
     if prevent
