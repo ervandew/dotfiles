@@ -15,8 +15,10 @@ if [ "$3" == HEAD ] ; then
 
   # prevent accidental amends of merge commits
   parents=$(git cat-file -p HEAD | grep '^parent' | wc -l);
-  if [ $parents -gt 1 -a -z "$NO_VERIFY" ] ; then
-    echo "abort: HEAD is a merge commit (use $ git amend if you really want to amend it)"
+  if [ $parents -gt 1 ] ; then
+    echo "abort: HEAD is a merge commit. use one of the following if you really want to amend it:"
+    echo "  $ git commit -n --amend ..."
+    echo "  $ git amend -n ..."
     exit 1
   fi
 

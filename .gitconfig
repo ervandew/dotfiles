@@ -41,7 +41,7 @@
   # (also confirm when attempting to amend a merge commit.)
   # The pre commit hook ~/.git-template/hooks/prepare-commit-msg will also
   # perform similar checks to prevent issues should this alias not be used.
-  amend = "!f() { P=$(git cat-file -p HEAD | grep '^parent' | wc -l); if [ $P -gt 1 ] ; then read -p \"HEAD is a merge commit. Are you sure you want to amend it (y/n)? \"; if [ \"$REPLY\" != \"y\" ] ; then return 1; fi; fi; O=$(git branch -a --contains $(git log -1 --pretty=tformat:%h) | grep -v $(git brname)); if [ -n \"$O\" ] ; then echo \"abort: the following branches contain the commit to be amended:\n$O\"; return 1; fi; NO_VERIFY=1 git commit --amend \"$@\"; }; f"
+  amend = "!f() { P=$(git cat-file -p HEAD | grep '^parent' | wc -l); if [ $P -gt 1 ] ; then read -p \"HEAD is a merge commit. Are you sure you want to amend it (y/n)? \"; if [ \"$REPLY\" != \"y\" ] ; then return 1; fi; fi; O=$(git branch -a --contains $(git log -1 --pretty=tformat:%h) | grep -v $(git brname)); if [ -n \"$O\" ] ; then echo \"abort: the following branches contain the commit to be amended:\n$O\"; return 1; fi; git pick commit --no-verify --amend --date=\"$(date -R)\" \"$@\"; }; f"
 
   omerge = !git merge origin/$(git brname)
   orebase = "!f() { B=$(git brname); git rebasesafe origin/$B; if [ $? -ne 0 ] ; then echo \"abort: Preventing conflicting rebase\"; return; fi; git rebase \"$@\" origin/${B}; }; f"
