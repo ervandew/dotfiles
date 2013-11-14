@@ -67,7 +67,7 @@
   #   - display a prompt to push the changes to the origin
   #   - finally display a prompt to delete the now merged in branch locally
   #     and from the origin.
-  mergein = "!f() { if [ -z \"$1\" ] ; then echo \"abort: Name of the branch to merge into this branch is required.\"; return; fi; B=$(git brname); I=$1; if [ \"$B\" == \"$I\" ] ; then echo \"abort: Attempting to merge $B into itself.\"; return; fi; git co $I; git rebasesafe $B; if [ $? -ne 0 ] ; then echo \"abort: Preventing conflicting rebase\"; git co $B; return; fi; git rebase $B; if [ $? -ne 0 ] ; then return; fi; git rebase -i $B; if [ \"$(git brname)\" == \"HEAD\" ] ; then return; fi; read -p \"Continue to merge $(git brname) into $B) (y/n)? \"; if [ \"$REPLY\" != \"y\" ] ; then return; fi; git co $B; git merge $I; if [ -n \"$(git remote)\" ] ; then git out; read -p \"Push to origin (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git push; fi; fi; read -p \"Delete branch $I (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git dbranch $I; fi; }; f"
+  mergein = "!f() { if [ -z \"$1\" ] ; then echo \"abort: Name of the branch to merge into this branch is required.\"; return; fi; B=$(git brname); I=$1; if [ \"$B\" == \"$I\" ] ; then echo \"abort: Attempting to merge $B into itself.\"; return; fi; git co $I; git rebasesafe $B; if [ $? -ne 0 ] ; then echo \"abort: Preventing conflicting rebase\"; git co $B; return; fi; git rebase $B; if [ $? -ne 0 ] ; then return; fi; git rebase -i $B; if [ \"$(git brname)\" == \"HEAD\" ] ; then return; fi; read -p \"Continue to merge $(git brname) into $B (y/n)? \"; if [ \"$REPLY\" != \"y\" ] ; then return; fi; git co $B; git merge $I; if [ -n \"$(git remote)\" ] ; then git out; read -p \"Push to origin (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git push; fi; fi; read -p \"Delete branch $I (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git dbranch $I; fi; }; f"
 
   # log commits that differ between the current branch and the supplied target
   blog = "!f() { ARGS=\"\"; while [[ \"$1\" =~ ^- ]] ; do ARGS=\"$ARGS $1\"; shift; done; B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; if [ -z \"$1\" ] ; then B2=$(git brdefault); else B2=$1; fi; echo \"$B1...$B2\"; echo \"  < $B1\"; echo \"  > $B2\"; git log $ARGS --pretty=tformat:'%m %h %Cblue%ar%Creset %an %Cgreen%s%Creset' $B1...$B2; }; f"
@@ -75,6 +75,10 @@
   blogin = !git blog --right-only
   # log commits that are found in the current branch that are not in the target branch
   blogout = !git blog --left-only
+  # unified diff between branches
+  # $ git bdiff staging
+  # $ git bdiff staging...topic-branch
+  bdiff = !git diff --left-only
 
   in = !git slog ..origin/$(git brname)
   din = !git log -p ..origin/$(git brname)
