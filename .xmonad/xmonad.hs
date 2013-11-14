@@ -82,6 +82,7 @@ myManageHook = composeAll [
     name      =? "mutt"               --> viewShift "2:im/mail",
     name      =? "player"             --> viewShift "3:media",
     className =? "Gimp"               --> viewShift "3:media",
+    className =? "Openshot"           --> viewShift "3:media",
     className =? "qemu-system-x86_64" --> viewShift "4:vm",
     className =? "VirtualBox"         --> viewShift "4:vm",
     -- gimp insists on floating, so prevent that.
