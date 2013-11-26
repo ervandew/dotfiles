@@ -247,6 +247,9 @@
   " map gF now to be the new window version of original gf
   nnoremap gF <c-w>F
 
+  " modified version of '*' which doesn't move the cursor
+  nnoremap <silent> * :let @/='\<<c-r>=expand("<cword>")<cr>\>'<cr>:set hls<cr>
+
   " toggle spelling with <c-z> (normal or insert mode)
   nnoremap <silent> <c-z>
     \ :setlocal spell! spelllang=en_us \|
