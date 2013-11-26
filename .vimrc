@@ -113,7 +113,6 @@
         " only show the vcs branch for the current tab so as to reduce time
         " spent on system calls when there are several tabs.
         if tabpagenr() == n
-          let dir = eclim#project#util#GetProjectRoot(project)
           try
             " don't perform any system calls in here because vim calls this
             " function too often (entering insert mode, scrolling started,
