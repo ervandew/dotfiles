@@ -38,8 +38,6 @@ myLayout = avoidStrutsOn[U] $
       named "Tabbed" tabs) $
     onWorkspace "3:media"    (named "Tabbed" tabs) $
     onWorkspace "4:vm"       Full $
-    onWorkspace "5:misc"     (named "Tabbed" tabs) $
-    onWorkspace "6:misc"     (named "Tabbed" tabs) $
     named "Accordian/Full"   accordianFull |||
     named "Tiled"            tiled |||
     named "StackTwo"         stackTwo |||
@@ -122,7 +120,7 @@ main = do
   spawn "pkill dunst ; dunst -config ~/.dunstrc &"
   spawn "pkill keynav ; keynav &"
   spawn "pkill xcompmgr ; xcompmgr -c -r0 &"
-  spawn "pkill -9 unclutter ; unclutter -idle 2 -root -noevents &"
+  spawn "pkill -9 unclutter ; sleep 0.3 ; unclutter -idle 2 -root -noevents &"
   config <-
     withWindowNavigation(xK_k, xK_h, xK_j, xK_l) $
     withUrgencyHook NoUrgencyHook $
@@ -157,6 +155,7 @@ main = do
     `additionalKeysP` [
       ("M-x",         kill),
       ("M-m",         sendMessage $ JumpToLayout "Tabbed"),
+      ("M-d",         sendMessage $ ToggleStruts),
       ("M-u",         focusUrgent),
       ("M-w",         cycleRecentWS [xK_Alt_L] xK_Tab xK_Tab),
       ("M-<Tab>",     bindOnLayout [
