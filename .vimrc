@@ -216,7 +216,12 @@
       let length = (a:list == 'c') ? len(getqflist()) : len(getloclist(0))
       let command = (length == error_count) ? a:list . 'next' : a:list . a:list
     endif
-    exec command
+    try
+      exec command
+      normal! zv
+    catch /E553/
+      echohl WarningMsg | echo 'No more items' | echohl None
+    endtry
   endfunction
 
   " resize windows w/ arrow keys
