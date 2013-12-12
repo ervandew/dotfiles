@@ -8,9 +8,11 @@
 
 ## Bash settings. {{{
   # bash history settings
-  #export HISTCONTROL=ignoredups
+  ignore="&:??:clear:exit"
+  ignore="$ignore:shutdown*:reboot:*systemctl poweroff*:*systemctl reboot*"
+  ignore="$ignore:git stash pop*:git stash drop*"
+  export HISTIGNORE=$ignore
   export HISTCONTROL=ignoreboth
-  export HISTIGNORE="&:??:pwd:clear:exit:shutdown*:reboot:suspend"
   export HISTSIZE=1000
 
   # colors {{{
