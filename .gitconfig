@@ -125,6 +125,7 @@
   untracked = white
 
 [core]
+  editor = vim
   pager = /usr/bin/less -+$LESS -FRX
 
 [diff]
@@ -146,6 +147,10 @@
 
 [push]
   default = current
+
+[rebase]
+  autostash = true
+  stat = true
 
 [rerere]
   enabled = true
