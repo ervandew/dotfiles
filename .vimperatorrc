@@ -43,7 +43,7 @@ set nextpattern+=\bforward\b
 set previouspattern+=\bback\b
 set runtimepath+=~/projects/vimperator-plugins
 set runtimepath+=~/projects/keyring/vimperator
-set toolbars=none
+set toolbars=tabs
 set wildmode=list:longest,full
 
 " }}}
