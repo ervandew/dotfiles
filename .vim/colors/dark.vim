@@ -87,9 +87,9 @@ hi PmenuSbar ctermfg=233   ctermbg=NONE  cterm=NONE guifg=#000000 guibg=NONE    
 " }}}
 
 " Cursor line / column {{{
-hi CursorLine   ctermfg=NONE  ctermbg=235 cterm=NONE guifg=NONE    guibg=#262626 gui=NONE
-hi CursorLineNr ctermfg=white ctermbg=235 cterm=NONE guifg=#ffffff guibg=#262626 gui=NONE
-hi CursorColumn ctermfg=NONE  ctermbg=235 cterm=NONE guifg=NONE    guibg=#262626 gui=NONE
+hi CursorLine   ctermfg=NONE  ctermbg=236 cterm=NONE guifg=NONE    guibg=#303030 gui=NONE
+hi CursorLineNr ctermfg=white ctermbg=236 cterm=NONE guifg=#ffffff guibg=#303030 gui=NONE
+hi CursorColumn ctermfg=NONE  ctermbg=236 cterm=NONE guifg=NONE    guibg=#303030 gui=NONE
 " }}}
 
 " Diff {{{
