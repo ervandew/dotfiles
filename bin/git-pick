@@ -52,12 +52,11 @@ GITDIR=`git rev-parse --git-dir 2> /dev/null`
 GITPICK="$GITDIR/git-pick-list-$ID"
 
 function _list(){
-  IFS=''
   count=0
   ignore="^#"
   pattern=$1
   rm -f $GITPICK
-  while read -r line ; do
+  for line in $(cat) ; do
     if [[ "$line" =~ $ignore ]] ; then
       echo "     $line"
       continue
