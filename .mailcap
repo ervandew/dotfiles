@@ -43,8 +43,9 @@ application/pdf;zathura %s
 image/pdf;zathura %s
 
 # word, excel
-application/rtf;abiword %s
-application/msword;abiword %s
+# wordview is in the catdoc package
+application/rtf;wordview %s
+application/msword;wordview %s
 #application/vnd.openxmlformats-officedocument.wordprocessingml.document;abiword %s # .docx
 application/excel;gnumeric %s; copiousoutput; nametemplate=%s.xls
 application/msexcel;gnumeric %s; copiousoutput; nametemplate=%s.xls
