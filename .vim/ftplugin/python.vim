@@ -8,7 +8,7 @@ let python_highlight_all = 1
 nmap <buffer> {{ [%
 nmap <buffer> }} ]%
 
-nnoremap <silent> <buffer> <cr> :PythonSearchContext<cr>
+nnoremap <silent> <buffer> <cr> :DjangoContextOpen<cr>
 
 command! -buffer -nargs=0 -range=% FormatStack :call <SID>FormatStack(<line1>, <line2>)
 
