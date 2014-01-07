@@ -49,7 +49,6 @@
   omerge = !git merge origin/$(git brname)
   orebase = "!f() { B=$(git brname); git rebasesafe origin/$B; if [ $? -ne 0 ] ; then echo \"abort: Preventing conflicting rebase\"; return; fi; git rebase \"$@\" origin/${B}; }; f"
 
-  rprune = remote prune origin
   dbranch = "!f() { B=$1; git branch -d ${B} && if [ -n \"$(git remote)\" ] ; then git push origin :heads/${B}; fi; }; f"
 
   # perform a fetch only if the current FETCH_HEAD is 60 or more minutes old.
@@ -130,6 +129,9 @@
 
 [diff]
   renames = true
+
+[fetch]
+  prune = true
 
 [init]
   templatedir = ~/.git-template
