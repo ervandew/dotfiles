@@ -10,7 +10,7 @@
 #    output regardless of whether it's left or right.
 ##
 
-INTERNAL="^LVDS-\?[0-9]\+ connected"
+INTERNAL="^\(LVDS-\|eDP\)\?[0-9]\+ connected"
 EXTERNAL="^\(VGA\|DP\|DVI\|HDMI\)-\?[0-9]\+ connected"
 ON="\(primary \)\?[0-9]"
 
