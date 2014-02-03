@@ -312,9 +312,12 @@
     if prevent
       new
     endif
-    " vim doesn't seem to fire BufDelete if we run :bdelete here, so feed the
-    " keys instead so we don't break plugins that rely on BufDelete hooks
-    call feedkeys(":bd" . a:bang . " " . bufnr . "\<cr>", 'n')
+    " force the BufDelete autocmd to fire before BufEnter so that eclim won't
+    " close the current tab if all that's left is a taglist, file browser,
+    " etc.
+    noautocmd exec 'bdelete' . a:bang . ' ' . bufnr
+    doautocmd BufDelete
+    doautocmd BufEnter
     " try loading a hidden buffer from the current tab using eclim if
     " available
     if prevent
