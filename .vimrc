@@ -316,8 +316,8 @@
     " close the current tab if all that's left is a taglist, file browser,
     " etc.
     noautocmd exec 'bdelete' . a:bang . ' ' . bufnr
-    doautocmd BufDelete
-    doautocmd BufEnter
+    silent doautocmd BufDelete
+    silent doautocmd BufEnter
     " try loading a hidden buffer from the current tab using eclim if
     " available
     if prevent
