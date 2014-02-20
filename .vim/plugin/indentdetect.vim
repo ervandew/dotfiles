@@ -68,6 +68,12 @@ function! s:IndentDetect() " {{{
       if index(options, 'tabstop') != -1
         exec 'setlocal tabstop=' .
           \ get(g:IndentDetectForce[key], 'tabstop', &tabstop)
+
+        " if softtabstop is set, make sure it mirrors the new tabstop value so
+        " that backspacing over auto inserted indentation works as expected.
+        if &softtabstop
+          exec 'setlocal softtabstop=' . &tabstop
+        endif
       endif
 
       if index(options, 'shiftwidth') != -1
@@ -137,6 +143,12 @@ function! s:IndentDetect() " {{{
       " Note: currently mirroring tabstop + shiftwidth.
       if index(options, 'tabstop') != -1
         exec 'setlocal tabstop=' . indent
+
+        " if softtabstop is set, make sure it mirrors the new tabstop value so
+        " that backspacing over auto inserted indentation works as expected.
+        if &softtabstop
+          exec 'setlocal softtabstop=' . &tabstop
+        endif
       endif
 
       if index(options, 'shiftwidth') != -1
@@ -151,6 +163,12 @@ function! s:IndentDetect() " {{{
           if index(options, 'tabstop') != -1
             exec 'setlocal tabstop=' .
               \ get(g:IndentDetectDefaults[key], 'tabstop', &tabstop)
+
+            " if softtabstop is set, make sure it mirrors the new tabstop value so
+            " that backspacing over auto inserted indentation works as expected.
+            if &softtabstop
+              exec 'setlocal softtabstop=' . &tabstop
+            endif
           endif
 
           if index(options, 'shiftwidth') != -1
