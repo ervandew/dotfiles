@@ -47,7 +47,7 @@ fi
 ~/bin/monitor external on
 
 # start eclim
-/opt/eclipse/eclimd start
+/opt/eclipse/eclimd -b
 
 exec xmonad
 
