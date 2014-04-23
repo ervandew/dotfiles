@@ -34,6 +34,39 @@
 #      supply one or more numbers (or a range like 2-5) corresponding to the
 #      index values pre-pended to the lines outputted by our 'br' and 'st'
 #      aliases found in step #1.
+#
+# The pick command also supports some options:
+#   -v
+#      This enables verbose output from the pick command
+#   -c
+#      When expanding arguments, first print out the resulting git command and
+#      prompt for confirmation before running it.
+#   -t <type>
+#      This allows you to have a pick list per type of output. For instance,
+#      some pick lists contain revisions only (branch/tag names, commit hashes,
+#      etc), while others contain file paths, so you might want to separate
+#      these out into separate lists so that your aliases acting on those lists
+#      can be limited to expanding revision arguments or file arguments.
+#      Ex:
+#        br = !git -c color.ui=always branch "$@" | git pick -t rev '^\\s+(.*)'
+#        st = !git -c color.ui=always status -sb | git pick -t file '^\\s*[AMDR?]+\\s*(?:.* -> )?(.*)'
+#        co = pick -t rev checkout
+#        ad = pick -t file add --all
+#      Using the above aliases you can run a `$ git st` followed by a `$ git
+#      br` and the `ad` alias will only expand results from the `st` list, and
+#      the `co` alias will expand from the `br` list.
+#      Please note the limitation here though, in that the `co` alias will now
+#      only support expanding revisions, and not files, which can be seen as a
+#      safer option since you'd never accidentally checkout a modified file.
+#
+# git bash completion:
+#   By default git can handle argument completion on simple aliases, but it
+#   can't handle pick aliases like those found above. However if you look at my
+#   bash completion script:
+#     https://github.com/ervandew/dotfiles/blob/master/.bash_completion.d/git.sh
+#   you'll see a section dedicated to handling the translation of pick aliases
+#   to the git command they invoke so that the default git bash completion can
+#   then complete their arguments.
 ##
 set -e
 
@@ -41,15 +74,39 @@ IFS=$'\n'
 
 # attempt to have a separate list per terminal to prevent using a number from a
 # list generated elsewhere.
-ID="tty-$(basename $(tty))"
+ID="-tty-$(basename $(tty))"
 if [ -n "$TMUX" ] ; then
-  ID="tmux-$(echo $(basename $TMUX) | sed 's|,|-|g')-$(echo $TMUX_PANE | sed 's|%||')"
+  ID="-tmux-$(echo $(basename $TMUX) | sed 's|,|-|g')-$(echo $TMUX_PANE | sed 's|%||')"
 elif [ -n "$WIDOWID" ] ; then
-  ID="window-$WINDOWID"
+  ID="-window-$WINDOWID"
 fi
 
+TYPE=""
+VERBOSE=false
+CONFIRM=false
+while [ "$1" == "-t" -o "$1" == "-v" -o "$1" == "-c" ] ; do
+  # allow optional -t name to separate lists by the type of lists they return
+  # (files vs revision (commit hash, branch, tag), etc)
+  if [ "$1" == "-t" ] ; then
+    TYPE="-${2}"
+    shift; shift
+  # verbose flag to show the final expanded command
+  elif [ "$1" == "-v" ] ; then
+    VERBOSE=true
+    shift
+  # confirm flag to have the user accept the expanded command before running it.
+  elif [ "$1" == "-c" ] ; then
+    CONFIRM=true
+    shift
+  fi
+done
+
 GITDIR=`git rev-parse --git-dir 2> /dev/null`
-GITPICK="$GITDIR/git-pick-list-$ID"
+GITPICK="$GITDIR/git-pick-list${TYPE}${ID}"
+
+if $VERBOSE ; then
+  echo verbose: pick list: $GITPICK
+fi
 
 function _list(){
   count=0
@@ -118,6 +175,19 @@ find .git -name "git-pick-list*" -mmin +5 -delete
 
 if [ -t 0 ] ; then
   expanded=$(_expand "$@") || exit $?
+  if $CONFIRM ; then
+    # don't confirm if nothing was expanded.
+    if [[ "$(echo $expanded | sed 's|\n| |g')" != "$@" ]] ; then
+      echo git $expanded
+      read -p "Execute the above command (y/n)? "
+      if [ "$REPLY" != "y" ] ; then
+        echo canceled
+        exit
+      fi
+    fi
+  elif $VERBOSE ; then
+    echo verbose: git $expanded
+  fi
   git $expanded
 else
   _list  "$@"

@@ -5,7 +5,7 @@
 
 source /usr/share/git/completion/git-completion.bash
 
-# http://mivok.net/2009/09/20/bashfunctionoverride.html
+# http://mivok.net/2009/09/20/bashfunctionoverrist.html
 save_function() {
   local ORIG_FUNC=$(declare -f $1)
   local NEWNAME_FUNC="$2${ORIG_FUNC#$1}"
@@ -28,17 +28,21 @@ __git_aliased_command() {
   rhs=$(git --git-dir="$(__gitdir)" config --get "alias.$1" | perl -pe 's|\\||g')
   pick=\\bpick\\b
   if [[ "$rhs" =~ $pick ]] ; then
-    # aliases acting on lists
-    cmd=$(echo $rhs | perl -pe 's|.*\bpick\s+([a-zA-Z0-9-_]+).*|\1|')
-    if [ "$cmd" != "$rhs" ] ; then
-      echo "$cmd"
-      return
-    fi
-    # list aliases
-    cmd=$(echo $rhs | perl -pe 's|.*?git\s+(?:-\S+\s+\S+\s+)*([a-zA-Z0-9-_]+).*|\1|')
-    if [ "$cmd" != "$rhs" ] ; then
-      echo "$cmd"
-      return
+    list=\\\|
+    if [[ "$rhs" =~ $list ]] ; then
+      # list aliases
+      cmd=$(echo $rhs | perl -pe 's|.*?git\s+(?:-\S+\s+\S+\s+)*([a-zA-Z0-9-_]+).*|\1|')
+      if [ "$cmd" != "$rhs" ] ; then
+        echo "$cmd"
+        return
+      fi
+    else
+      # aliases acting on lists
+      cmd=$(echo $rhs | perl -pe 's/.*\bpick\s+((-v|-c|-t\s+\w+)\s+){0,}([a-zA-Z0-9-_]+).*/\3/')
+      if [ "$cmd" != "$rhs" ] ; then
+        echo "$cmd"
+        return
+      fi
     fi
   fi
 
