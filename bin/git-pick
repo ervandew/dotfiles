@@ -41,6 +41,11 @@
 #   -c
 #      When expanding arguments, first print out the resulting git command and
 #      prompt for confirmation before running it.
+#   -r
+#      When supplied, git pick will abort if no args have been supplied to
+#      expand. This is helpful to avoid triggering any git alias whose default
+#      behavior is to act on all files (eg. git add --all, git clean, etc.)
+#      should you accidentally forget to supply any indexes to expand.
 #   -t <type>
 #      This allows you to have a pick list per type of output. For instance,
 #      some pick lists contain revisions only (branch/tag names, commit hashes,
@@ -84,12 +89,17 @@ fi
 TYPE=""
 VERBOSE=false
 CONFIRM=false
-while [ "$1" == "-t" -o "$1" == "-v" -o "$1" == "-c" ] ; do
+REQUIRE_ARGS=false
+while [ "$1" == "-t" -o "$1" == "-r" -o "$1" == "-v" -o "$1" == "-c" ] ; do
   # allow optional -t name to separate lists by the type of lists they return
   # (files vs revision (commit hash, branch, tag), etc)
   if [ "$1" == "-t" ] ; then
     TYPE="-${2}"
     shift; shift
+  # flag to indicate that at least one arg must be expanded
+  elif [ "$1" == "-r" ] ; then
+    REQUIRE_ARGS=true
+    shift
   # verbose flag to show the final expanded command
   elif [ "$1" == "-v" ] ; then
     VERBOSE=true
@@ -174,14 +184,27 @@ function _expand(){
 find .git -name "git-pick-list*" -mmin +5 -delete
 
 if [ -t 0 ] ; then
+  if [[ $REQUIRE_ARGS && -e "$@" ]] ; then
+    exit 1
+  fi
+
   expanded=$(_expand "$@") || exit $?
+  compare=$(echo $expanded | sed 's|\n| |g')
+
+  if $REQUIRE_ARGS ; then
+    if [[ "$compare" == "$@" ]] ; then
+      echo no args supplied to expand.
+      exit
+    fi
+  fi
+
   if $CONFIRM ; then
     # don't confirm if nothing was expanded.
-    if [[ "$(echo $expanded | sed 's|\n| |g')" != "$@" ]] ; then
+    if [[ "$compare" != "$@" ]] ; then
       echo git $expanded
       read -p "Execute the above command (y/n)? "
       if [ "$REPLY" != "y" ] ; then
-        echo canceled
+        echo canceled.
         exit
       fi
     fi

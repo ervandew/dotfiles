@@ -19,8 +19,10 @@
   slog = !git -c color.ui=always log --pretty=simple "$@" | git pick -t rev '^(\\w+) .*'
 
   # act on file list indexes
+  u = pick -t file checkout
   d = pick -t file diff
-  a = pick -t file add --all
+  a = pick -t file -r add --all
+  r = pick -t file -r clean -f
   ci = !git -c status.relativePaths=false pick -t file commit -e
   unstage = pick -t file reset HEAD
   untrack = pick -t file --cached
