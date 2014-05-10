@@ -41,6 +41,9 @@
 #   -c
 #      When expanding arguments, first print out the resulting git command and
 #      prompt for confirmation before running it.
+#   -e
+#      Instead of running git with the expanded arguments, just echo the
+#      expanded result.
 #   -r
 #      When supplied, git pick will abort if no args have been supplied to
 #      expand. This is helpful to avoid triggering any git alias whose default
@@ -89,8 +92,9 @@ fi
 TYPE=""
 VERBOSE=false
 CONFIRM=false
+ECHO=false
 REQUIRE_ARGS=false
-while [ "$1" == "-t" -o "$1" == "-r" -o "$1" == "-v" -o "$1" == "-c" ] ; do
+while [ "$1" == "-t" -o "$1" == "-r" -o "$1" == "-v" -o "$1" == "-c" -o "$1" == "-e" ] ; do
   # allow optional -t name to separate lists by the type of lists they return
   # (files vs revision (commit hash, branch, tag), etc)
   if [ "$1" == "-t" ] ; then
@@ -107,6 +111,11 @@ while [ "$1" == "-t" -o "$1" == "-r" -o "$1" == "-v" -o "$1" == "-c" ] ; do
   # confirm flag to have the user accept the expanded command before running it.
   elif [ "$1" == "-c" ] ; then
     CONFIRM=true
+    shift
+  # flag to indicate that the expanded args should be echoed instead of passed
+  # to git.
+  elif [ "$1" == "-e" ] ; then
+    ECHO=true
     shift
   fi
 done
@@ -211,7 +220,12 @@ if [ -t 0 ] ; then
   elif $VERBOSE ; then
     echo verbose: git $expanded
   fi
-  git $expanded
+
+  if $ECHO ; then
+    echo $expanded
+  else
+    git $expanded
+  fi
 else
   _list  "$@"
 fi
