@@ -15,7 +15,7 @@
 
   # generate list indexes
   st = !git -c color.ui=always status -sb | git pick -t file '^\\s*[AMDR?]+\\s*(?:.* -> )?(.*)'
-  br = !git -c color.ui=always branch "$@" | git pick -t rev '^\\s+(.*)'
+  br = !git -c color.ui=always branch "$@" | git pick -t rev '^\\s+(\\S*).*'
   slog = !git -c color.ui=always log --pretty=simple "$@" | git pick -t rev '^(\\w+) .*'
 
   # act on file list indexes
