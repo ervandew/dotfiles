@@ -82,7 +82,14 @@ function runmysql() {
       --prompt-colour='1;31' \
       mysql --prompt "$instance> " "$@"
   else
-    runclient mysql mysql --prompt "$instance> " "$@"
+    # edit line blows, so use rlwrap if mysql is built with edit line support
+    if mysql --version | grep EditLine &> /dev/null ; then
+      rlwrap \
+        -a'Enter password:' \
+        mysql --prompt "$instance> " "$@"
+    else
+      runclient mysql mysql --prompt "$instance> " "$@"
+    fi
   fi
 }
 
