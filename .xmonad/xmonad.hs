@@ -174,6 +174,10 @@ main = do
       ("M-q",         spawn $ "xmonad --restart"),
       ("M-S-C-m",     spawn $ "~/bin/monitor external toggle ; xmonad --restart"),
 
+      -- adjust screen brightness
+      ("M-b",         spawn $ "xbacklight -inc 10"),
+      ("M-S-b",       spawn $ "xbacklight -dec 10"),
+
       -- media mappings, mnemonics based on the shift version of the key:
       --   &   - pause/play
       --   *   - (un)mute
