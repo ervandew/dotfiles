@@ -149,8 +149,8 @@
 
 [pretty]
   hash = "format:%h"
-  simple = "format:%h %Cblue%<(14,trunc)%ar%Creset %<(8,trunc)%an %Cgreen%<(74,trunc)%s%Creset"
-  blog = "format:%m %h %Cblue%<(14,trunc)%ar%Creset %<(8,trunc)%an %Cgreen%<(74,trunc)%s%Creset"
+  simple = "format:%h %Cblue%<(11,trunc)%ar%Creset %<(8,trunc)%an %Cgreen%<(60,trunc)%s%Creset"
+  blog = "format:%m %h %Cblue%<(11,trunc)%ar%Creset %<(8,trunc)%an %Cgreen%<(60,trunc)%s%Creset"
 
 [push]
   default = current
