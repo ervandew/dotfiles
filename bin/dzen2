@@ -10,7 +10,7 @@
 ##
 
 external="^\(VGA\|DVI\|DP\|HDMI\)-\?[0-9]\+"
-internal="^\(LVDS\)-\?[0-9]\+"
+internal="^\(eDP\|LVDS\)-\?[0-9]\+"
 pattern="connected \(primary \)\?\([0-9]\+\)x.*$"
 width=$(xrandr 2> /dev/null | grep "$external $pattern" | sed "s/$external $pattern/\3/")
 if [ -z "$width" ] ; then
