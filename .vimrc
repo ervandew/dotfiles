@@ -29,7 +29,7 @@
   set mouse=a          " primarily here so that paste w/ mouse works better
   set nobackup         " do not keep a backup file
   set number           " show line numbers
-  " set the printer name to use (see http://localhost:631/printers/)
+  " set the printer name to use (see 'Queue Name' at http://localhost:631/printers/)
   "set printdevice=<name>
   " set printing to use US paper, to have syntax, line numbers and wrap text.
   set printoptions=paper:letter,syntax:a,number:y,wrap:y
