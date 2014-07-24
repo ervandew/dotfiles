@@ -49,6 +49,11 @@ fi
 if [ -n "$MULTIPLEXER" ] ; then
   SCREEN=`echo "$TERM" | grep "^screen"`
   if [ -n "$MULTIPLEXER" -a -z "$SUDO_USER" -a -n "$SSH_TTY" -a -z "$SCREEN" ] ; then
+    # force a 256color term.
+    if [ "$TERM" == rxvt ] ; then
+      export TERM=rxvt-256color
+    fi
+
     if [ $(basename $MULTIPLEXER) == "tmux" ] ; then
       tmux attach || tmux
     else
