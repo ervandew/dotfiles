@@ -47,6 +47,7 @@ image/pdf;zathura %s
 application/rtf;wordview %s
 application/msword;wordview %s
 #application/vnd.openxmlformats-officedocument.wordprocessingml.document;abiword %s # .docx
+application/vnd.oasis.opendocument.text;abiword %s
 application/excel;gnumeric %s; copiousoutput; nametemplate=%s.xls
 application/msexcel;gnumeric %s; copiousoutput; nametemplate=%s.xls
 application/vnd.ms-excel;gnumeric %s; copiousoutput; nametemplate=%s.xls
