@@ -7,7 +7,7 @@
 # amend alias) and from amending a commit found in other branches.
 ##
 
-# Handle amends
+# Handle amends (third arg is only supplied on commits with one of -c, -C, or --amend)
 if [ "$3" == HEAD ] ; then
   if [ ! $(git symbolic-ref HEAD 2> /dev/null) ] ; then
     exit 0 ; # don't interrupt amending during rebase on detached HEAD
@@ -28,6 +28,16 @@ if [ "$3" == HEAD ] ; then
     echo "abort: the following branches contain the commit to be amended:"
     for b in $branches ; do echo -e "\t$b" ; done
     exit 1
+  fi
+
+# Non-amend, look for ticket number prefix on the branch name, and if found,
+# add a 'refs #<ticket-number>' to the commit message.
+else
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  ticket=$(echo $branch | perl -pe 's|(^\d+)[-_].*|\1|')
+  if [ "$branch" != "$ticket" ] ; then
+    line=$(grep '^#' -nm 1 $1 | cut -d':' -f1)
+    sed -i "${line}i refs #${ticket}\n" $1
   fi
 fi
 
