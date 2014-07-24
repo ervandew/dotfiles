@@ -24,6 +24,7 @@ runtime macros/matchit.vim
 " }}}
 
 " eclim.vim {{{
+  let g:EclimMakeDispatchEnabled = 0
   let g:EclimLargeFileEnabled = 1
 
   " fallback to my ag plugin for non-project searching
