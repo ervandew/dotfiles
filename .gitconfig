@@ -7,7 +7,7 @@
   brname = rev-parse --abbrev-ref HEAD
   brexists = "!f() { git show-ref --verify --quiet refs/heads/$1; }; f"
   brdefault = "!f() { if $(git brexists staging) ; then echo staging ; else echo master; fi; }; f"
-  brparent = "!f() { git show-branch -a 2> /dev/null | grep '\\*' | grep -v \"$(git brname)\" | head -n1 | perl -pe 's|.*\\[(.*?)([\\^~]\\d+)*?\\].*|\\1|'; }; f"
+  brparent = "!f() { git show-branch -a 2> /dev/null | grep '\\*' | grep -v \"$(git brname)\" | head -n1 | perl -pe 's|.*\\[(.*?)([\\^~]\\d+\\^?)*?\\].*|\\1|'; }; f"
   root = rev-parse --show-toplevel
   repo = "!f() { if [ -n \"$(git brname 2> /dev/null)\" ] ; then echo $(basename $(git rev-parse --show-toplevel)):$(git brname); else exit 1; fi; }; f"
 
@@ -37,7 +37,7 @@
   dlog = "!f() { R=HEAD; if [[ \"$1\" =~ ^[a-zA-Z0-9]+$ ]] ; then R=$1; shift; fi; git pick -t rev log -1 -p $R \"$@\"; }; f"
 
   # view the last committed version of a file, even if it has since been removed
-  view = "!f() { git show $(git rev-list -n 1 HEAD -- $1)^:$1 | vim - -c \"doautocmd BufRead $1 | set nomod noma\"; }; f"
+  view = "!f() { F=$1; if [[ ! \"$1\" == *:* ]] ; then F=$(git rev-list -n 1 HEAD -- $F)^:$F; fi; git show $F 2>&1 | vim - -c \"doautocmd BufRead $1 | set nomod noma\"; }; f"
 
   # $ git clone git://<host>/.git <target>
   # Reverse tunnel to allow checkout from a client machine to a server machine.
