@@ -64,7 +64,7 @@
 set -o nounset
 
 usage () {
-  echo "Usage: envmin <envmin.txt> [<[username@]host>]"
+  echo "Usage: envmin <envmin.txt> [<[username@]host[:port]>]"
 }
 
 if [ $# -ne 1 -a $# -ne 2 ] ; then
@@ -81,6 +81,11 @@ FILES="$1"
 HOST=""
 if [ $# -eq 2 ] ; then
   HOST=$2
+  PORT=$(echo $HOST | cut -d: -f2)
+  HOST=$(echo $HOST | cut -d: -f1)
+  if [ "$HOST" == "$PORT" ] ; then
+    PORT=22
+  fi
 fi
 
 cd $(dirname $0)
@@ -155,21 +160,21 @@ if [ -n "$HOST" ] ; then
   fi
 
   # send ssh id to remote host if it does not already exist
-  ssh -o PasswordAuthentication=no -o IdentityFile=$identity $HOST "exit 0" &> /dev/null
+  ssh -p $PORT -o PasswordAuthentication=no -o IdentityFile=$identity $HOST "exit 0" &> /dev/null
   identity_exists=$?
 
   set -o errexit
 
   if [ $identity_exists -ne 0 ] ; then
-    cat $identity | ssh -o IdentityFile=$identity $HOST "
+    cat $identity | ssh -p $PORT -o IdentityFile=$identity $HOST "
       umask 077;
       test -d ~/.ssh || mkdir ~/.ssh;
       cat >> ~/.ssh/authorized_keys"
   fi
 
   # send envmin contents and extract on the remote host.
-  scp $CURPATH/temp/envmin $HOST:~
-  ssh $HOST "./envmin"
+  scp -P $PORT $CURPATH/temp/envmin $HOST:~
+  ssh -p $PORT $HOST "./envmin"
 else
   mv -i $CURPATH/temp/envmin .
 fi
