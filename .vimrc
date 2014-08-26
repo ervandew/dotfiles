@@ -218,6 +218,10 @@
     endif
     try
       exec command
+      " WinEnter is not fired by default for some reason, so force it to
+      " execute so we get our cursorline set by the autocmd setup elsewhere in
+      " this file.
+      doautocmd WinEnter %
       normal! zv
     catch /E553/
       echohl WarningMsg | echo 'No more items' | echohl None
@@ -318,6 +322,7 @@
     noautocmd exec 'bdelete' . a:bang . ' ' . bufnr
     silent doautocmd BufDelete
     silent doautocmd BufEnter
+    silent doautocmd WinEnter
     " try loading a hidden buffer from the current tab using eclim if
     " available
     if prevent
