@@ -132,6 +132,7 @@
 
 [core]
   editor = vim
+  excludesfile = ~/.gitignore
   pager = /usr/bin/less -+$LESS -FRX
 
 [diff]
