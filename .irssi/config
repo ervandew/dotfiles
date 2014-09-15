@@ -6,13 +6,12 @@ settings = {
   };
   "fe-text" = { actlist_sort = "refnum"; indent = "28"; };
   "fe-common/core" = {
-    beep_msg_level = "MSGS PUBLIC DCC DCCMSGS HILIGHT";
+    beep_msg_level = "MSGS NOTICES PUBLIC DCC DCCMSGS HILIGHT";
     theme = "default";
     show_nickmode_empty = "yes";
     activity_hide_level = "parts joins quits nicks modes topics crap clientnotice clientcrap";
   };
   "perl/core/scripts" = {
-    #awl_display_key = "$Q%K|%n$H$C$S";
     awl_display_key = "%K[%K$N%K|$H$C$S]%n";
     awl_display_key_active = "[%N$N|$H$C$S]";
     neat_maxlength = "10";
@@ -31,8 +30,8 @@ servers = (
   }
 );
 
-channels = ( 
-  { name = "#eclim"; chatnet = "freenode"; autojoin = "No"; }
+channels = (
+  { name = "#eclim"; chatnet = "freenode"; autojoin = "Yes"; }
 );
 
 statusbar = {
@@ -54,6 +53,7 @@ statusbar = {
     # treated "normally", you could change the time/user name to whatever
     time = "{sb $Z}";
     user = "{sb {sbnickmode $cumode}$N{sbmode $usermode}{sbaway $A}}";
+    dnd = "{sb {error Do Not Disturb}}";
 
     # treated specially .. window is printed with non-empty windows,
     # window_empty is printed with empty windows
@@ -155,3 +155,8 @@ statusbar = {
 };
 chatnets = { freenode = { type = "IRC"; }; };
 keyboard = ( { key = "^L"; id = "command"; data = "mark "; } );
+hilights = ( { text = "ervandew"; nick = "yes"; word = "yes"; } );
+aliases = {
+  dnd = "set beep_msg_level MSGS NOTICES DCC DCCMSGS HILIGHT; statusbar window add -after user dnd;";
+  available = "set beep_msg_level MSGS NOTICES PUBLIC DCC DCCMSGS HILIGHT; statusbar window remove dnd;";
+};
