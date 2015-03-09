@@ -1,0 +1,23 @@
+#!/bin/bash
+
+##
+# pre-push hook which prevents a force push to master, staging, and sprint*
+# branches.
+##
+
+local_branch="$(git rev-parse --abbrev-ref HEAD)"
+
+IFS=' '
+while read local_ref local_sha remote_ref remote_sha ; do
+  contains_remote=$(git branch --contains $remote_sha | grep "\<$local_branch\>")
+  if [ -z "$contains_remote" ] ; then
+    remote_branch="$(basename $remote_ref)"
+    case "$remote_branch" in
+      master|staging|sprint*)
+        echo "Force pushing to $remote_branch is not permitted."
+        exit 1
+    esac
+  fi
+done
+
+exit 0
