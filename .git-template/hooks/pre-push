@@ -8,7 +8,11 @@
 local_branch="$(git rev-parse --abbrev-ref HEAD)"
 
 IFS=' '
+z40=0000000000000000000000000000000000000000
 while read local_ref local_sha remote_ref remote_sha ; do
+  if [ $remote_sha = $z40 ] ; then
+    continue
+  fi
   contains_remote=$(git branch --contains $remote_sha | grep "\<$local_branch\>")
   if [ -z "$contains_remote" ] ; then
     remote_branch="$(basename $remote_ref)"
