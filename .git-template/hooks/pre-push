@@ -13,12 +13,15 @@ while read local_ref local_sha remote_ref remote_sha ; do
   if [ $remote_sha = $z40 ] ; then
     continue
   fi
-  contains_remote=$(git branch --contains $remote_sha | grep "\<$local_branch\>")
+  contains_remote=$(git branch --contains $remote_sha 2> /dev/null | grep "\<$local_branch\>")
   if [ -z "$contains_remote" ] ; then
     remote_branch="$(basename $remote_ref)"
     case "$remote_branch" in
       master|staging|sprint*)
-        echo "Force pushing to $remote_branch is not permitted."
+        echo "Pushing to $remote_branch aborted."
+        echo "Check that you are up to date with the latest "
+        echo "changes from origin or that you are not attempting "
+        echo "to force push changes to the history."
         exit 1
     esac
   fi
