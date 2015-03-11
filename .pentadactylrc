@@ -108,10 +108,45 @@ map <leader>ft :emenu View.Firebug<cr>
 
 " }}}
 
+" Commands {{{
+
+" add to amazon wishlist
+command wishlist -js
+  \ window.content.document.location = "javascript:" +
+  \   "(function(){" +
+  \   "    var w=window," +
+  \   "        l=w.location," +
+  \   "        d=w.document," +
+  \   "        s=d.createElement('script')," +
+  \   "        e=encodeURIComponent,o='object'," +
+  \   "        n='AUWLBook'," +
+  \   "        u='https://www.amazon.com/wishlist/add'," +
+  \   "        r='readyState'," +
+  \   "        T=setTimeout," +
+  \   "        a='setAttribute'," +
+  \   "        g=function(){" +
+  \   "          d[r]&&d[r]!='complete'?" +
+  \   "            T(g,200):" +
+  \   "            !w[n]?" +
+  \   "              (s[a]('charset','UTF-8')," +
+  \   "               s[a]('src',u+'.js?loc='+e(l))," +
+  \   "               d.body.appendChild(s)," +
+  \   "               f()):" +
+  \   "              f()" +
+  \   "        }," +
+  \   "        f=function(){" +
+  \   "          !w[n]?T(f,200):w[n].showPopover()" +
+  \   "        };" +
+  \   "    typeof s!=o?l.href=u+'?u='+e(l)+'&t='+e(d.title):g()" +
+  \   "}())";
+
+" }}}
+
 " Autocmds {{{
 
 " let my amazon purchases benefit a charity.
-au LocationChange www.amazon.com js window.content.document.location.replace(window.content.document.location.href.replace(/\bwww\./, 'smile.'))
+au LocationChange www.amazon.com -js
+  \ doc.location.replace(doc.location.href.replace(/\bwww\./, 'smile.'))
 
 " }}}
 
