@@ -4,7 +4,11 @@ settings = {
     user_name = "ervandew";
     nick = "ervandew";
   };
-  "fe-text" = { actlist_sort = "refnum"; indent = "28"; };
+  "fe-text" = {
+    actlist_sort = "refnum";
+    indent = "28";
+    paste_join_multiline = "no";
+  };
   "fe-common/core" = {
     beep_msg_level = "MSGS NOTICES PUBLIC DCC DCCMSGS HILIGHT";
     theme = "default";
@@ -55,7 +59,7 @@ statusbar = {
     # treated "normally", you could change the time/user name to whatever
     time = "{sb $Z}";
     user = "{sb {sbnickmode $cumode}$N{sbmode $usermode}{sbaway $A}}";
-    dnd = "{sb {error Do Not Disturb}}";
+    dnd = "{sb %YDo Not Disturb%n}";
 
     # treated specially .. window is printed with non-empty windows,
     # window_empty is printed with empty windows
@@ -96,6 +100,7 @@ statusbar = {
         vim_mode = { };
         time = { };
         user = { };
+        dnd = { };
         #window = { };
         window_empty = { };
         vim_windows = { };
