@@ -148,7 +148,8 @@
   alias :q="exit"
   alias less="vimpager"
   alias vimdiff="vim -d"
-  alias vimmin="vim -u NONE -U NONE --cmd 'set nocp | sy on | filetype plugin indent on'"
+  alias vimmin="vim -u NONE --cmd 'set nocp | sy on | filetype plugin indent on'"
+  alias vimlarge="vim -u NONE --cmd 'set noswf nowrap undolevels=-1' --cmd 'autocmd BufReadPre * setlocal bt=nowrite'"
 
   # if not in X, tell vim not to attempt connection w/ X server
   if [ "$DISPLAY" == "" ] ; then
