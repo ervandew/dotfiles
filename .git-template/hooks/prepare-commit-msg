@@ -42,7 +42,9 @@ else
       message="${ticket}"
     fi
     line=$(grep '^#' -nm 1 $1 | cut -d':' -f1)
-    sed -i "${line}i ${message}\n" $1
+    if [ -n "$line" ] ; then
+      sed -i "${line}i ${message}\n" $1
+    fi
   fi
 fi
 
