@@ -12,6 +12,7 @@ import XMonad.Hooks.SetWMName
 import XMonad.Hooks.UrgencyHook
 import XMonad.Layout.Accordion
 import XMonad.Layout.Combo
+import XMonad.Layout.ComboP
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Named
 import XMonad.Layout.PerWorkspace
@@ -32,24 +33,23 @@ import Data.Ratio
 import System.IO
 
 myLayout = avoidStrutsOn[U] $
-    onWorkspace "2:im/mail"  (
-      named "StackTwoByOne" stackTwoByOne |||
-      named "Tiled" tiled |||
-      named "Tabbed" tabs) $
-    onWorkspace "3:media"    (named "Tabbed" tabs) $
-    onWorkspace "4:vm"       Full $
-    named "Accordian/Full"   accordianFull |||
-    named "Tiled"            tiled |||
-    named "StackTwo"         stackTwo |||
-    named "Tabbed"           tabs
+    onWorkspace "2:im/mail"  (stackTwoByOne ||| tiled ||| tabs) $
+    onWorkspace "3:media" tabs $
+    onWorkspace "4:vm" Full $
+    accordianFull ||| tiled ||| stackTwo ||| tabs
   where
-    accordianFull = (combineTwo (TwoPane (3/100) (1/2)) (Accordion) (Full))
-    stackTwo      = (combineTwo (StackTile 1 (3/100) (1/2)) (Full) (Full))
-    stackTwoByOne = reflectVert $ (combineTwo
-        (StackTile 1 (3/100) (1/2))
-        (TwoPane (3/100) (1/2)) (Full))
-    tabs          = reflectHoriz $ tabbed shrinkText myTabConfig
-    tiled         = reflectHoriz $ Tall 1 (3/100) (1/2)
+    accordianFull = named "Accordian/Full" (
+        combineTwo (TwoPane (3/100) (1/2)) (Accordion) (Full))
+    stackTwo = named "StackTwo" (
+        combineTwo (StackTile 1 (3/100) (1/2)) (Full) (Full))
+    stackTwoByOne = named "StackTwoByOne" (
+        combineTwoP
+            (StackTile 1 (3/100) (1/2))
+            (Full)
+            (TwoPane (3/100) (1/2))
+            (Title "irssi"))
+    tabs = named "Tabbed" (reflectHoriz $ tabbed shrinkText myTabConfig)
+    tiled = named "Tiled" (reflectHoriz $ Tall 1 (3/100) (1/2))
     myTabConfig = defaultTheme {
       activeColor = "#222222",
       activeTextColor = "#aaaaaa",
