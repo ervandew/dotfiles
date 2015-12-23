@@ -3,6 +3,7 @@
 " Options {{{
 
 " firefox settings
+set! browser.tabs.closeWindowWithLastTab=false
 " limit cache to 10mb since I'll be using ramdisk and only visit a few sites
 " with regularity
 set! browser.cache.disk.capacity=10240
@@ -28,6 +29,10 @@ set! view_source.editor.path=/usr/bin/gvim
 " another setting to get rid of the firefox native inspector
 set! extensions.firebug.hideDefaultInspector=true
 set! extensions.firebug.showQuickInfoBox=false
+
+" hardware acceleration
+set! layers.acceleration.force-enabled=true
+set! layers.offmainthreadcomposition.enabled=true
 
 " pentadactyl settings
 set autocomplete=false
@@ -191,5 +196,7 @@ highlight HelpString -link=String
 highlight StatusQuestion -link=String
 
 " }}}
+
+source ~/.pentadactylrc.work
 
 " vim:ft=vimperator:fdm=marker
