@@ -2,6 +2,13 @@
 # Executed when X starts.
 ##
 
+# load system level xinitrc files
+if [ -d /etc/X11/xinit/xinitrc.d ] ; then
+  for xrc in /etc/X11/xinit/xinitrc.d/?*.sh ; do
+    [ -x "$xrc" ] && . "$xrc"
+  done
+fi
+
 # Enviroment Variables {{{
 
 PATH="$HOME/bin:$PATH" ; export PATH
@@ -34,9 +41,10 @@ eval $(gpg-agent --daemon --allow-preset-passphrase)
 # start offlineimap loop
 ~/bin/offlineimap &
 
+# load user level xinitrc files
 if [ -d ~/.xinitrc.d ] ; then
-  for xrc in `find ~/.xinitrc.d -name '*.sh' | sort` ; do
-    . $xrc
+  for xrc in $(find ~/.xinitrc.d -name '*.sh' | sort) ; do
+    . "$xrc"
   done
 fi
 
