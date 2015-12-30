@@ -85,7 +85,7 @@ IFS=$'\n'
 ID="-tty-$(basename $(tty))"
 if [ -n "$TMUX" ] ; then
   ID="-tmux-$(echo $(basename $TMUX) | sed 's|,|-|g')-$(echo $TMUX_PANE | sed 's|%||')"
-elif [ -n "$WIDOWID" ] ; then
+elif [ -n "$WINDOWID" ] ; then
   ID="-window-$WINDOWID"
 fi
 
