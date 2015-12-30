@@ -120,6 +120,10 @@ while [ "$1" == "-t" -o "$1" == "-r" -o "$1" == "-v" -o "$1" == "-c" -o "$1" == 
   fi
 done
 
+if [ "$1" == "--" ] ; then
+  shift
+fi
+
 GITDIR=`git rev-parse --git-dir 2> /dev/null`
 GITPICK="$GITDIR/git-pick-list${TYPE}${ID}"
 
