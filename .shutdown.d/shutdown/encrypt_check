@@ -1,0 +1,26 @@
+#!/bin/bash
+
+##
+# Check that the cryptkeydevice patch has been applied to the encrypt hook, and
+# that the linux image has been built since the hook was last modified.
+##
+
+file=/usr/lib/initcpio/hooks/encrypt
+if [ ! -f $file ] ; then
+  echo "Unable to find the encrypt hook."
+  exit 1
+fi
+
+if ! grep CRYPTKEYDEVICE_PATCH $file > /dev/null ; then
+  echo "Unable to find cryptkeydevice patch in encrypt hook."
+  exit 1
+fi
+
+hook_time=$(date --utc --reference=$file +%s)
+image_time=$(date --utc --reference=/boot/initramfs-linux.img +%s)
+if [ $image_time -lt $hook_time ] ; then
+  echo "The encrypt hook has been modified since the last image was built."
+  echo "Run the following to rebuild the image:"
+  echo "  $ sudo /usr/sbin/mkinitcpio -p linux"
+  exit 1
+fi
