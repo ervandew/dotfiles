@@ -58,6 +58,30 @@ function _toggle(){
   fi
 }
 
+# for the rare cases where the external monitor won't come out of hibernation,
+# toggle both internal and external displays.
+function _refresh(){
+  if [[ -n "$(_monitor external is_on)" ]] ; then
+    # internal is off, so turn it on
+    if [[ -z "$(_monitor internal is_on)" ]] ; then
+      internal_off=1
+      _on internal
+      sleep 1
+    fi
+
+    # now we can turn the external on off and back on again
+    _off external
+    sleep 1
+    _on external
+
+    # internal was off, so turn it off again
+    if [[ -n "$internal_off" ]] ; then
+      sleep 1
+      _off internal
+    fi
+  fi
+}
+
 function _monitor(){
   eval pattern="\$$(echo $1 | tr '[:lower:]' '[:upper:]')"
   if [ "$pattern" == "\$" ] ; then
@@ -70,18 +94,30 @@ function _monitor(){
   echo "$(xrandr | grep "$pattern" | cut -d' ' -f1)"
 }
 
-if [ $# -ne 2 ] ; then
+if [ $# -lt 1 ] ; then
   echo "abort: invalid number of arguments."
   usage
 fi
 
 case $1 in
-  internal) ;;
-  external) ;;
+  refresh)
+    if [ $# -ne 1 ] ; then
+      echo "abort: invalid number of arguments."
+      usage
+    fi
+    _refresh
+    exit 0
+    ;;
+  internal|external) ;;
   *)
     echo "abort: unrecognized monitor: $1"
     usage
 esac
+
+if [ $# -ne 2 ] ; then
+  echo "abort: invalid number of arguments."
+  usage
+fi
 
 case $2 in
   on)

@@ -172,7 +172,8 @@ main = do
       ("M-z",         spawn $ "alock -cursor theme:name=xtr -auth pam"),
       ("M-S-C-s",     spawn $ "~/bin/shutdown gui"),
       ("M-q",         spawn $ "xmonad --restart"),
-      ("M-S-C-m",     spawn $ "~/bin/monitor external toggle ; xmonad --restart"),
+      ("M-S-m",       spawn $ "~/bin/monitor external toggle ; xmonad --restart"),
+      ("M-S-C-m",     spawn $ "~/bin/monitor refresh"),
 
       -- adjust screen brightness
       ("M-b",         spawn $ "xbacklight -inc 10"),
