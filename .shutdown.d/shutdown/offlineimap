@@ -16,5 +16,5 @@ if [ -n "$(pgrep -f ~/bin/offlineimap)" ] ; then
     sleep 1
   done
 
-  pkill -9 -f bin/offlineimap
+  pkill -9 -f bin/offlineimap || true
 fi
