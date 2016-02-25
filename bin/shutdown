@@ -101,13 +101,13 @@ function _gui(){
 
   case "$choice" in
     Suspend)
-      _suspend | zenity --text-info
+      _suspend 2>&1 | zenity --text-info
       ;;
     Reboot)
-      _shutdown reboot | zenity --text-info
+      _shutdown reboot 2>&1 | zenity --text-info
       ;;
     Shutdown)
-      _shutdown poweroff | zenity --text-info
+      _shutdown poweroff 2>&1 | zenity --text-info
       ;;
   esac
 }
@@ -126,6 +126,7 @@ function _hooks (){
 
     SUDO=$SUDO $hook
     if [ $? -ne 0 ] ; then
+      echo "Failed to run: $hook"
       exit 1
     fi
   done
