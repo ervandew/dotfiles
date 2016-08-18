@@ -69,7 +69,7 @@ function _refresh(){
       sleep 1
     fi
 
-    # now we can turn the external on off and back on again
+    # now we can turn the external off and back on again
     _off external
     sleep 1
     _on external
