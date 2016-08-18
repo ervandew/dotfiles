@@ -34,6 +34,6 @@ _monitor &
 while true; do
   echo `date +%s` > ~/.offlineimap/log
   echo `date` >> ~/.offlineimap/log
-  /usr/bin/offlineimap -o -u Noninteractive.Basic &>> ~/.offlineimap/log
+  /usr/bin/offlineimap -o -u basic &>> ~/.offlineimap/log
   sleep 180
 done
