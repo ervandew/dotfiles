@@ -60,12 +60,6 @@ map gl :tabnext<cr>
 map gH :tabmove -1<cr>
 map gL :tabmove +1<cr>
 
-" open tab groups
-map gto <c-s-e>
-" navigate between tab groups
-map gth <c-s-`>
-map gtl <c-`>
-
 " remap gf to use firefox native view source.  this plus setting firefox
 " view_source.editor.* settings makes for a better external viewer than
 " :viewsource!
