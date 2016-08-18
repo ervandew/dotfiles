@@ -60,7 +60,7 @@ use vars qw($VERSION %IRSSI);
 use Irssi 20070804;
 use Text::Aspell;
 
-$VERSION = '0.3';
+$VERSION = '0.4';
 %IRSSI = (
     authors     => 'Jakub Jankowski',
     contact     => 'shasta@toxcorp.com',
@@ -71,6 +71,7 @@ $VERSION = '0.3';
 );
 
 my %speller;
+# EV: integrate with statusbar
 my $spell_status;
 
 sub spellcheck_setup
@@ -87,8 +88,8 @@ sub spellcheck_setup
 sub spellcheck_check_word
 {
     my ($lang, $word, $add_rest) = @_;
-    my @suggestions = ();
     my $win = Irssi::active_win();
+    my @suggestions = ();
 
     # setup Text::Aspell for that lang if needed
     if (!exists $speller{$lang} || !defined $speller{$lang})
@@ -180,11 +181,16 @@ sub spellcheck_key_pressed
     # get last bit from the inputline
     my ($word) = $inputline =~ /\s*([^\s]+)$/;
 
+    # do not spellcheck urls
+    my $urlre = qr/(^[a-zA-Z]+:\/\/\S+)|(^www)/;
+    return if ($word =~ $urlre);
+
     # find appropriate language for current window item
     my $lang = spellcheck_find_language($win->{active_server}->{tag}, $win->{active}->{name});
 
     my @suggestions = spellcheck_check_word($lang, $word, 0);
     # Irssi::print("Debug: spellcheck_check_word($word) returned array of " . scalar @suggestions);
+    # EV: integrate with statusbar
     if (scalar @suggestions == 0) {
         $spell_status = "";
         Irssi::statusbar_items_redraw("spellcheck");
@@ -192,6 +198,7 @@ sub spellcheck_key_pressed
     }
 
     # we found a mistake, print suggestions
+    # EV: integrate with statusbar
     $spell_status = "Mispelling: %r${word}%n";
     Irssi::statusbar_items_redraw("spellcheck");
 }
@@ -211,6 +218,7 @@ sub spellcheck_complete_word
 }
 
 
+# EV: integrate with statusbar
 sub spellcheck_status_reset
 {
     $spell_status = "";
@@ -218,6 +226,7 @@ sub spellcheck_status_reset
 }
 
 
+# EV: integrate with statusbar
 sub spellcheck_sb
 {
     my ($sb_item, $get_size_only) = @_;
@@ -225,6 +234,7 @@ sub spellcheck_sb
 }
 
 
+# EV: integrate with statusbar
 Irssi::statusbar_item_register ('spellcheck', 0, 'spellcheck_sb');
 
 Irssi::settings_add_bool('spellcheck', 'spellcheck_enabled', 1);
@@ -232,5 +242,7 @@ Irssi::settings_add_str( 'spellcheck', 'spellcheck_default_language', 'en_US');
 Irssi::settings_add_str( 'spellcheck', 'spellcheck_languages', '');
 
 Irssi::signal_add_first('gui key pressed', 'spellcheck_key_pressed');
-Irssi::signal_add_first('send text', 'spellcheck_status_reset');
 Irssi::signal_add_last('complete word', 'spellcheck_complete_word');
+
+# EV: integrate with statusbar
+Irssi::signal_add_first('send text', 'spellcheck_status_reset');
