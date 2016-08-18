@@ -3,7 +3,8 @@
 # shutdown eclim instances
 if [ -f "$HOME/.eclim/.eclimd_instances" ] ; then
   echo "shutdown eclim..."
-  for port in `cat $HOME/.eclim/.eclimd_instances | sed s/.*://` ; do
+  for line in $(cat $HOME/.eclim/.eclimd_instances) ; do
+    port=$(echo "$line" | jshon -e port)
     /opt/eclipse/eclim -Dnailgun.server.port=$port -command shutdown
   done
 
