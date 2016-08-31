@@ -128,7 +128,7 @@ au VimperatorLeavePre .* js try{ var file = Components.classes["@mozilla.org/fil
 au VimperatorLeavePre .* js try{ var file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile); file.initWithPath('~/.vimperator/info/history-editor'); file.remove(true); }catch(e){}
 
 " let my amazon purchases benefit a charity.
-au LocationChange http://www.amazon.com js window.content.document.location.replace(window.content.document.location.href.replace(/\bwww\./, 'smile.'))
+au LocationChange www.amazon.com js window.content.document.location.replace(window.content.document.location.href.replace(/\bwww\./, 'smile.'))
 
 " }}}
 
