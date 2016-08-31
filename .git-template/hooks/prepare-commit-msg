@@ -23,10 +23,13 @@ if [ "$3" == HEAD ] ; then
   fi
 
   # prevent amending commit found in other branches
-  branches=$(git branch -a --contains $(git log -1 --pretty=tformat:%h) | grep -v $(git brname))
+  branches=$(
+    git branch -a --contains $(git log -1 --pretty=tformat:%h) |
+    perl -ne "print unless /\b($(git brname))\b/"
+  )
   if [ -n "$branches" ] ; then
     echo "abort: the following branches contain the commit to be amended:"
-    for b in $branches ; do echo -e "\t$b" ; done
+    for b in $branches ; do echo -e "  $b" ; done
     exit 1
   fi
 
