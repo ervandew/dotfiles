@@ -136,7 +136,7 @@ main = do
         ppLayout  = dzenColor barForeground barBackground . wrap "{ " " }",
         ppTitle   = dzenColor "#8eb157" barBackground . shorten 75,
         ppUrgent  = dzenColor "#bb4b4b" barBackground . dzenStrip
-      } >> fadeInactiveLogHook 0.5 >> updatePointer (Relative 1 1)
+      } >> fadeInactiveLogHook 0.5 >> updatePointer (1,1) (1,1)
     }
     -- change workspace keybindings to not be "greedy" (move my focus to the
     -- screen displaying the workspace instead of moving the workspace to my
