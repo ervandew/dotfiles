@@ -91,16 +91,8 @@ myManageHook = composeAll [
     role = stringProperty "WM_WINDOW_ROLE"
     viewShift = doF . liftM2 (.) W.view W.shift
 
-barFont = "-*-terminus-*-r-normal-*-*-120-*-*-*-*-iso8859-*"
 barBackground = "#232323"
 barForeground = "#7e7e7e"
-
-myXPConfig = defaultXPConfig {
-  font = barFont,
-  bgColor = "#222222",
-  fgColor = "#aaaaaa",
-  borderColor = "#395571",
-  historyFilter = deleteAllDuplicates}
 
 myTerminal = "urxvt"
 myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm", "5:misc", "6:misc"]
