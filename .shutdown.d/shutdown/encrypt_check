@@ -12,7 +12,7 @@ if [ ! -f $file ] ; then
 fi
 
 if ! grep CRYPTKEYDEVICE_PATCH $file > /dev/null ; then
-  echo "Unable to find cryptkeydevice patch in encrypt hook."
+  echo "Unable to find cryptkeydevice patch in encrypt hook: $file"
   exit 1
 fi
 
