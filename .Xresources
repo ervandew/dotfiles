@@ -16,7 +16,7 @@ Xft.dpi: 96.0
 *saveLines: 4096
 *visualBell: true
 
-dzen2*font: -*-terminus-*-r-normal-*-12-120-*-*-*-*-iso8859-*
+dzen2*font: -*-terminus-*-r-normal-*-11-120-*-*-*-*-iso8859-*
 dzen2*background: #232323
 dzen2*foreground: #7e7e7e
 
