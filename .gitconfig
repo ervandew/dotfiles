@@ -94,7 +94,7 @@
   din = !git log -p ..origin/$(git brname)
   fin = !git in --name-status
 
-  out = !git log --pretty=simple origin/$(git brname).. | git pick -t rev '^(\\w+) .*'
+  out = !git -c color.ui=always log --pretty=simple origin/$(git brname).. | git pick -t rev '^(\\w+) .*'
   dout = !git log -p origin/$(git brname)..
   fout = !git log --pretty=simple origin/$(git brname).. --name-status
 
