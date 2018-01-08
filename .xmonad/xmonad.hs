@@ -3,6 +3,7 @@ import XMonad.Actions.CycleRecentWS
 import XMonad.Actions.PerLayoutKeys
 import XMonad.Actions.UpdatePointer
 import XMonad.Actions.WindowNavigation
+import XMonad.Config.Desktop
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.FadeInactive
@@ -32,7 +33,7 @@ import Data.List
 import Data.Ratio
 import System.IO
 
-myLayout = avoidStrutsOn[U] $
+myLayout = desktopLayoutModifiers $
     onWorkspace "2:im/mail"  (stackTwoByOne ||| tiled ||| tabs) $
     onWorkspace "3:media" tabs $
     onWorkspace "4:vm" Full $
@@ -100,7 +101,7 @@ myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm", "5:misc", "6:misc"]
 noScratchPad ws = if ws == "NSP" then "" else ws
 
 main = do
-  dzenXmonadBar <- spawnPipe "~/bin/dzen2 -wp 40 -ta l -h 16 -x 0 -y 0"
+  workspaceBar <- spawnPipe ("xmobar -B '" ++ barBackground ++ "'" ++ " -F '" ++ barForeground ++ "'")
   spawn "xset -b"
   spawn "xset r rate 250 30"
   spawn "xsetroot -cursor_name left_ptr"
@@ -108,7 +109,7 @@ main = do
   spawn "xmodmap ~/.Xmodmap"
   spawn "xrdb -load ~/.Xresources"
   spawn "synclient HorizTwoFingerScroll=1"
-  spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 40 -wp 60 -h 16 -ta r &"
+  spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 40 -wp 60 -h 14 -ta r &"
   spawn "pkill dunst ; dunst -config ~/.dunstrc &"
   spawn "pkill keynav ; keynav &"
   spawn "pkill xcompmgr ; xcompmgr -c -r0 &"
@@ -116,26 +117,25 @@ main = do
   config <-
     withWindowNavigation(xK_k, xK_h, xK_j, xK_l) $
     withUrgencyHook NoUrgencyHook $
-    ewmh $ defaultConfig {
+    ewmh $ desktopConfig {
       borderWidth        = 1,
       modMask            = mod1Mask,
       terminal           = myTerminal,
       normalBorderColor  = "#333333",
       focusedBorderColor = "#5884b0",
       workspaces         = myWorkspaces,
-      manageHook         = manageDocks <+> myManageHook <+> manageHook defaultConfig,
+      manageHook         = manageDocks <+> myManageHook <+> manageHook desktopConfig,
       layoutHook         = myLayout,
-      startupHook        = setWMName "LG3D", -- pre java 7 workaround for some apps
       focusFollowsMouse  = False,
-      logHook            = dynamicLogWithPP dzenPP {
-        ppOutput  = hPutStrLn dzenXmonadBar,
+      logHook            = dynamicLogWithPP xmobarPP {
+        ppOutput  = hPutStrLn workspaceBar,
         ppSep     = " | ",
-        ppCurrent = dzenColor "#5884b0" barBackground . wrap " [" "] ",
-        ppVisible = dzenColor "#58738d" barBackground . wrap " " " ",
-        ppHidden  = dzenColor barForeground barBackground . wrap " " " " . noScratchPad,
-        ppLayout  = dzenColor barForeground barBackground . wrap "{ " " }",
-        ppTitle   = dzenColor "#8eb157" barBackground . shorten 75,
-        ppUrgent  = dzenColor "#bb4b4b" barBackground . dzenStrip
+        ppCurrent = xmobarColor "#5884b0" barBackground . wrap "[" "]",
+        ppVisible = xmobarColor "#58738d" barBackground . wrap "[" "]",
+        ppHidden  = xmobarColor barForeground barBackground . wrap "[" "]" . noScratchPad,
+        ppLayout  = xmobarColor barForeground barBackground . wrap "{ " " }",
+        ppTitle   = xmobarColor "#8eb157" barBackground . shorten 75,
+        ppUrgent  = xmobarColor "#bb4b4b" barBackground . wrap "[" "]"
       } >> fadeInactiveLogHook 0.5 >> updatePointer (1,1) (1,1)
     }
     -- change workspace keybindings to not be "greedy" (move my focus to the
