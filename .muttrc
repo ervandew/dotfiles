@@ -59,9 +59,9 @@ bind editor ^T complete
 
 # use a graphical browser configured via mailcap like so:
 #  # bound as <return> on attachments view in mutt
-#  text/html;firefox %s &; test=test -n "$DISPLAY"; needsterminal;
+#  text/html;xdg-open...
 #  # default command for mutt to use when viewing html emails w/ no text version
-#  text/html;w3m -I %{charset} -T text/html; copiousoutput;
+#  text/html;w3m...
 bind attach <return> view-mailcap
 
 # default saving of attachments to ~/downloads
