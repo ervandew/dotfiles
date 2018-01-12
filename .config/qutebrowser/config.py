@@ -1,3 +1,5 @@
+import os
+
 # basic config
 c.auto_save.session = True
 c.url.default_page = 'https://google.com'
@@ -8,6 +10,19 @@ c.aliases.update({
   'h': 'help -t',
   'keyring': 'spawn --userscript keyring',
 })
+# requires running: $ sudo /usr/share/qutebrowser/script/install_dict.py en-US
+c.spellcheck.languages = ['en-US']
+
+# whitelist some hosts that prevent some sites from working properly
+whitelist = str(config.configdir / 'whitelist')
+if os.path.isfile(whitelist):
+  with open(whitelist) as f:
+    domains = []
+    for line in f.readlines():
+      if line.startswith('#'):
+        continue
+      domains.append(line.strip())
+    c.content.host_blocking.whitelist = domains
 
 # open
 config.bind('O', 'set-cmd-text :open {url:pretty}')
@@ -21,6 +36,12 @@ config.bind('gl', 'tab-next')
 config.bind('gH', 'tab-move -')
 config.bind('gL', 'tab-move +')
 
+# scrolling
+# the default G/gg mappings use :scroll-to-perc, but that doesn't seem to work
+# on a focused scrolling div, so use :scroll instead.
+config.bind('gg', 'scroll top')
+config.bind('G', 'scroll bottom')
+
 # hints
 config.bind(';t', 'hint links tab-fg')
 config.bind(';i', 'hint inputs')
@@ -33,6 +54,7 @@ config.bind('<ctrl-i>', 'open-editor', mode='insert')
 config.bind('<ctrl-v>', 'insert-text {primary}', mode='insert')
 
 # ui (colors, etc)
+magenta = '#cf9ebe'
 green = '#aece91'
 red = '#bb4b4b'
 yellow = '#e18964'
@@ -48,7 +70,13 @@ c.hints.border = '1px solid #8eb157'
 c.colors.hints.bg = green
 c.colors.hints.fg = 'black'
 c.colors.hints.match.fg = 'white'
+c.colors.completion.even.bg = '#333'
+c.colors.completion.odd.bg = '#303030'
 c.colors.completion.match.fg = green
+c.colors.completion.item.selected.bg = '#444'
+c.colors.completion.item.selected.fg = fg
+c.colors.completion.item.selected.border.top = '#555'
+c.colors.completion.item.selected.border.bottom = '#555'
 c.colors.messages.error.bg = red
 c.colors.messages.info.bg = bg
 c.colors.statusbar.normal.bg = bg
@@ -60,6 +88,7 @@ c.colors.statusbar.url.success.http.fg = fg
 c.colors.statusbar.url.success.https.fg = green
 c.colors.statusbar.url.error.fg = red
 c.colors.statusbar.url.warn.fg = yellow
+c.colors.statusbar.url.hover.fg = magenta
 c.colors.tabs.even.bg = unfocused_bg
 c.colors.tabs.even.fg = unfocused_fg
 c.colors.tabs.odd.bg = unfocused_bg
