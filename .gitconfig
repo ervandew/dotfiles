@@ -64,7 +64,7 @@
   #   checks if any other branches contain the same commits that would be
   #   rebased on the current branch if rebased with <rebase_with>.
   # Invoked by ~/.git-template/hooks/pre-rebase to ensure this check always occurs.
-  rebasesafe = "!f() { if [ -z \"$1\" ] ; then echo \"abort: Name of the branch that would be rebased with is required.\"; return; fi; B=$(git brname); A=$(git cherry -v $1); if [ $? -gt 0 ] ; then return ; fi; A=$(echo $A | perl -pe 's|\\+ ([a-f0-9]+) .*|--contains \\1|'); git lfetch; if [ -n \"$A\" ] ; then R=$(git branch -a $A | perl -ne \"print unless /\\b$B\\b/\"); fi; if [ -z \"$R\" ] ; then echo \"No overlapping branches found.\"; else echo -e \"The following branches overlap, rebase not recommened:\n$R\"; return 1; fi; }; f"
+  rebasesafe = "!f() { if [ -z \"$1\" ] ; then echo \"abort: Name of the branch that would be rebased with is required.\"; return; fi; B=$(git brname); A=$(git cherry -v $1); if [ $? -gt 0 ] ; then return ; fi; A=$(echo $A | perl -pe 's|\\+ ([a-f0-9]+) .*|--contains \\1|'); git lfetch; if [ -n \"$A\" ] ; then R=$(git branch -a $A | perl -ne \"print unless /\\b$B\\b/\"); fi; if [ -z \"$R\" ] ; then echo \"No overlapping branches found.\"; else echo -e \"The following branches overlap, rebase not recommended:\n$R\"; return 1; fi; }; f"
 
   # $ git mergein <target branch>
   #   - rebase the target branch against the current branch (running rebasesafe
