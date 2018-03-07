@@ -9,6 +9,9 @@ if [ -d /etc/X11/xinit/xinitrc.d ] ; then
   done
 fi
 
+# load .Xresources before starting xmonad
+[[ -f ~/.Xresources ]] && xrdb -load ~/.Xresources
+
 # Enviroment Variables {{{
 
 PATH="$HOME/bin:$PATH" ; export PATH
