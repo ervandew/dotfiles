@@ -57,6 +57,9 @@ config.bind('$', 'run-with-count 100 scroll right')
 
 # hints
 config.bind(';t', 'hint links tab-fg')
+config.bind(';T', 'hint links fill :open -t {hint-url}')
+config.bind(';O', 'hint links fill :open {hint-url}')
+config.bind(';y', 'hint links yank-primary')
 config.bind(';i', 'hint inputs')
 
 # yanking
