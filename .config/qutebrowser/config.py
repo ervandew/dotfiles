@@ -2,10 +2,17 @@ import os
 
 # basic config
 c.auto_save.session = True
+c.search.incremental = True
 c.url.default_page = 'https://google.com'
 c.url.start_pages = ['https://google.com']
 c.url.searchengines = {'DEFAULT': 'https://google.com/search?q={}'}
-c.editor.command = ['gvim', '-f', '-c "set spell spelllang=en_us"', '{}']
+c.editor.command = [
+  'gvim',
+  '-f',
+  '-c',
+  'set spell spelllang=en_us | silent! call cursor({line}, {column})',
+  '{}',
+]
 c.aliases.update({
   'h': 'help -t',
   'keyring': 'spawn --userscript keyring',
