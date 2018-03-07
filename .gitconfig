@@ -11,6 +11,9 @@
   root = rev-parse --show-toplevel
   repo = "!f() { if [ -n \"$(git brname 2> /dev/null)\" ] ; then echo $(basename $(git rev-parse --show-toplevel)):$(git brname); else exit 1; fi; }; f"
 
+  # determines if the current branch has been pushed or not
+  pushed = "!f() { [[ \"$(git show-ref refs/heads/$(git brname) | cut '-d ' -f1)\" = \"$(git show-ref refs/remotes/origin/$(git brname) | cut '-d ' -f1)\" ]]; }; f"
+
   # git aliases using my git-pick script to support numbered index args
 
   # generate list indexes
@@ -115,7 +118,7 @@
 
   # aliases for working with gitlab
   glcompare = "!f() { B=${1-$(git brparent)}; A=${2-$(git brname)}; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/compare/$B...$A\"; }; f"
-  glpullrequest = "!f() { B=${1-$(git brparent)}; A=${2-$(git brname)}; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
+  glpullrequest = "!f() { B=${1-$(git brparent)}; A=${2-$(git brname)}; if ! $(git pushed $A) ; then git push ; fi; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
 
 [branch]
   autosetupmerge = true
