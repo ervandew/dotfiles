@@ -1,6 +1,5 @@
 load xmpp
 load adv_windowlist.pl
-load irssinotifier.pl
 load keyring.pl
 load nm.pl
 load spellcheck.pl

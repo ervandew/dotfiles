@@ -20,9 +20,6 @@ settings = {
     awl_display_key_active = "[%N$N|$H$C$S]";
     neat_maxlength = "10";
     neat_colors = "rRgGyYmMcC";
-    irssinotifier_ignored_servers = "xmpp:.*@gmail.com";
-    irssinotifier_ignored_nicks = "slackbot";
-    irssinotifier_ignored_highlight_patterns = "^.*\\bis\\saway\\.$";
   };
   "fe-common/xmpp" = { xmpp_strip_resource = "yes"; };
 };
