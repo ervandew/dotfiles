@@ -44,10 +44,16 @@ config.bind('gH', 'tab-move -')
 config.bind('gL', 'tab-move +')
 
 # scrolling
-# the default G/gg mappings use :scroll-to-perc, but that doesn't seem to work
-# on a focused scrolling div, so use :scroll instead.
+# the default G/gg and <ctrl-u/d> mappings use :scroll-to-perc and :scroll-page
+# respectively, but those don't seem to work on a focused scrolling div, so use
+# :scroll instead.
 config.bind('gg', 'scroll top')
 config.bind('G', 'scroll bottom')
+config.bind('<ctrl-u>', 'run-with-count 15 scroll up')
+config.bind('<ctrl-d>', 'run-with-count 15 scroll down')
+# no default 0/$ scrolling (no begin/end, so use a count of 100)
+config.bind('0', 'run-with-count 100 scroll left')
+config.bind('$', 'run-with-count 100 scroll right')
 
 # hints
 config.bind(';t', 'hint links tab-fg')
