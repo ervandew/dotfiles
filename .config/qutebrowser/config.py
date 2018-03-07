@@ -68,6 +68,7 @@ config.bind('yy', 'yank --sel')
 # editing
 config.bind('<ctrl-i>', 'open-editor', mode='insert')
 config.bind('<ctrl-v>', 'insert-text {primary}', mode='insert')
+config.bind('<ctrl-i>', 'edit-command', mode='command')
 
 # ui (colors, etc)
 magenta = '#cf9ebe'
