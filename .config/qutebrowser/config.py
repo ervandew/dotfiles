@@ -70,6 +70,10 @@ config.bind('<ctrl-i>', 'open-editor', mode='insert')
 config.bind('<ctrl-v>', 'insert-text {primary}', mode='insert')
 config.bind('<ctrl-i>', 'edit-command', mode='command')
 
+# command history nav
+config.bind('<up>', 'command-history-prev', mode='command')
+config.bind('<down>', 'command-history-next', mode='command')
+
 # ui (colors, etc)
 magenta = '#cf9ebe'
 green = '#aece91'
