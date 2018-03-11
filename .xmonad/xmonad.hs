@@ -37,9 +37,9 @@ myLayout = desktopLayoutModifiers $
     onWorkspace "2:im/mail"  (stackTwoByOne ||| tiled ||| tabs) $
     onWorkspace "3:media" tabs $
     onWorkspace "4:vm" Full $
-    accordianFull ||| tiled ||| stackTwo ||| tabs
+    accordionFull ||| tiled ||| stackTwo ||| tabs
   where
-    accordianFull = named "Accordian/Full" (
+    accordionFull = named "Accordion/Full" (
         combineTwo (TwoPane (3/100) (1/2)) (Accordion) (Full))
     stackTwo = named "StackTwo" (
         combineTwo (StackTile 1 (3/100) (1/2)) (Full) (Full))
