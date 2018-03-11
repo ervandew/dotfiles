@@ -84,6 +84,8 @@ myManageHook = composeAll [
     className =? "Openshot"           --> viewShift "3:media",
     className =? "qemu-system-x86_64" --> viewShift "4:vm",
     className =? "VirtualBox"         --> viewShift "4:vm",
+    -- zenity doesn't float by default, but I want it to.
+    className =? "Zenity"             --> doFloat,
     -- gimp insists on floating, so prevent that.
     role =? "gimp-image-window"       --> ask >>= doF . W.sink
   ] <+> manageScratchPad
