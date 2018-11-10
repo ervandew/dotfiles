@@ -34,7 +34,7 @@ text/x-diff;vim %s
 application/octet-stream;vim %s
 
 # bound as <return> on attachments view in mutt
-text/html;xdg-open %s &; needsterminal;
+text/html;xdg-open %s &; nametemplate=%s.html; needsterminal;
 
 # default command for mutt to use when viewing html emails w/ no text version
 text/html;w3m -I %{charset} -T text/html; copiousoutput;
