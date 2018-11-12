@@ -62,6 +62,9 @@ config.bind(';T', 'hint links fill :open -t {hint-url}')
 config.bind(';O', 'hint links fill :open {hint-url}')
 config.bind(';y', 'hint links yank-primary')
 config.bind(';i', 'hint inputs')
+# open url via xdg-open (useful when using dedicated qutebrowser instance for a
+# single web app, but you want the option to open links in your main browser)
+config.bind(';x', 'hint links spawn xdg-open {hint-url}')
 
 # yanking
 config.bind('yy', 'yank --sel')
