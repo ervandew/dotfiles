@@ -26,7 +26,8 @@ if os.path.isfile(whitelist):
   with open(whitelist) as f:
     domains = []
     for line in f.readlines():
-      if line.startswith('#'):
+      line = line.strip()
+      if not line or line.startswith('#'):
         continue
       domains.append(line.strip())
     c.content.host_blocking.whitelist = domains
