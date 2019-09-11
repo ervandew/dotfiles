@@ -43,12 +43,12 @@ myLayout = desktopLayoutModifiers $
         combineTwo (TwoPane (3/100) (1/2)) (Accordion) (Full))
     stackTwo = named "StackTwo" (
         combineTwo (StackTile 1 (3/100) (1/2)) (Full) (Full))
-    stackTwoByOne = named "StackTwoByOne" (
+    stackTwoByOne = named "Communication" (
         combineTwoP
             (StackTile 1 (3/100) (1/2))
-            (Full)
-            (TwoPane (3/100) (1/2))
-            (Title "irssi"))
+            (tabs) -- top
+            (TwoPane (3/100) (1/2)) -- bottom
+            (Title "irssi" `Or` ClassName "qutebrowser"))
     tabs = named "Tabbed" (reflectHoriz $ tabbed shrinkText myTabConfig)
     tiled = named "Tiled" (reflectHoriz $ Tall 1 (3/100) (1/2))
     myTabConfig = defaultTheme {
