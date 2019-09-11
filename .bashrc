@@ -166,21 +166,10 @@
   alias envmin="~/bin/envmin ~/.envmin/envmin.txt"
 
   alias whatismyip="wget -qnv -O - http://checkip.dyndns.org/ | grep -oP '\d+\.\d+\.\d+\.\d+'"
-  alias wireless="sudo -E ~/bin/wireless"
-  alias openvpn="sudo -E ~/bin/openvpn"
-  alias ppp="sudo -E ~/bin/ppp"
 
-  alias irssi="urxvt -name irssi -title irssi -pe matcher -e irssi &"
-  alias mocp="urxvt -name player -title player -e bash -ic /usr/bin/mocp &"
-  alias pms="
-    urxvt -name player -title player -e bash -ic \"
-      pgrep mpd || mpd
-      if [ $? -ne 0 ] ; then
-        sleep 5
-      else
-        /usr/bin/pms
-      fi
-    \" &"
+  alias irssi="urxvt -name irssi -title irssi -e irssi &"
+
+  alias music="chromium --app=https://music.google.com &"
 
   # postgres db shortcuts
   alias lsdb="psql postgres -c '\l'"
