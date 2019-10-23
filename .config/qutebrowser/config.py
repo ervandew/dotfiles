@@ -32,6 +32,11 @@ if os.path.isfile(whitelist):
       domains.append(line.strip())
     c.content.host_blocking.whitelist = domains
 
+# workaround for aparent bug where rogue tab keypresses are received and
+# causing qutebrowser to scroll to the top of the page when switching
+# workspaces, etc.
+config.bind('<tab>', ':nop')
+
 # open
 config.bind('O', 'set-cmd-text :open {url:pretty}')
 
