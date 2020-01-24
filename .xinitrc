@@ -5,7 +5,10 @@
 # load system level xinitrc files
 if [ -d /etc/X11/xinit/xinitrc.d ] ; then
   for xrc in /etc/X11/xinit/xinitrc.d/?*.sh ; do
-    [ -x "$xrc" ] && . "$xrc"
+    if [ -x "$xrc" ] ; then
+      echo "Running system level xinitrc: $xrc"
+      . "$xrc"
+    fi
   done
 fi
 
@@ -25,7 +28,8 @@ _JAVA_AWT_WM_NONREPARENTING=1 ; export _JAVA_AWT_WM_NONREPARENTING
 
 # load user level xinitrc files
 if [ -d ~/.xinitrc.d ] ; then
-  for xrc in $(find ~/.xinitrc.d -name '*.sh' | sort) ; do
+  for xrc in $(find -L ~/.xinitrc.d -name '*.sh' | sort) ; do
+    echo "Running user level xinitrc: $xrc"
     . "$xrc"
   done
 fi
