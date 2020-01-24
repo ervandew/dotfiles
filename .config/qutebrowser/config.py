@@ -75,8 +75,10 @@ config.bind(';x', 'hint links spawn xdg-open {hint-url}')
 config.bind('yy', 'yank --sel')
 
 # editing
+config.bind('<alt-r>*', 'insert-text {primary}', mode='insert')
+# no command yet which can insert clipboard text to command line
+#config.bind('<alt-r>*', 'insert-text {primary}', mode='command')
 config.bind('<ctrl-i>', 'open-editor', mode='insert')
-config.bind('<ctrl-v>', 'insert-text {primary}', mode='insert')
 config.bind('<ctrl-i>', 'edit-command', mode='command')
 
 # command history nav
