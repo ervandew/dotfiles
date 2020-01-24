@@ -1,0 +1,2 @@
+#!/bin/bash
+/usr/bin/qutebrowser --enable-webengine-inspector $@
