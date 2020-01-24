@@ -16,6 +16,7 @@ Xft.dpi: 96.0
 *saveLines: 4096
 *visualBell: true
 
+! use xfontsel to find font in this format.
 dzen2*font: -*-terminus-*-r-normal-*-11-120-*-*-*-*-iso8859-*
 dzen2*background: #232323
 dzen2*foreground: #7e7e7e
@@ -26,8 +27,8 @@ URxvt*scrollBar: false
 URxvt*urgentOnBell: true
 URxvt*visualBell: false
 
-! use xfontsel to find font in this format.
-URxvt*font: -misc-fixed-medium-r-normal--13-120-*-*-c-80-*-*
+! (package: ttf-dejavu)
+URxvt*font: xft:DejaVu Sans Mono:pixelsize=11
 
 xmessage*minHeight: 200
 xmessage*minWidth: 500
