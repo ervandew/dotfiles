@@ -1,1 +1,1 @@
-^i($HOME/.dzen/icons/vol.xbm) ${execp amixer get Master | (grep -m 1 'Playback .*[\d\+%]].*\[on\]' || echo "0%") | sed 's/.*\[\([0-9]\+\)%\].*/\1%/'}
+^i($HOME/.dzen/icons/vol.xbm) ${execp amixer get Master 2> /dev/null | (grep -m 1 'Playback .*[\d\+%]].*\[on\]' || echo "0%") | sed 's/.*\[\([0-9]\+\)%\].*/\1%/'}
