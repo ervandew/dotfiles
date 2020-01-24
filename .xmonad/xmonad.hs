@@ -1,7 +1,6 @@
 import XMonad hiding ((|||))
 import XMonad.Actions.CycleRecentWS
 import XMonad.Actions.PerLayoutKeys
-import XMonad.Actions.UpdatePointer
 import XMonad.Actions.WindowNavigation
 import XMonad.Config.Desktop
 import XMonad.Hooks.DynamicLog
@@ -138,7 +137,7 @@ main = do
         ppLayout  = xmobarColor barForeground barBackground . wrap "{ " " }",
         ppTitle   = xmobarColor "#8eb157" barBackground . shorten 75,
         ppUrgent  = xmobarColor "#bb4b4b" barBackground . wrap "[" "]"
-      } >> fadeInactiveLogHook 0.5 >> updatePointer (1,1) (1,1)
+      } >> fadeInactiveLogHook 0.5
     }
     -- change workspace keybindings to not be "greedy" (move my focus to the
     -- screen displaying the workspace instead of moving the workspace to my
