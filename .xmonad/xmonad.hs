@@ -115,7 +115,7 @@ main = do
   spawn "pkill dunst ; dunst -config ~/.dunstrc &"
   spawn "pkill keynav ; keynav &"
   spawn "pkill xcompmgr ; xcompmgr -c -r0 &"
-  spawn "pkill -9 unclutter ; sleep 0.3 ; unclutter -idle 2 -root -noevents &"
+  spawn "pkill -9 unclutter ; sleep 0.3 ; unclutter --timeout 2 &"
   config <-
     withWindowNavigation(xK_k, xK_h, xK_j, xK_l) $
     withUrgencyHook NoUrgencyHook $
