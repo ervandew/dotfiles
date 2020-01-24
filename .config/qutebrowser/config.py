@@ -20,6 +20,10 @@ c.aliases.update({
 # requires running: $ sudo /usr/share/qutebrowser/script/install_dict.py en-US
 c.spellcheck.languages = ['en-US']
 
+c.content.user_stylesheets = [
+  str(config.configdir) + '/styles/msteams.css',
+]
+
 # whitelist some hosts that prevent some sites from working properly
 whitelist = str(config.configdir / 'whitelist')
 if os.path.isfile(whitelist):

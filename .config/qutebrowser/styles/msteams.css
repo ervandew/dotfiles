@@ -1,0 +1,171 @@
+/* fonts */
+.ts-main-flex,
+.ts-main-flex .h1,
+.ts-main-flex .h2,
+.ts-main-flex .h3,
+.ts-main-flex .h4,
+.ts-main-flex .ts-large-font,
+.ts-main-flex h1,
+.ts-main-flex h2,
+.ts-main-flex h3,
+.ts-main-flex h4 {
+  font-size: 14px
+}
+
+/* shrink left nav */
+.ts-left-rail-wrapper {
+  width: 225px;
+  overflow-x: scroll;
+}
+
+/* shrink far left nav icons */
+.app-bar-width {
+  width: 50px;
+}
+.app-bar .app-bar-link .app-svg {
+  height: 25px;
+  width: 25px;
+}
+/* shrink channel icons */
+.channel-list-team-header .team-icon, .pin-channel-list-header .team-icon {
+  height: 25px;
+  width: 25px;
+}
+
+/* shrink channel header */
+.ts-title-bar {
+  height: 20px;
+  padding: 5px 0 0 0;
+}
+.ts-title-bar .icons-patharrow {
+  height: 18px;
+  width: 18px;
+}
+.ts-messages-header .ts-title-bar .ts-title-bar-icon,
+.ts-messages-header .team-icon {
+  height: 20px;
+  width: 20px;
+}
+.ts-messages-header .ts-title-bar .ts-title-bar-icon {
+  margin: 0 5px 0 0;
+}
+.ts-messages-header .ts-tab-bar-wrapper {
+  margin-top: 10px;
+}
+
+/* expand message thread to use full width */
+.message-list-common .ts-message-list-container,
+.message-list-common virtual-repeat > .list-wrap > .item-wrap {
+  max-width: 100% !important;
+}
+/* ditto for chat pages */
+.ts-message-thread-body .message-body {
+  width: 100%;
+}
+.chat-style .thread-body:not(.self) .ts-message-thread-body {
+  margin-right: 0;
+}
+.chat-style .self .ts-message-thread-body {
+  padding-left: 75px;
+}
+
+/* shrink user avatars */
+.message-list-common thread .ts-message .conversation-start .media-left .wrapper,
+thread .ts-message .media-left > .wrapper {
+  height: 25px !important;
+  width: 25px !important;
+}
+.message-list-common:not(.chat-style) thread .ts-message .conversation-start .media-left {
+  width: 25px;
+}
+.message-list-common .ts-message .thread-body-status > .ts-skype-status{
+  top: 20px !important;
+}
+.message-list-common thread .ts-message .conversation-common.conversation-reply .media .ts-skype-status {
+  top: 20px !important;
+  left: 33px !important;
+}
+
+/* move reply button and prevent it from taking up vertical space between messages */
+.thread-action-reply-message{
+  margin: -10px 0;
+  padding: 0;
+  position: relative;
+  top: -5px;
+  left: -9px;
+  width: 40px !important;
+}
+.ts-reply-message .icons-reply.ts-sym {
+  background-color: transparent;
+  border: none;
+  font-size: 11px;
+}
+/* hide reply icon */
+.ts-reply-message .icons-reply.ts-sym svg,
+.ts-reply-message .icons-reply.ts-sym:hover .icons-filled {
+  display: none;
+}
+.ts-reply-message .icons-reply.ts-sym span {
+  color: #aaa;
+  top: -7px;
+}
+/* the reply box after clicking the button */
+.ts-message.reply-is-visible .thread-action-reply-message{
+  visibility: visible;
+  position: static;
+  width: 100% !important;
+  padding: 0 0 0 35px;
+  margin: 0;
+}
+/* hide all the editor button crap on replies */
+.ts-new-message .extension-icons-container {
+  display: none;
+}
+
+/* hide message emoji crap */
+.message-reaction-container,
+.reactions-v2-enabled .message-reaction-container {
+  display: none;
+}
+div.popover.message-actions-popover-container {
+  box-shadow: none;
+}
+
+/* move message actions */
+.message-actions-popover-container.reactions-v2-enabled {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  left: 670px !important;
+  right: 0 !important;
+  margin-top: 12px;
+  background-color: transparent;
+}
+
+/* message highlighting when scrolling, make it less annoying looking */
+body.acc-keyboard-mode thread .ts-message:after {
+  border-color: #ccc !important;
+  left: 34px !important;
+  bottom: 3px !important;
+}
+/* ditto for chat (doesn't need width correction) */
+body.acc-keyboard-mode thread .message-body:after {
+  border-color: #ccc !important;
+}
+
+/* shrink padding on message input bar */
+.ts-add-message {
+  margin: 10px 0;
+}
+.ts-add-message .new-message-common {
+  margin: 0 25px !important;
+}
+.ts-add-message .ts-new-message {
+  max-width: 100% !important;
+}
+
+/* hide reply crap (emojis, etc) */
+.ts-add-message.is-not-chat .new-message-common .compose-stripe,
+.ts-new-message .extension-icons-container .compose-send-discard {
+  display: none;
+}
