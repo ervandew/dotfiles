@@ -28,5 +28,11 @@ fi
 
 if [ -n "$val" ] ; then
   eval $val
-  echo $(cd ${!var} ; git repo || hg branch)
+  repo=$(cd ${!var} ; git repo || hg branch)
+
+  if [ -f "$HOME/.tmux-status-right.work" ] ; then
+    echo $($HOME/.tmux-status-right.work "$repo")
+  else
+    echo $repo
+  fi
 fi
