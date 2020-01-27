@@ -172,15 +172,8 @@ main = do
       ("M-b",         spawn $ "xbacklight -inc 10"),
       ("M-S-b",       spawn $ "xbacklight -dec 10"),
 
-      -- media mappings, mnemonics based on the shift version of the key:
-      --   &   - pause/play
-      --   *   - (un)mute
-      --   <,> - prev/next track
+      -- mnemonics based on the shift version of the key:
       --   -,+ - increase/decrease volume
-      ("M-7",         spawn $ "~/bin/player toggle"),
-      ("M-.",         spawn $ "~/bin/player next"),
-      ("M-,",         spawn $ "~/bin/player prev"),
-      ("M-8",         spawn $ "~/bin/volume toggle"),
       ("M-=",         spawn $ "~/bin/volume 3+"),
       ("M--",         spawn $ "~/bin/volume 3-") ]
     `removeKeysP` [ ("M-r") ]
