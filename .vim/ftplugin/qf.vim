@@ -9,6 +9,7 @@ nnoremap <buffer> <silent> e <cr>:cclose<cr>
 nnoremap <buffer> <silent> s :call <SID>Split(1)<cr>
 nnoremap <buffer> <silent> S :call <SID>Split(0)<cr>
 
+if !exists('*s:Delete')
 function! s:Delete() " {{{
   let lnum = line('.')
   let cnum = col('.')
@@ -17,7 +18,9 @@ function! s:Delete() " {{{
   call setqflist(qf, 'r')
   call cursor(lnum, cnum)
 endfunction " }}}
+endif
 
+if !exists('*s:Split')
 function! s:Split(close) " {{{
   let list = getloclist(0)
   if len(list) == 0
@@ -44,5 +47,6 @@ function! s:Split(close) " {{{
     exec 'bd ' . bufnum
   endif
 endfunction " }}}
+endif
 
 " vim:ft=vim:fdm=marker
