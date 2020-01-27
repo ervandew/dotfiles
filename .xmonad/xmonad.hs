@@ -64,7 +64,7 @@ myLayout = desktopLayoutModifiers $
 manageScratchPad :: ManageHook
 manageScratchPad = scratchpadManageHook (W.RationalRect l t w h)
   where
-    h = 0.1     -- terminal height, 10%
+    h = 0.2     -- terminal height, 10%
     w = 1       -- terminal width, 100%
     t = 1 - h   -- distance from top edge, 90%
     l = 1 - w   -- distance from left edge, 0%
