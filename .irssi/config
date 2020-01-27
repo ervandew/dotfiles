@@ -10,7 +10,7 @@ settings = {
     paste_join_multiline = "no";
   };
   "fe-common/core" = {
-    beep_msg_level = "MSGS NOTICES PUBLIC DCC DCCMSGS HILIGHT";
+    beep_msg_level = "MSGS NOTICES DCC DCCMSGS HILIGHT";
     theme = "default";
     show_nickmode_empty = "yes";
     activity_hide_level = "parts joins quits nicks modes topics crap clientnotice clientcrap";
@@ -30,11 +30,7 @@ servers = (
     port = "6667";
     chatnet = "freenode";
     autoconnect = "no";
-  }
-);
-
-channels = (
-  { name = "#eclim"; chatnet = "freenode"; autojoin = "Yes"; }
+  },
 );
 
 statusbar = {
@@ -159,8 +155,13 @@ statusbar = {
 };
 chatnets = { freenode = { type = "IRC"; }; };
 keyboard = ( { key = "^L"; id = "command"; data = "mark "; } );
-hilights = ( { text = "ervandew"; nick = "yes"; word = "yes"; } );
+hilights = (
+  { text = "ervandew"; nick = "yes"; word = "yes"; },
+  { text = "@channel"; nick = "yes"; word = "yes"; }
+);
 aliases = {
   dnd = "set beep_msg_level MSGS NOTICES DCC DCCMSGS HILIGHT; statusbar window add -after user dnd;";
   available = "set beep_msg_level MSGS NOTICES PUBLIC DCC DCCMSGS HILIGHT; statusbar window remove dnd;";
 };
+windows = { 1 = { immortal = "yes"; name = "(status)"; level = "ALL"; }; };
+mainwindows = { 1 = { first_line = "1"; lines = "30"; }; };
