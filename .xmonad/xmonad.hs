@@ -102,7 +102,11 @@ myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm", "5:misc", "6:misc"]
 noScratchPad ws = if ws == "NSP" then "" else ws
 
 main = do
-  workspaceBar <- spawnPipe ("xmobar -B '" ++ barBackground ++ "'" ++ " -F '" ++ barForeground ++ "'")
+  workspaceBar <- spawnPipe (
+    "xmobar " ++
+      "-f 'xft:Terminus:pixelsize=11' " ++
+      "-B '" ++ barBackground ++ "' " ++
+      "-F '" ++ barForeground ++ "'")
   spawn "xset -b"
   spawn "xset r rate 250 30"
   spawn "xsetroot -cursor_name left_ptr"
