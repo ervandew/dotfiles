@@ -50,7 +50,7 @@ myLayout = desktopLayoutModifiers $
             (Title "irssi" `Or` ClassName "qutebrowser"))
     tabs = named "Tabbed" (reflectHoriz $ tabbed shrinkText myTabConfig)
     tiled = named "Tiled" (reflectHoriz $ Tall 1 (3/100) (1/2))
-    myTabConfig = defaultTheme {
+    myTabConfig = def {
       activeColor = "#222222",
       activeTextColor = "#aaaaaa",
       activeBorderColor = "#395571",
