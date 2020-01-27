@@ -30,9 +30,8 @@
   set nobackup         " do not keep a backup file
   set number           " show line numbers
   " set the printer name to use (see 'Queue Name' at http://localhost:631/printers/)
-  "set printdevice=<name>
-  " set printing to use US paper, to have syntax, line numbers and wrap text.
-  set printoptions=paper:letter,syntax:a,number:y,wrap:y
+  set printdevice=Home
+  set printoptions=paper:letter,header:0,number:n
   set ruler            " show the cursor position all the time
   set scrolloff=5      " always keep 5 lines of context around the cursor
   set shiftwidth=2     " number of spaces used by indenting
