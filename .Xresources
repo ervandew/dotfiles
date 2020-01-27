@@ -28,7 +28,7 @@ URxvt*urgentOnBell: true
 URxvt*visualBell: false
 
 ! (package: ttf-dejavu)
-URxvt*font: xft:DejaVu Sans Mono:pixelsize=11
+URxvt*font: xft:DejaVu Sans Mono:pixelsize=12
 
 xmessage*minHeight: 200
 xmessage*minWidth: 500
