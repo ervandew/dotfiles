@@ -66,7 +66,7 @@ endfunction " }}}
 function! s:IsHeaderLine(lnum) " {{{
   let last_header = exists('b:mail_headers_end') ? b:mail_headers_end : 0
 
-  let header = '^[A-Z][a-zA-Z]*\(-[A-Z][a-zA-Z]*\)*:\s'
+  let header = '^[A-Z][a-zA-Z]*\(-[A-Z0-9][a-zA-Z0-9]*\)*:\s'
   let header_cont = '^\t\S'
   if getline(a:lnum) =~ header
     if !last_header || a:lnum == last_header + 1
