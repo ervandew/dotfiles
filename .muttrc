@@ -67,13 +67,8 @@ bind attach <return> view-mailcap
 # default saving of attachments to ~/downloads
 macro attach s <save-entry><bol>~/downloads/<eol>
 
-# key bindings / macros for use with offlineimap {{{
-  # with offlineimap + gmail, this is equivalent to gmail's 'Archive'
-  bind index a delete-message
-  macro index,pager d "<save-message>+[Gmail]/Trash<enter>" "send message to trash"
-  macro index,pager S "<save-message>+[Gmail]/Spam<enter>" "mark message as spam"
-  macro index I "<shell-escape>/usr/bin/offlineimap -q -o<enter>" \
-    "sync imap folders via offlineimap"
+macro index I "<shell-escape>/usr/bin/offlineimap -q -o<enter>" \
+  "sync imap folders via offlineimap"
 # }}}
 
 # }}}
