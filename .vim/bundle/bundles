@@ -30,13 +30,13 @@ if [ ! -f "$HOME/.vim/autoload/pathogen.vim" ] ; then
 fi
 
 _clone_or_update git@github.com:ervandew/snipmate.vim.git snipmate
-_clone_or_update git@github.com:ervandew/nerdcommenter.git nerdcommenter
+_clone_or_update git@github.com:ervandew/nerdcommenter.git
 _clone_or_update git@github.com:ervandew/python.vim--Vasiliev.git python_syntax
 _clone_or_update git@github.com:ervandew/Jinja.git jinja_syntax
 
-_clone_or_update git://github.com/tpope/vim-endwise.git endwise
-_clone_or_update git://github.com/tpope/vim-repeat.git repeat
-_clone_or_update git://github.com/tpope/vim-surround.git surround
+_clone_or_update git://github.com/tpope/vim-endwise.git
+_clone_or_update git://github.com/tpope/vim-repeat.git
+_clone_or_update git://github.com/tpope/vim-surround.git
 _clone_or_update git://github.com/chrisbra/CheckAttach.git checkattach
 _clone_or_update git://github.com/vim-scripts/groovy.vim--Ruley.git
 _clone_or_update git://github.com/vim-scripts/python_match.vim.git python_match
