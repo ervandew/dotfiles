@@ -321,9 +321,9 @@
     " close the current tab if all that's left is a taglist, file browser,
     " etc.
     noautocmd exec 'bdelete' . a:bang . ' ' . bufnr
-    silent doautocmd BufDelete
-    silent doautocmd BufEnter
-    silent doautocmd WinEnter
+    doautocmd BufDelete
+    doautocmd BufEnter
+    doautocmd WinEnter
     " try loading a hidden buffer from the current tab using eclim if
     " available
     if prevent
@@ -332,6 +332,8 @@
       catch /E117/
       endtry
     endif
+    " force tabline to update
+    call feedkeys("\<c-l>", 'n')
   endfunction
 
   " print the syntax name applied to the text under the cursor.
