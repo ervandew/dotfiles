@@ -1,0 +1,5 @@
+bind -v
+
+# (up/down) search the history using the text before the cursor
+bind -v "\e[A" ed-search-prev-history
+bind -v "\e[B" ed-search-next-history
