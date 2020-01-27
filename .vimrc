@@ -186,7 +186,7 @@
 
   " redraw screen + clear search highlights + update diffs
   nnoremap <silent> <c-l> :nohl \| diffu<cr><c-l>
-  nnoremap <silent> <c-l><c-l> :syn sync minlines=100<cr>
+  nnoremap <silent> <c-l><c-l> :syn sync minlines=500<cr>
 
   " mappings to jump to the nearest { or }
   nnoremap {{ [{
