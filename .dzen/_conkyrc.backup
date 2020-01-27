@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [ ! -f $HOME/.backup.log ] ; then
+  echo "^fg(\#cf6171)never^fg()"
+else
+  seconds=$(($(date +%s) - $(stat --format=%Y $HOME/.backup.log)))
+  hours=$((seconds / 60 / 60))
+  days=$((seconds / 60 / 60 / 24))
+  retcode=$(tail -n 1 $HOME/.backup.log | sed 's|^.*:\s\([0-9]\+\)$|\1|')
+  if [ $hours -lt 1 ] ; then
+    diff="<1 hr ago"
+  elif [ $hours -eq 1 ] ; then
+    diff="1 hr ago"
+  elif [ $hours -lt 24 ] ; then
+    diff="$hours hrs ago"
+  elif [ $days -le 1 ] ; then
+    diff="1 day ago"
+  else
+    diff="^fg(\#cf6171)$days days ago^fg()"
+  fi
+
+  if [ "$retcode" != "0" ] ; then
+    diff="^fg(\#cf6171)$diff^fg()"
+  fi
+
+  echo $diff
+fi
