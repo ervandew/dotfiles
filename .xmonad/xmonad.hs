@@ -48,7 +48,11 @@ myLayout = desktopLayoutModifiers $
             (tabs) -- top
             (TwoPane (3/100) (1/2)) -- bottom
             (Title "irssi" `Or` ClassName "qutebrowser"))
-    tabs = named "Tabbed" (reflectHoriz $ tabbed shrinkText myTabConfig)
+    -- seems to be a bug with tabbed that causes it to always use the full
+    -- screen, including over the status bar, even when used with combineTwo
+    -- using Full for now so i can work.
+    -- tabs = named "Tabbed" (reflectHoriz $ tabbed shrinkText myTabConfig)
+    tabs = named "Tabbed" (Full)
     tiled = named "Tiled" (reflectHoriz $ Tall 1 (3/100) (1/2))
     myTabConfig = def {
       activeColor = "#222222",
