@@ -25,12 +25,13 @@ settings = {
 };
 
 servers = (
+  { address = "localhost"; port = "6667"; autoconnect = "yes"; },
   {
     address = "irc.freenode.net";
     port = "6667";
     chatnet = "freenode";
     autoconnect = "no";
-  },
+  }
 );
 
 statusbar = {
