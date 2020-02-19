@@ -1,4 +1,3 @@
-load xmpp
 load adv_windowlist.pl
 load keyring.pl
 load nm.pl
