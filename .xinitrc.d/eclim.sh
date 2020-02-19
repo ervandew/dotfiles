@@ -2,5 +2,5 @@
 
 if [ -f $HOME/apps/eclipse/eclimd ] ; then
   # start eclim
-  /opt/eclipse/eclimd -b
+  $HOME/apps/eclipse/eclimd -b
 fi
