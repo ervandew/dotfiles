@@ -7,12 +7,14 @@ else
   hours=$((seconds / 60 / 60))
   days=$((seconds / 60 / 60 / 24))
   retcode=$(tail -n 1 $HOME/.backup.log | sed 's|^.*:\s\([0-9]\+\)$|\1|')
-  if [ $hours -lt 1 ] ; then
-    diff="<1 hr ago"
-  elif [ $hours -eq 1 ] ; then
-    diff="1 hr ago"
-  elif [ $hours -lt 24 ] ; then
-    diff="$hours hrs ago"
+  if [ $days -eq 0 ] ; then
+    if [ $hours -lt 1 ] ; then
+      diff="<1 hr ago"
+    elif [ $hours -eq 1 ] ; then
+      diff="1 hr ago"
+    else
+      diff="$hours hrs ago"
+    fi
   elif [ $days -le 1 ] ; then
     diff="1 day ago"
   else
