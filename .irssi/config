@@ -16,7 +16,7 @@ settings = {
     activity_hide_level = "parts joins quits nicks modes topics crap clientnotice clientcrap";
   };
   "perl/core/scripts" = {
-    awl_display_key = "%K[%K$N%K|$H$C$S]%n";
+    awl_display_key = "%K[%K$N%K|$H$C]%n";
     awl_display_key_active = "[%N$N|$H$C$S]";
     neat_maxlength = "10";
     neat_colors = "rRgGyYmMcC";
