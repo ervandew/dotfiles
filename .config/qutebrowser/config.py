@@ -20,10 +20,6 @@ c.aliases.update({
 # requires running: $ sudo /usr/share/qutebrowser/script/install_dict.py en-US
 c.spellcheck.languages = ['en-US']
 
-c.content.user_stylesheets = [
-  str(config.configdir) + '/styles/msteams.css',
-]
-
 # whitelist some hosts that prevent some sites from working properly
 whitelist = str(config.configdir / 'whitelist')
 if os.path.isfile(whitelist):
@@ -35,6 +31,18 @@ if os.path.isfile(whitelist):
         continue
       domains.append(line.strip())
     c.content.host_blocking.whitelist = domains
+
+### M$ Teams BS
+# hint that will work for switching between chats
+# (team channels already work by default)
+c.hints.selectors['all'].append('.cle-title')
+# hint to focus chat message input
+c.hints.selectors['inputs'].append('.cke_wysiwyg_div')
+# stylesheet to make teams bearable
+c.content.user_stylesheets = [
+  str(config.configdir) + '/styles/msteams.css',
+]
+###
 
 # workaround for aparent bug where rogue tab keypresses are received and
 # causing qutebrowser to scroll to the top of the page when switching
