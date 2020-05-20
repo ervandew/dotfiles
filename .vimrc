@@ -51,9 +51,9 @@
   set updatetime=1000  " timeout in millis for CursorHold event and swap writting.
   set virtualedit=all  " prevent the cursor from bouncing around columns while scrolling.
   set visualbell t_vb= " turn off system beeps and visual flash
-  " Note: first __pycache pattern for vim commands, second for *Relative
-  " completion.
-  set wildignore+=*.pyc,*.pyo,*/__pycache__/*,*/__pycache__
+  " Note: both __pycache patterns are required for vim command and *Relative
+  " completion, and the order of these patterns seems to matter
+  set wildignore+=*.pyc,*.pyo,*/__pycache__,*/__pycache__/*
   set wildmenu         " for command completion, show menu of available results
   " for command completion, show menu of available results
   set wildmode=longest:full,full
