@@ -335,8 +335,16 @@ c.TerminalInteractiveShell.highlighting_style = 'ervandew'
 ## Enable mouse support in the prompt
 #c.TerminalInteractiveShell.mouse_support = False
 
+version_string = '{0.major}.{0.minor}'.format(sys.version_info)
+from IPython.terminal.prompts import Prompts, Token
+class Prompt(Prompts):
+  def in_prompt_tokens(self, cli=None):
+    tokens = super(Prompt, self).in_prompt_tokens(cli=cli)
+    tokens.insert(0, (Token.Prompt, '(py %s) ' % version_string))
+    return tokens
+
 ## Class used to generate Prompt token for prompt_toolkit
-#c.TerminalInteractiveShell.prompts_class = 'IPython.terminal.prompts.Prompts'
+c.TerminalInteractiveShell.prompts_class = Prompt
 
 ## Use `raw_input` for the REPL, without completion and prompt colors.
 #
