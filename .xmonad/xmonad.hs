@@ -44,7 +44,7 @@ myLayout = desktopLayoutModifiers $
         combineTwo (StackTile 1 (3/100) (1/2)) (Full) (Full))
     stackTwoByOne = named "Communication" (
         combineTwoP
-            (StackTile 1 (3/100) (1/2))
+            (StackTile 1 (3/100) (15/24))
             (tabs) -- top
             (TwoPane (3/100) (1/2)) -- bottom
             (Title "irssi" `Or` ClassName "qutebrowser"))
