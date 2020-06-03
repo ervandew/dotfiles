@@ -32,6 +32,33 @@ if os.path.isfile(whitelist):
       domains.append(line.strip())
     c.content.host_blocking.whitelist = domains
 
+redirects = str(config.configdir / 'redirects')
+if os.path.isfile(redirects):
+  redirect_domains = {}
+  with open(redirects) as f:
+    for line in f.readlines():
+      line = line.strip()
+      if not line or line.startswith('#'):
+        continue
+
+      from_domain, __, to_domain = line.partition(' ')
+      redirect_domains[from_domain.strip()] = to_domain.strip()
+
+  from PyQt5.QtCore import QUrl
+  from qutebrowser.api import interceptor
+
+  def intercept(info: interceptor.Request):
+    redirect = redirect_domains.get(info.request_url.host())
+    if redirect:
+      new_url = QUrl(info.request_url)
+      new_url.setHost(redirect)
+      try:
+        info.redirect(new_url)
+      except interceptors.RedirectFailedException:
+        pass
+
+  interceptor.register(intercept)
+
 ### M$ Teams BS
 # hint that will work for switching between chats
 # (team channels already work by default)
