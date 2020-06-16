@@ -20,17 +20,17 @@ c.aliases.update({
 # requires running: $ sudo /usr/share/qutebrowser/script/install_dict.py en-US
 c.spellcheck.languages = ['en-US']
 
-# whitelist some hosts that prevent some sites from working properly
-whitelist = str(config.configdir / 'whitelist')
-if os.path.isfile(whitelist):
-  with open(whitelist) as f:
+# allow some hosts that prevent some sites from working properly
+allow = str(config.configdir / 'allowlist')
+if os.path.isfile(allow):
+  with open(allow) as f:
     domains = []
     for line in f.readlines():
       line = line.strip()
       if not line or line.startswith('#'):
         continue
       domains.append(line.strip())
-    c.content.host_blocking.whitelist = domains
+    c.content.host_blocking.allow = domains
 
 redirects = str(config.configdir / 'redirects')
 if os.path.isfile(redirects):
