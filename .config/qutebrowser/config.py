@@ -30,7 +30,7 @@ if os.path.isfile(allow):
       if not line or line.startswith('#'):
         continue
       domains.append(line.strip())
-    c.content.host_blocking.allow = domains
+    c.content.host_blocking.whitelist = domains
 
 redirects = str(config.configdir / 'redirects')
 if os.path.isfile(redirects):
