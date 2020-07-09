@@ -169,8 +169,6 @@
 
   alias irssi="urxvt -name irssi -title irssi -e irssi &"
 
-  alias music="chromium --app=https://music.google.com &"
-
   # postgres db shortcuts
   alias lsdb="psql postgres -c '\l'"
   function renamedb(){
