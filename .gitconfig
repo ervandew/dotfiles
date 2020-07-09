@@ -9,7 +9,11 @@
   brdefault = "!f() { if $(git brexists staging) ; then echo staging ; else echo master; fi; }; f"
   brparent = "!f() { git show-branch -a 2> /dev/null | grep '\\*' | grep -v \"$(git brname)\" | head -n1 | perl -pe 's|.*\\[(.*?)([\\^~]\\d+\\^?)*?\\].*|\\1|'; }; f"
   root = rev-parse --show-toplevel
-  repo = "!f() { if [ -n \"$(git brname 2> /dev/null)\" ] ; then echo $(basename $(git rev-parse --show-toplevel)):$(git brname); else exit 1; fi; }; f"
+  # returns: <repo_name>:<branch_info>
+  # branch_info is typically the current branch name, but if a rebase is in
+  # progress it will be "rebase" and if a specific commit has been checked out,
+  # it will display the result of git describe.
+  repo = "!f() { branch=$(git brname 2> /dev/null); if [ -n \"$branch\" ] ; then if [ \"$branch\" == \"HEAD\" ] ; then if git status | grep 'rebase in progress' > /dev/null ; then branch='rebase'; else branch=$(git describe); fi; fi; echo $(basename $(git rev-parse --show-toplevel)):$branch; else exit 1; fi; }; f"
 
   # determines if the current branch has been pushed or not
   pushed = "!f() { [[ \"$(git show-ref refs/heads/$(git brname) | cut '-d ' -f1)\" = \"$(git show-ref refs/remotes/origin/$(git brname) | cut '-d ' -f1)\" ]]; }; f"
