@@ -5,7 +5,7 @@
 
 GIT_COMPLETION=/usr/share/git/completion/git-completion.bash
 if [ ! -f $GIT_COMPLETION ] ; then
-  GIT_COMPLETION=/System/Volumes/Data/opt/local/share/git/contrib/completion/git-completion.bash
+  GIT_COMPLETION=/System/Volumes/Data/opt/local/share/git/contrib/completion/git-completion.zsh
 fi
 
 if [ ! -f $GIT_COMPLETION ] ; then
