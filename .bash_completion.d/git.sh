@@ -3,7 +3,16 @@
 # Extension to the main git bash completion script to add support for custom
 # aliases of mine.
 
-source /usr/share/git/completion/git-completion.bash
+GIT_COMPLETION=/usr/share/git/completion/git-completion.bash
+if [ ! -f $GIT_COMPLETION ] ; then
+  GIT_COMPLETION=/System/Volumes/Data/opt/local/share/git/contrib/completion/git-completion.bash
+fi
+
+if [ ! -f $GIT_COMPLETION ] ; then
+  return
+fi
+
+source $GIT_COMPLETION
 
 # http://mivok.net/2009/09/20/bashfunctionoverrist.html
 save_function() {
