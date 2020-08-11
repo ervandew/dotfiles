@@ -24,7 +24,7 @@ hi Error        ctermfg=red      ctermbg=NONE   cterm=NONE    guifg=#FF6C60 guib
 hi ErrorMsg     ctermfg=white    ctermbg=red    cterm=NONE    guifg=white   guibg=#FF6C60 gui=NONE
 
 hi Folded       ctermfg=darkgray ctermbg=NONE   cterm=NONE    guifg=#7C7C7C guibg=NONE    gui=NONE
-hi FoldColumn   ctermfg=white    ctermbg=none   cterm=NONE    guifg=white   guibg=#222222 gui=NONE
+hi FoldColumn   ctermfg=white    ctermbg=NONE   cterm=NONE    guifg=white   guibg=#222222 gui=NONE
 hi Function     ctermfg=brown    ctermbg=NONE   cterm=NONE    guifg=#E18964 guibg=NONE    gui=NONE
 
 hi Identifier   ctermfg=magenta  ctermbg=NONE   cterm=NONE    guifg=#C6C5FE guibg=NONE    gui=NONE
@@ -39,7 +39,7 @@ hi Operator     ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#6699CC guib
 hi PreProc      ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#96CBFE guibg=NONE    gui=NONE
 
 hi Search       ctermfg=233      ctermbg=243    cterm=NONE    guifg=black   guibg=#888888 gui=NONE
-hi SignColumn   ctermfg=white    ctermbg=none   cterm=NONE    guifg=white   guibg=#222222 gui=NONE
+hi SignColumn   ctermfg=white    ctermbg=NONE   cterm=NONE    guifg=white   guibg=#222222 gui=NONE
 hi Special      ctermfg=brown    ctermbg=NONE   cterm=NONE    guifg=#E18964 guibg=NONE    gui=NONE
 hi SpecialKey   ctermfg=233      ctermbg=235    cterm=NONE    guifg=#222222 guibg=#333333 gui=NONE
 hi Statement    ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#6699CC guibg=NONE    gui=NONE
@@ -100,10 +100,10 @@ hi DiffText    ctermfg=26  ctermbg=250  cterm=NONE guifg=#4186be guibg=#cccccc g
 " }}}
 
 " Spellcheck {{{
-hi SpellBad     ctermfg=red     ctermbg=none cterm=bold,underline gui=bold,underline guifg=#cf6171
-hi SpellCap     ctermfg=blue    ctermbg=none cterm=bold,underline gui=bold,underline guifg=#4186be
-hi SpellRare    ctermfg=magenta ctermbg=none cterm=bold,underline gui=bold,underline guifg=#cf9ebe
-hi SpellLocal   ctermfg=green   ctermbg=none cterm=bold,underline gui=bold,underline guifg=green
+hi SpellBad     ctermfg=red     ctermbg=NONE cterm=bold,underline gui=bold,underline guifg=#cf6171
+hi SpellCap     ctermfg=blue    ctermbg=NONE cterm=bold,underline gui=bold,underline guifg=#4186be
+hi SpellRare    ctermfg=magenta ctermbg=NONE cterm=bold,underline gui=bold,underline guifg=#cf9ebe
+hi SpellLocal   ctermfg=green   ctermbg=NONE cterm=bold,underline gui=bold,underline guifg=green
 " }}}
 
 " Tabs {{{
