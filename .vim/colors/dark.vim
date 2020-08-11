@@ -41,7 +41,7 @@ hi PreProc      ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#96CBFE guib
 hi Search       ctermfg=233      ctermbg=243    cterm=NONE    guifg=black   guibg=#888888 gui=NONE
 hi SignColumn   ctermfg=white    ctermbg=NONE   cterm=NONE    guifg=white   guibg=#222222 gui=NONE
 hi Special      ctermfg=brown    ctermbg=NONE   cterm=NONE    guifg=#E18964 guibg=NONE    gui=NONE
-hi SpecialKey   ctermfg=233      ctermbg=235    cterm=NONE    guifg=#222222 guibg=#333333 gui=NONE
+hi SpecialKey   ctermfg=233      ctermbg=236    cterm=NONE    guifg=#222222 guibg=#333333 gui=NONE
 hi Statement    ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#6699CC guibg=NONE    gui=NONE
 hi StatusLine   ctermfg=white    ctermbg=236    cterm=NONE    guifg=#CCCCCC guibg=#303030 gui=NONE
 hi StatusLineNC ctermfg=241      ctermbg=236    cterm=NONE    guifg=#626262 guibg=#303030 gui=NONE
