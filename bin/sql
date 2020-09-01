@@ -42,11 +42,11 @@
 # separated list of instance names corresponding to production databases or any
 # instance that you'd like to flag when connecting to it:
 #
-#   PRODUCTION="staging"
+#   PRODUCTION="staging production"
 #
 # When starting a client for a database instance in this list, the prompt will
 # be red to remind you to be careful what you execute in this db.
-# NOTE: supports postgres by default and mysql only if rlwrap is installed.
+# Note: currently this feature does not support sqlplus.
 #
 # Author: Eric Van Dewoestine
 ##
@@ -75,22 +75,12 @@ function runmysql() {
   # attempt to run a script
   runscript mysql "$@"
 
+  PROMPT_TEXT="$instance>"
   # execute mysql normally with any user supplied args
-  if [ -n "$IS_PRODUCTION" -a -e "$(which rlwrap 2> /dev/null)" ] ; then
-    rlwrap \
-      -a'Enter password:' \
-      --prompt-colour='1;31' \
-      mysql --prompt "$instance> " "$@"
-  else
-    # edit line blows, so use rlwrap if mysql is built with edit line support
-    if mysql --version | grep EditLine &> /dev/null ; then
-      rlwrap \
-        -a'Enter password:' \
-        mysql --prompt "$instance> " "$@"
-    else
-      runclient mysql mysql --prompt "$instance> " "$@"
-    fi
+  if [ -n "$IS_PRODUCTION" ] ; then
+    PROMPT_TEXT=$(echo -e "\\x1B[1;31m$instance>\\x1B[0m")
   fi
+  runclient mysql mysql --prompt "$PROMPT_TEXT " "$@"
 }
 
 function runsqlplus() {
