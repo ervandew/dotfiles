@@ -17,7 +17,8 @@ c.aliases.update({
   'h': 'help -t',
   'keyring': 'spawn --userscript keyring',
 })
-# requires running: $ sudo /usr/share/qutebrowser/script/install_dict.py en-US
+# requires running (as regular user):
+#   $ /usr/share/qutebrowser/scripts/dictcli.py install en-US
 c.spellcheck.languages = ['en-US']
 
 # allow some hosts that prevent some sites from working properly
