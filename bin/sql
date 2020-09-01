@@ -78,7 +78,9 @@ function runmysql() {
   PROMPT_TEXT="$instance>"
   # execute mysql normally with any user supplied args
   if [ -n "$IS_PRODUCTION" ] ; then
-    PROMPT_TEXT=$(echo -e "\\x1B[1;31m$instance>\\x1B[0m")
+    # Note: as of the time of this writing, the color escape sequences screw up
+    # line wrapping in the client, so this adds a newline to work around that.
+    PROMPT_TEXT=$(echo -e "\\x1B[1;31m$instance\\x1B[0m\n>")
   fi
   runclient mysql mysql --prompt "$PROMPT_TEXT " "$@"
 }
