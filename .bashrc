@@ -68,6 +68,7 @@
       screen -X chdir "`pwd`" 2> /dev/null
     else
       tmux setenv TMUXPWD_$(tmux display -p "#I_#P") "$PWD"
+      tmux setenv TMUXPATH_$(tmux display -p "#I_#P") "$PATH"
       tmux refresh-client -S
     fi
   }
