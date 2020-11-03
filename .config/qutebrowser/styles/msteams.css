@@ -117,9 +117,10 @@ thread .ts-message .media-left > .wrapper {
   padding: 0 0 0 35px;
   margin: 0;
 }
-/* hide all the editor button crap on replies */
-.ts-new-message .extension-icons-container {
-  display: none;
+/* reduce space of "New conversation" on Teams view */
+.ts-new-post-btn-container {
+  padding-top: 0;
+  height: auto;
 }
 
 /* hide message emoji crap */
