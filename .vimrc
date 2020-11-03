@@ -127,10 +127,6 @@
               let dotgit = finddir('.git', escape(getcwd(), ' ') . ';')
               let lines = readfile(dotgit . '/HEAD')
               let branch = len(lines) > 0 ? substitute(lines[0], 'ref: refs/heads/', '', '') : ''
-            elseif type == 'hg'
-              let dothg = finddir('.hg', escape(getcwd(), ' ') . ';')
-              let lines = readfile(dothg . '/branch')
-              let branch = len(lines) > 0 ? lines[0] : ''
             endif
             if branch != ''
               let project = project . '(' . branch . ')'
