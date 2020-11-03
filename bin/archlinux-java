@@ -1,0 +1,57 @@
+#!/bin/bash
+
+##
+# Wrapper around archlinux-java that adds:
+# - command to set a non-default jdk in the current shell
+# - command to run a program with a non-default jdk
+##
+JVMS=/usr/lib/jvm
+
+if [ "$1" == "-h" -o "$1" == "--help" ] ; then
+  /usr/bin/archlinux-java "$@"
+  echo "        run <JAVA_ENV>   Run a program with the supplied <JAVA_ENV>"
+  echo "        local <JAVA_ENV> Set <JAVA_ENV> as the local shell default"
+  echo "                         must use notation: $ . archlinux-java local <JAVA_ENV>"
+  exit 0
+fi
+
+if [ "$1" == "run" -o "$1" == "local" ] ; then
+  cmd="$1"
+  env="$2"
+  shift 2
+
+  if [ ! -d "$JVMS/$env" ] ; then
+    echo "Invalid java env supplied: $env" 1>&2
+    exit 1
+  fi
+
+  if [ "$cmd" == "run" ] ; then
+    $JVMS/$env/bin/java "$@"
+  else
+    # existing local default, so remove it from the path first
+    if [ -v ARCHLINUX_JAVA_LOCAL ] ; then
+      PATH=$(
+        echo $PATH |
+          awk \
+            -v REMOVE="$ARCHLINUX_JAVA_LOCAL" \
+            -v RS=: \
+            -v ORS=: \
+            '$0 ~ REMOVE {next} {print}' |
+          sed 's/:*$//'
+      )
+    fi
+
+    # env supplied, so set it as the local default
+    if [ -n "$env" ] ; then
+      ARCHLINUX_JAVA_LOCAL="$JVMS/$env/bin"
+      PATH="$ARCHLINUX_JAVA_LOCAL:$PATH"
+    # no env supplied, so unset the local env var
+    else
+      unset ARCHLINUX_JAVA_LOCAL
+    fi
+    export ARCHLINUX_JAVA_LOCAL
+    export PATH
+  fi
+else
+  /usr/bin/archlinux-java "$@"
+fi
