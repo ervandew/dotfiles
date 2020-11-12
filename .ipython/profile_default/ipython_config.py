@@ -338,8 +338,8 @@ c.TerminalInteractiveShell.highlighting_style = 'ervandew'
 version_string = '{0.major}.{0.minor}'.format(sys.version_info)
 from IPython.terminal.prompts import Prompts, Token
 class Prompt(Prompts):
-  def in_prompt_tokens(self, cli=None):
-    tokens = super(Prompt, self).in_prompt_tokens(cli=cli)
+  def in_prompt_tokens(self):
+    tokens = super(Prompt, self).in_prompt_tokens()
     tokens.insert(0, (Token.Prompt, '(py %s) ' % version_string))
     return tokens
 
