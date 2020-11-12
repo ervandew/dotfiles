@@ -9,13 +9,14 @@ JVMS=/usr/lib/jvm
 
 if [ "$1" == "-h" -o "$1" == "--help" ] ; then
   /usr/bin/archlinux-java "$@"
+  echo "        java <JAVA_ENV>  Run <JAVA_ENV>/bin/java <args>"
   echo "        run <JAVA_ENV>   Run a program with the supplied <JAVA_ENV>"
   echo "        local <JAVA_ENV> Set <JAVA_ENV> as the local shell default"
   echo "                         must use notation: $ . archlinux-java local <JAVA_ENV>"
   exit 0
 fi
 
-if [ "$1" == "run" -o "$1" == "local" ] ; then
+if [ "$1" == "java" -o "$1" == "run" -o "$1" == "local" ] ; then
   cmd="$1"
   env="$2"
   shift 2
@@ -25,8 +26,10 @@ if [ "$1" == "run" -o "$1" == "local" ] ; then
     exit 1
   fi
 
-  if [ "$cmd" == "run" ] ; then
+  if [ "$cmd" == "java" ] ; then
     $JVMS/$env/bin/java "$@"
+  elif [ "$cmd" == "run" ] ; then
+    PATH="$JVMS/$env/bin:$PATH" "$@"
   else
     # existing local default, so remove it from the path first
     if [ -v ARCHLINUX_JAVA_LOCAL ] ; then
