@@ -143,6 +143,11 @@ div.popover.message-actions-popover-container {
   background-color: transparent;
 }
 
+/* hide the out of office banners that keep showing up */
+.app-notification-banner.banner-show {
+  display: none;
+}
+
 /* message highlighting when scrolling, make it less annoying looking */
 body.acc-keyboard-mode thread .ts-message:after {
   border-color: #ccc !important;
