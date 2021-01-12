@@ -24,6 +24,7 @@ runtime macros/matchit.vim
 " }}}
 
 " eclim.vim {{{
+  "let g:EclimNailgunClient = 'python'
   let g:EclimLocateFileDefaultAction='edit'
   let g:EclimMakeDispatchEnabled = 0
   let g:EclimLargeFileEnabled = 1
