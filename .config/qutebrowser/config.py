@@ -19,6 +19,9 @@ c.aliases.update({
 })
 # requires running (as regular user):
 #   $ /usr/share/qutebrowser/scripts/dictcli.py install en-US
+# Note: for profiles other than the default, symlink the installed dict
+#   $ cd ~/.config/qutebrowser/<profile_dir>/data
+#   $ ln -s ~/.local/share/qutebrowser/qtwebengine_dictionaries/ .
 c.spellcheck.languages = ['en-US']
 
 # allow some hosts that prevent some sites from working properly
