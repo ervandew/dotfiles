@@ -75,6 +75,13 @@ c.content.user_stylesheets = [
 ]
 ###
 
+# unbind some commands
+# quickmarks
+config.unbind('m', mode='normal')
+config.unbind('b', mode='normal')
+config.unbind('B', mode='normal')
+config.unbind('wb', mode='normal')
+
 # workaround for aparent bug where rogue tab keypresses are received and
 # causing qutebrowser to scroll to the top of the page when switching
 # workspaces, etc.
