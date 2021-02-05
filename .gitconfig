@@ -6,7 +6,6 @@
   ls = ls-files
   brname = rev-parse --abbrev-ref HEAD
   brexists = "!f() { git show-ref --verify --quiet refs/heads/$1; }; f"
-  brdefault = "!f() { if $(git brexists staging) ; then echo staging ; else echo master; fi; }; f"
   root = rev-parse --show-toplevel
   # returns: <repo_name>:<branch_info>
   # branch_info is typically the current branch name, but if a rebase is in
@@ -114,14 +113,16 @@
 
   # opens up the github url comparing the current branch against the default or the
   # optionally supplied branch.
-  ghcompare = "!f() { B=${1-$(git brparent)}; A=${2-$(git brname)}; xdg-open \"https://github.com/$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@github.com:(.*)\\.git .*|\\1|')/compare/$B...$A\"; }; f"
+  ghcompare = "!f() { B=${1}; A=${2-$(git brname)}; $(git config web.open) \"https://github.com/$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@github.com:(.*)\\.git .*|\\1|')/compare/$B...$A\"; }; f"
 
   # adds a new github remote based on the supplied username.
   ghremoteadd = "!f() { R=$1; if [ -z \"$R\" ] ; then echo 'abort: remote user name required' ; else git remote add $1 git://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe \"s|.*@(github.com):.*?(/.*\\.git) .*|\\1/$1\\2|\") && git fetch $1; fi; }; f"
 
   # aliases for working with gitlab
-  glcompare = "!f() { B=${1-$(git brparent)}; A=${2-$(git brname)}; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/compare/$B...$A\"; }; f"
-  glpullrequest = "!f() { B=${1-$(git brparent)}; A=${2-$(git brname)}; if ! $(git pushed $A) ; then git push ; fi; xdg-open \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
+  glcompare = "!f() { B=${1}; A=${2-$(git brname)}; $(git config web.open) \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/compare/$B...$A\"; }; f"
+  glpullrequest = "!f() { B=${1}; A=${2-$(git brname)}; if ! $(git pushed $A) ; then git push ; fi; $(git config web.open) \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
+
+  azurepullrequest = "!f() { B=${1}; A=${2-$(git brname)}; if ! $(git pushed $A) ; then git push ; fi; $(git config web.open) \"$(git config azure.url)/pullrequestcreate?sourceRef=$A&targetRef=$B&sourceRepositoryId=$(git config azure.repoid)&targetRepositoryId=$(git config azure.repoid)\"; }; f"
 
 [branch]
   autosetupmerge = true
@@ -174,3 +175,9 @@
 
 [tig "color"]
   cursor = default color236 bold
+
+[web]
+  open = xdg-open
+
+[include]
+  path = .gitconfig.work
