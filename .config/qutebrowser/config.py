@@ -24,6 +24,10 @@ c.aliases.update({
 #   $ ln -s ~/.local/share/qutebrowser/qtwebengine_dictionaries/ .
 c.spellcheck.languages = ['en-US']
 
+# when using multiple windows, always open tabs in the first window
+# useful when using secondary windows for single page apps (music, etc)
+c.new_instance_open_target_window = 'first-opened'
+
 # allow some hosts that prevent some sites from working properly
 allow = str(config.configdir / 'allowlist')
 if os.path.isfile(allow):
