@@ -17,7 +17,7 @@ while read local_ref local_sha remote_ref remote_sha ; do
   if [ -z "$contains_remote" ] ; then
     remote_branch="$(basename $remote_ref)"
     case "$remote_branch" in
-      master|staging|sprint*)
+      master|main|staging|sprint*)
         echo "Pushing to $remote_branch aborted."
         echo "Check that you are up to date with the latest "
         echo "changes from origin or that you are not attempting "
