@@ -175,11 +175,11 @@ body.acc-keyboard-mode thread .message-body:after {
 .ts-add-message .ts-new-message {
   margin: 0 !important;
   /* don't use 100% so that notification popups don't hide the input while typing */
-  max-width: 85% !important;
+  max-width: 80% !important;
 }
 /* teams thread reply */
 .thread-action-reply-message .ts-reply-form-showing {
-  max-width: 85% !important;
+  max-width: 80% !important;
 }
 
 /* hide reply crap (emojis, etc) */
