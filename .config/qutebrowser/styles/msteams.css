@@ -123,9 +123,15 @@ thread .ts-message .media-left > .wrapper {
   height: auto;
 }
 
-/* hide message emoji crap */
-.message-reaction-container,
+/* hide message emoji crap, except for thumbs up */
+.reactions-v2-enabled .message-reaction-container li:not(:nth-child(2)) {
+  display: none;
+}
 .reactions-v2-enabled .message-reaction-container {
+  background-color: inherit;
+  width: auto;
+}
+.message-actions-popover-container .message-reactions-vertical-line {
   display: none;
 }
 div.popover.message-actions-popover-container {
@@ -167,11 +173,21 @@ body.acc-keyboard-mode thread .message-body:after {
   margin: 0 25px !important;
 }
 .ts-add-message .ts-new-message {
-  max-width: 100% !important;
+  margin: 0 !important;
+  /* don't use 100% so that notification popups don't hide the input while typing */
+  max-width: 85% !important;
+}
+/* teams thread reply */
+.thread-action-reply-message .ts-reply-form-showing {
+  max-width: 85% !important;
 }
 
 /* hide reply crap (emojis, etc) */
-.ts-add-message.is-not-chat .new-message-common .compose-stripe,
-.ts-new-message .extension-icons-container .compose-send-discard {
+.ts-add-message .ts-new-message .extension-icons-container,
+.ts-message.reply-is-visible .thread-action-reply-message .extension-icons-container {
   display: none;
+}
+/* but keep the "New Conversation button visible" */
+.ts-new-post-btn-container .extension-icons-container {
+  display: flex !important;
 }
