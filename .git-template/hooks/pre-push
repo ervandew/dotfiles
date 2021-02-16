@@ -1,11 +1,14 @@
 #!/bin/bash
 
 ##
-# pre-push hook which prevents a force push to master, staging, and sprint*
+# pre-push hook which prevents a force push to master, staging, and sprint
 # branches.
 ##
 
 local_branch="$(git rev-parse --abbrev-ref HEAD)"
+
+# read into an array
+protected=($(git config push.force.protected))
 
 IFS=' '
 z40=0000000000000000000000000000000000000000
@@ -16,14 +19,15 @@ while read local_ref local_sha remote_ref remote_sha ; do
   contains_remote=$(git branch --contains $remote_sha 2> /dev/null | grep "\<$local_branch\>")
   if [ -z "$contains_remote" ] ; then
     remote_branch="$(basename $remote_ref)"
-    case "$remote_branch" in
-      master|main|staging|sprint*)
+    for br in ${protected[@]} ; do
+      if [[ "$remote_branch" == $br ]] ; then
         echo "Pushing to $remote_branch aborted."
         echo "Check that you are up to date with the latest "
         echo "changes from origin or that you are not attempting "
-        echo "to force push changes to the history."
+        echo "to force push changes to the history of a protected branch."
         exit 1
-    esac
+      fi
+    done
   fi
 done
 

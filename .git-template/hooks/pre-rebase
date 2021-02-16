@@ -15,6 +15,33 @@ else
   exit 0 ; # don't interrupt rebasing detached HEAD
 fi
 
-git rebasesafe $1
+commits=$(git cherry -v $1)
+contains=$(echo $commits | perl -pe 's|\+ ([a-f0-9]+) .*|--contains \1|')
 
-exit $?
+if [ -n "$contains" ] ; then
+  # make sure we are reasonably up to date
+  git lfetch
+
+  # allow a list of branches to ignore when checking for overlapping branches
+  ignore_branches=($(git config rewrite.safe.ignore))
+  ignore_pattern="$(git brname)"
+  if [ -n "$ignore_branches" ] ; then
+    for br in ${ignore_branches[@]} ; do
+      ignore_pattern="$ignore_pattern|$br"
+    done
+  fi
+
+  branches=$(
+    git branch -a --format '%(refname)' $contains |
+    perl -ne "print unless /^(.*\/)?\b(${ignore_pattern})$/"
+  )
+
+  if [ -n "$branches" ] ; then
+    echo -e "The following branches overlap, rebase not recommended:"
+    for b in $branches ; do
+      b=$(echo "$b" | perl -pe 's|^refs/(heads/)?||')
+      echo -e "  $b"
+    done
+    exit 1
+  fi
+fi
