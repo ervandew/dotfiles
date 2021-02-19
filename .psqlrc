@@ -1,0 +1,2 @@
+-- mysql style \G support as :G
+\set G '\\set QUIET 1\\x\\g\\x\\set QUIET 0'
