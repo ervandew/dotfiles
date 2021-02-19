@@ -1,5 +1,8 @@
 import os
 
+# don't load settings configured from the gui, only from this file.
+config.load_autoconfig(False)
+
 # basic config
 c.auto_save.session = True
 c.search.incremental = True
@@ -38,7 +41,7 @@ if os.path.isfile(allow):
       if not line or line.startswith('#'):
         continue
       domains.append(line.strip())
-    c.content.host_blocking.whitelist = domains
+    c.content.blocking.whitelist = domains
 
 redirects = str(config.configdir / 'redirects')
 if os.path.isfile(redirects):
@@ -132,7 +135,7 @@ config.bind('yy', 'yank --sel')
 config.bind('<alt-r>*', 'insert-text {primary}', mode='insert')
 # no command yet which can insert clipboard text to command line
 #config.bind('<alt-r>*', 'insert-text {primary}', mode='command')
-config.bind('<ctrl-i>', 'open-editor', mode='insert')
+config.bind('<ctrl-i>', 'edit-text', mode='insert')
 config.bind('<ctrl-i>', 'edit-command', mode='command')
 
 # command history nav
