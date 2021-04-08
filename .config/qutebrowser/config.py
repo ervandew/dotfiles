@@ -82,7 +82,9 @@ c.content.user_stylesheets = [
 ]
 ###
 
-# unbind some commands
+### unbind some commands
+# tabs
+config.unbind('d', mode='normal')
 # quickmarks
 config.unbind('m', mode='normal')
 config.unbind('b', mode='normal')
