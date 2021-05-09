@@ -22,4 +22,8 @@ else
 
   # start gpg-agent
   eval $(gpg-agent --daemon --allow-preset-passphrase)
+
+  # import ssh auth sock into systemctl user env so that backup service can
+  # utilize it
+  systemctl --user import-environment SSH_AUTH_SOCK
 fi
