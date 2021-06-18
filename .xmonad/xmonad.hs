@@ -102,6 +102,7 @@ barBackground = "#232323"
 barForeground = "#7e7e7e"
 
 myTerminal = "urxvt"
+myScratchpad = "urxvt -name scratchpad -e bash -c tmux -L scratchpad -A"
 myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm", "5:misc", "6:misc"]
 
 noScratchPad ws = if ws == "NSP" then "" else ws
@@ -167,7 +168,7 @@ main = do
                           ("Tabbed", windows W.focusDown),
                           ("", windows W.focusUp)]),
       ("M-S-s",       withFocused $ windows . W.sink),
-      ("M-p",         scratchpadSpawnActionTerminal myTerminal),
+      ("M-p",         scratchpadSpawnActionCustom myScratchpad),
       ("M-v",         spawn $ "sleep .2 ; xdotool type --delay 0 --clearmodifiers \"$(xclip -o)\""),
       ("M-S-p",       spawn $ "~/bin/keyring prompt --paste"),
       ("M-t",         spawn $ "pkill stalonetray || stalonetray -bg '#232323' -i 16"),
