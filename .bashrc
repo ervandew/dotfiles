@@ -166,7 +166,8 @@
 
   alias envmin="~/bin/envmin ~/.envmin/envmin.txt"
 
-  alias whatismyip="wget -qnv -O - http://checkip.dyndns.org/ | grep -oP '\d+\.\d+\.\d+\.\d+'"
+  #alias whatismyip="wget -qnv -O - http://checkip.dyndns.org/ | grep -oP '\d+\.\d+\.\d+\.\d+'"
+  alias whatismyip="dig TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed 's|\"||g'"
 
   alias irssi="urxvt -name irssi -title irssi -e irssi &"
 
