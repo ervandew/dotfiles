@@ -1,1 +1,1 @@
-p(${new_mails $HOME/.mail/ervandew@gmail.com/INBOX}) w(${new_mails $HOME/.mail/Eric.VanDewoestine@AcuityBrands.com/INBOX})
+p(${new_mails $HOME/.mail/ervandew@gmail.com/INBOX})
