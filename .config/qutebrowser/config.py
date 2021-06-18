@@ -82,6 +82,15 @@ c.content.user_stylesheets = [
 ]
 ###
 
+### Example setting user agent when needed (spoofing osx here)
+#c.content.headers.user_agent = \
+#  'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_3_1) ' \
+#  'AppleWebKit/{webkit_version} (KHTML, like Gecko) ' \
+#  '{qt_key}/{qt_version} ' \
+#  '{upstream_browser_key}/{upstream_browser_version} ' \
+#  'Safari/{webkit_version}'
+###
+
 ### unbind some commands
 # tabs
 config.unbind('d', mode='normal')
