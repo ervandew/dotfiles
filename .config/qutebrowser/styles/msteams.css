@@ -59,31 +59,8 @@
   max-width: 100% !important;
 }
 /* ditto for chat pages */
-.ts-message-thread-body .message-body {
-  width: 100%;
-}
-.chat-style .thread-body:not(.self) .ts-message-thread-body {
-  margin-right: 0;
-}
-.chat-style .self .ts-message-thread-body {
-  padding-left: 75px;
-}
-
-/* shrink user avatars */
-.message-list-common thread .ts-message .conversation-start .media-left .wrapper,
-thread .ts-message .media-left > .wrapper {
-  height: 25px !important;
-  width: 25px !important;
-}
-.message-list-common:not(.chat-style) thread .ts-message .conversation-start .media-left {
-  width: 25px;
-}
-.message-list-common .ts-message .thread-body-status > .ts-skype-status{
-  top: 20px !important;
-}
-.message-list-common thread .ts-message .conversation-common.conversation-reply .media .ts-skype-status {
-  top: 20px !important;
-  left: 33px !important;
+.ui-chat {
+  max-width: 100% !important;
 }
 
 /* move reply button and prevent it from taking up vertical space between messages */
@@ -123,21 +100,6 @@ thread .ts-message .media-left > .wrapper {
   height: auto;
 }
 
-/* hide message emoji crap, except for thumbs up */
-.reactions-v2-enabled .message-reaction-container li:not(:nth-child(2)) {
-  display: none;
-}
-.reactions-v2-enabled .message-reaction-container {
-  background-color: inherit;
-  width: auto;
-}
-.message-actions-popover-container .message-reactions-vertical-line {
-  display: none;
-}
-div.popover.message-actions-popover-container {
-  box-shadow: none;
-}
-
 /* move message actions */
 .message-actions-popover-container.reactions-v2-enabled {
   width: 30px;
@@ -150,7 +112,7 @@ div.popover.message-actions-popover-container {
 }
 
 /* hide the out of office banners that keep showing up */
-.app-notification-banner.banner-show {
+div[aria-labelledby="chat-pane-compose-message-text"] .ui-alert {
   display: none;
 }
 
@@ -181,13 +143,12 @@ body.acc-keyboard-mode thread .message-body:after {
 .thread-action-reply-message .ts-reply-form-showing {
   max-width: 80% !important;
 }
-
-/* hide reply crap (emojis, etc) */
-.ts-add-message .ts-new-message .extension-icons-container,
-.ts-message.reply-is-visible .thread-action-reply-message .extension-icons-container {
-  display: none;
+/* ditto for chat */
+div[aria-labelledby="message-pane-footer-text"] {
+  margin-left: 0 !important;
 }
-/* but keep the "New Conversation button visible" */
-.ts-new-post-btn-container .extension-icons-container {
-  display: flex !important;
+
+/* shrink left padding of chat messages */
+.ui-chat__item__message {
+  float: none !important;
 }
