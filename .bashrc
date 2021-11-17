@@ -8,7 +8,7 @@
 
 ## Bash settings. {{{
   # bash history settings
-  ignore="&:??:clear:exit"
+  ignore="&:??:clear:exit:k"
   ignore="$ignore:shutdown*:reboot:*systemctl poweroff*:*systemctl reboot*"
   ignore="$ignore:git stash pop*:git stash drop*"
   export HISTIGNORE=$ignore
