@@ -29,7 +29,7 @@ __git_aliased_command() {
       echo "log" ; return ;;
     dbranch | mergein | rebasesafe)
       echo "branch" ; return ;;
-    ghcompare | glcompare | glpullrequest | azurepullrequest | pullrequest)
+    ghcompare | glcompare | glpullrequest | azurepullrequest | pullrequest | pr)
       echo "branch" ; return ;;
   esac
 
