@@ -110,17 +110,26 @@ function runclient() {
   shift
 
   while [ 1 -eq 1 ] ; do
-    # for screen title
+    # for screen/tmux title
     SCREEN=$(echo $TERM | grep "screen")
     if [ -n "$SCREEN" ] ; then
-      echo -ne "\\ek$name\\e\\\\"
+      if [ -n "$TMUX" ] ; then
+        tmux rename-window -t$TMUX_PANE "$name"
+      else
+        echo -ne "\\ek$name\\e\\\\"
+      fi
     fi
 
     "$@"
 
     # reset screen title
     if [ -n "$SCREEN" ] ; then
-      echo -ne "\\ek$(basename $SHELL 2> /dev/null)\\e\\\\"
+      name=$(basename $SHELL 2> /dev/null)
+      if [ -n "$TMUX" ] ; then
+        tmux rename-window -t$TMUX_PANE "$name"
+      else
+        echo -ne "\\ek$name\\e\\\\"
+      fi
     fi
 
     if [ $? -eq 0 ] ; then
