@@ -52,8 +52,6 @@ function usage() {
   echo "     sql -e \"select 1\""
   echo "   Execute a sql script:"
   echo "     sql somescript.sql"
-  echo "   Run a query in mysql without prompting for the db to use:"
-  echo "     sql mysql:mydbhost -e \"select 1\""
 }
 
 function runmysql() {
