@@ -31,6 +31,9 @@ c.spellcheck.languages = ['en-US']
 # useful when using secondary windows for single page apps (music, etc)
 c.new_instance_open_target_window = 'first-opened'
 
+# disable scrolling through tabs via mouse wheel
+c.tabs.mousewheel_switching = False
+
 # allow some hosts that prevent some sites from working properly
 allow = str(config.configdir / 'allowlist')
 if os.path.isfile(allow):
@@ -144,8 +147,9 @@ config.bind('yy', 'yank --sel')
 
 # editing
 config.bind('<alt-r>*', 'insert-text {primary}', mode='insert')
-# no command yet which can insert clipboard text to command line
-#config.bind('<alt-r>*', 'insert-text {primary}', mode='command')
+# best available command for custom binding to paste text into the command
+# line, but unfortunately always appends (fine most of the time)
+config.bind('<alt-r>*', 'set-cmd-text --append {primary}', mode='command')
 config.bind('<ctrl-i>', 'edit-text', mode='insert')
 config.bind('<ctrl-i>', 'edit-command', mode='command')
 
