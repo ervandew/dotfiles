@@ -11,10 +11,7 @@
 #     mysql:localhost: mydb,
 #     mysql:staging: -h mystaginghost -P 3307 -u myuser mydb,
 #     postgres:localhost: mydb,
-#     postgres:staging: --host mystaginghost --username myuser mydb,
-#     mysql:other: none,
-#     oracle:other: none,
-#     postgres:other: none,
+#     postgres:staging: --host mystaginghost --username myuser mydb
 #   "
 #
 # The format of the CONNECTION_STRINGS is:
@@ -34,10 +31,6 @@
 #
 #     mysql:staging: -h mystaginghost -u myuser -p<password:myuser@mystaginghost> mydb,
 #
-# Note: the instance name 'other' is reserved and when chosen from the list,
-# will result in a series of prompts for the necessary data to connect to an
-# arbitrary database of that type.
-#
 # The ~/.sqlcfg file can also define a PRODUCTION variable which is a space
 # separated list of instance names corresponding to production databases or any
 # instance that you'd like to flag when connecting to it:
@@ -50,11 +43,6 @@
 #
 # Author: Eric Van Dewoestine
 ##
-
-# default connection strings
-MYSQL_DEFAULT="-h <host> -P <port> -u <user> -p<password> <database>"
-ORACLE_DEFAULT="<user>/<host>@'(description=(address=(protocol=TCP)(host=<host>)(port=<port>))(connect_data=(sid=<database>)))'"
-POSTGRES_DEFAULT="-h <host> -p <port> -U postgres <database>"
 
 function usage() {
   echo "Usage: sql [args]"
@@ -69,9 +57,6 @@ function usage() {
 }
 
 function runmysql() {
-  # check if host:port pair was supplied
-  runinstance runmysql "$@"
-
   # attempt to run a script
   runscript mysql "$@"
 
@@ -86,9 +71,6 @@ function runmysql() {
 }
 
 function runsqlplus() {
-  # check if host:port pair was supplied
-  runinstance runsqlplus "$@"
-
   # attempt to run a script
   runscript "sqlplus -S" "$@"
 
@@ -101,11 +83,13 @@ function runsqlplus() {
 }
 
 function runpsql() {
-  # check if host:port pair was supplied
-  runinstance runpsql "$@"
+  username=$(echo "$@" | perl -pe 's|.*postgresql://(.*?@.*?)[:/].*|\1|')
+  if [ -n "$username" ] ; then
+    PGPASSWORD=$(_keyring $username)
+  fi
 
   # attempt to run a script
-  runscript psql "$@"
+  PGPASSWORD=$PGPASSWORD runscript psql "$@"
 
   PROMPT1="$instance(%/)%R%# "
   PROMPT2="$instance(%/)%R%# "
@@ -115,42 +99,10 @@ function runpsql() {
   fi
 
   # execute psql normally with any user supplied args
-  runclient postgres psql \
+  PGPASSWORD=$PGPASSWORD runclient postgres psql \
     --variable PROMPT1="$PROMPT1" \
     --variable PROMPT2="$PROMPT2" \
     "$@"
-}
-
-function runinstance() {
-  client=$1
-  shift
-
-  HOST_PORT_DB=`echo "$1" | grep ":"`
-  if [ -n "$HOST_PORT_DB" ] ; then
-    shift
-    DB_HOST=`echo $HOST_PORT_DB | sed 's/[^:]\+:\([^:]\+\):.*/\1/'`
-    DB_PORT=`echo $HOST_PORT_DB | sed 's/[^:]\+:[^:]\+:\([^:]\+\):.*/\1/'`
-    DB_NAME=`echo $HOST_PORT_DB | sed 's/.*:\(.*\)/\1/'`
-
-    if [ "$client" == "runmysql" ] ; then
-      CONNECTION=$MYSQL_DEFAULT
-    elif [ "$client" == "runsqlplus" ] ; then
-      CONNECTION=$ORACLE_DEFAULT
-    elif [ "$client" == "runpsql" ] ; then
-      CONNECTION=$POSTGRES_DEFAULT
-    fi
-
-    CONNECTION=`echo $CONNECTION | sed "s/<host>/$DB_HOST/"`
-    CONNECTION=`echo $CONNECTION | sed "s/<port>/$DB_PORT/"`
-    CONNECTION=`echo $CONNECTION | sed "s/<database>/$DB_NAME/"`
-    instance="$DB_HOST:$DB_PORT"
-    if [ -n "$(echo $PRODUCTION | grep "\<$DB_HOST\>")" ] ; then
-      IS_PRODUCTION=1
-    fi
-
-    $client "$@" $CONNECTION
-    exit
-  fi
 }
 
 function runclient() {
@@ -159,7 +111,7 @@ function runclient() {
 
   while [ 1 -eq 1 ] ; do
     # for screen title
-    SCREEN=`echo $TERM | grep "screen"`
+    SCREEN=$(echo $TERM | grep "screen")
     if [ -n "$SCREEN" ] ; then
       echo -ne "\\ek$name\\e\\\\"
     fi
@@ -219,15 +171,15 @@ function runchoice() {
   instance=$1
   shift
 
-  if ! `echo "$CONNECTION_STRINGS" | grep "$instance" &> /dev/null` ; then
+  if ! $(echo "$CONNECTION_STRINGS" | grep "$instance" &> /dev/null) ; then
     echo "abort: unrecognized instance: $instance"
     return
   fi
 
-  CONNECTION=`echo $CONNECTION_STRINGS | sed "s/.*\b\($instance:[^,]*\)\s*\(,.*\|$\)/\1/"`
-  TYPE=`echo $CONNECTION | sed "s/^\(\w\+\):.*/\1/"`
-  instance=`echo $CONNECTION | sed "s/^\w\+:\(.*\):\s.*/\1/"`
-  CONNECTION=`echo $CONNECTION | sed "s/.*:\s\(.*\)/\1/"`
+  CONNECTION=$(echo $CONNECTION_STRINGS | sed "s/.*\b\($instance:[^,]*\)\s*\(,.*\|$\)/\1/")
+  TYPE=$(echo $CONNECTION | sed "s/^\(\w\+\):.*/\1/")
+  instance=$(echo $CONNECTION | sed "s/^\w\+:\(.*\):\s.*/\1/")
+  CONNECTION=$(echo $CONNECTION | sed "s/.*:\s\(.*\)/\1/")
 
   if [ -n "$(echo $PRODUCTION | grep "\<$instance\>")" ] ; then
     IS_PRODUCTION=1
@@ -235,13 +187,7 @@ function runchoice() {
 
   if [[ "$CONNECTION" =~ \<password:.*\> ]] ; then
     key=$(echo "$CONNECTION" | sed 's|.*<password:\(.*\?\)>.*|\1|')
-    pass=$(keyring get $key 2> /dev/null)
-
-    # try again, ignoring virtualenv path
-    if [ -n "$VIRTUAL_ENV" -a -z "$path" ] ; then
-      pass=$(PATH=$(echo $VIRTUAL_PATH | sed "s|$VIRTUAL_ENV/bin:||") keyring get $key 2> /dev/null)
-    fi
-
+    pass=$(_keyring $key)
     if [ -z "$pass" ] ; then
       echo "abort: unable to find password for key: $key"
       exit 1;
@@ -260,6 +206,18 @@ function runchoice() {
   fi
 }
 
+function _keyring() {
+  key=$1
+  pass=$(keyring get $key 2> /dev/null)
+
+  # try again, ignoring virtualenv path
+  if [ -n "$VIRTUAL_ENV" -a -z "$path" ] ; then
+    pass=$(PATH=$(echo $VIRTUAL_PATH | sed "s|$VIRTUAL_ENV/bin:||") keyring get $key 2> /dev/null)
+  fi
+
+  echo "$pass"
+}
+
 if [ "$1" == "-?" -o "$1" == "-h" -o "$1" == "--help" ] ; then
   usage
   exit 0
@@ -272,7 +230,7 @@ fi
 source ~/.sqlcfg
 
 # see if a db choice was supplied
-if `echo "$1" | grep ":" &> /dev/null` ; then
+if $(echo "$1" | grep ":" &> /dev/null) ; then
   instance=$1; shift
   runchoice $instance "$@"
   exit
@@ -288,7 +246,7 @@ OLD_IFS=$IFS
 IFS=$',\n'
 COUNT=0
 for option in $CONNECTION_STRINGS ; do
-  option=`echo $option | sed "s/^\s*\(.*\):\s.*/\1/"`
+  option=$(echo $option | sed "s/^\s*\(.*\):\s.*/\1/")
   OPTIONS="$OPTIONS $option"
   COUNT=$((COUNT + 1))
 done
@@ -304,24 +262,7 @@ fi
 IFS=$OLD_IFS
 PS3="select sql instance: "
 select instance in $OPTIONS ; do
-  if [ "$instance" == "mysql:other" ] ; then
-    read -p "hostname (localhost): " dbhost
-    read -p "port (3306): " dbport
-    read -p "database: " database
-    runmysql "mysql:${dbhost:=localhost}:${dbport:=3306}:${database}" "$@"
-  elif [ "$instance" == "oracle:other" ] ; then
-    read -p "hostname (localhost): " dbhost
-    read -p "port (1521): " dbport
-    read -p "sid: " sid
-    runsqlplus "oracle:${dbhost:=localhost}:${dbport:=1521}:${sid}" "$@"
-  elif [ "$instance" == "postgres:other" ] ; then
-    read -p "hostname (localhost): " dbhost
-    read -p "port (5432): " dbport
-    read -p "database: " database
-    runpsql "postgres:${dbhost:=localhost}:${dbport:=5432}:${database}" "$@"
-  else
-    runchoice $instance "$@"
-  fi
+  runchoice $instance "$@"
   break
 done
 
