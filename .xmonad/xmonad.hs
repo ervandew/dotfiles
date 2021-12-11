@@ -33,21 +33,23 @@ import Data.Ratio
 import System.IO
 
 myLayout = desktopLayoutModifiers $
-    onWorkspace "2:im/mail"  (stackTwoByOne ||| tiled ||| tabs) $
+    onWorkspace "2:im/mail"  (accordion ||| tabs) $
     onWorkspace "3:media" tabs $
     onWorkspace "4:vm" Full $
-    accordionFull ||| tiled ||| stackTwo ||| tabs
+    accordionTwoPane ||| tiled ||| stackTwo ||| tabs
   where
-    accordionFull = named "Accordion/Full" (
+    accordionTwoPane = named "Accordion/TwoPane" (
         combineTwo (TwoPane (3/100) (1/2)) (Accordion) (Full))
+    -- reflectVert so new windows open at the bottom
+    accordion = named "Accordion" (reflectVert $ Accordion)
     stackTwo = named "StackTwo" (
         combineTwo (StackTile 1 (3/100) (1/2)) (Full) (Full))
-    stackTwoByOne = named "Communication" (
-        combineTwoP
-            (StackTile 1 (3/100) (15/24))
-            (tabs) -- top
-            (TwoPane (3/100) (1/2)) -- bottom
-            (Title "irssi" `Or` ClassName "qutebrowser"))
+    -- stackTwoByOne = named "Communication" (
+    --     combineTwoP
+    --         (StackTile 1 (3/100) (15/24))
+    --         (tabs) -- top
+    --         (TwoPane (3/100) (1/2)) -- bottom
+    --         (Title "irssi" `Or` ClassName "qutebrowser"))
     -- seems to be a bug with tabbed that causes it to always use the full
     -- screen, including over the status bar, even when used with combineTwo
     -- using Full for now so i can work.
