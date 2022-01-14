@@ -1,2 +1,3 @@
 \timing on
 \x auto
+\set HISTCONTROL ignoredups
