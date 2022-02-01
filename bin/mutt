@@ -5,16 +5,23 @@
 # according to the available ~/.muttrc.* files.
 ##
 
+function launch(){
+  # reset the TMUX var, otherwise if launched from a tmux shell tmux vars will
+  # be inherited even though we are launching a new shell without tmux, which
+  # may confuse scripts/settings that setup things for tmux
+  env -u TMUX urxvt -name mutt -title mutt -e bash -ic "$*" &
+}
+
 accounts=$(ls -1 ~/.muttrc.* 2> /dev/null | grep -v "\.swp$" | sed 's|.*\.muttrc\.\(.*\)|\1|')
 count=$(echo $accounts | wc -w)
 if [ $count -eq 0 ] ; then
   echo "No .muttrc.* accounts found."
 elif [ $count -eq 1 ] ; then
-  urxvt -name mutt -title mutt -e bash -ic "/usr/bin/mutt -F ~/.muttrc.${accounts}" &
+  launch /usr/bin/mutt -F ~/.muttrc.${accounts}
 else
   echo "Please select an account:"
   select account in $accounts; do
-    urxvt -name mutt -title mutt -e bash -ic "/usr/bin/mutt -F ~/.muttrc.${account}" &
+    launch /usr/bin/mutt -F ~/.muttrc.${account}
     exit
   done
 fi
