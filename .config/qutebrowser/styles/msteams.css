@@ -144,7 +144,7 @@ body.acc-keyboard-mode thread .message-body:after {
   max-width: 80% !important;
 }
 /* ditto for chat */
-div[aria-labelledby="message-pane-footer-text"] {
+div[data-tid="message-pane-footer"] {
   margin-left: 0 !important;
 }
 
