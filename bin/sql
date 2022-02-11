@@ -85,7 +85,7 @@ function runmysql() {
   # Note: as of the time of this writing, the color escape sequences screw up
   # line wrapping in the client, so this adds a newline to work around that.
   PROMPT_TEXT=$(echo -e "\\x1B[$COLOR$LABEL\\x1B[0m\n>")
-  runclient mysql mysql --prompt "$PROMPT_TEXT " "$@"
+  runclient mysql --prompt "$PROMPT_TEXT " "$@"
 }
 
 function runsqlplus() {
@@ -94,9 +94,9 @@ function runsqlplus() {
 
   # execute sqlplus normally with any user supplied args
   if [ -e "$(which rlwrap 2> /dev/null)" ] ; then
-    runclient oracle rlwrap sqlplus -L "$@"
+    runclient rlwrap sqlplus -L "$@"
   else
-    runclient oracle sqlplus -L "$@"
+    runclient sqlplus -L "$@"
   fi
 }
 
@@ -114,24 +114,21 @@ function runpsql() {
   PROMPT1="%[%033[$COLOR%]$PROMPT1%[%033[0m%]"
   PROMPT2="%[%033[0;33m%]$PROMPT2%[%033[0m%]"
 
-  PGPASSWORD=$PGPASSWORD runclient postgres psql \
+  PGPASSWORD=$PGPASSWORD runclient psql \
     --variable PROMPT1="$PROMPT1" \
     --variable PROMPT2="$PROMPT2" \
     "$@"
 }
 
 function runclient() {
-  name=$1
-  shift
-
   while [ 1 -eq 1 ] ; do
     # for screen/tmux title
     SCREEN=$(echo $TERM | grep "screen")
     if [ -n "$SCREEN" ] ; then
       if [ -n "$TMUX" ] ; then
-        tmux rename-window -t$TMUX_PANE "$name"
+        tmux rename-window -t$TMUX_PANE "$INSTANCE"
       else
-        echo -ne "\\ek$name\\e\\\\"
+        echo -ne "\\ek$INSTANCE\\e\\\\"
       fi
     fi
 
@@ -226,6 +223,7 @@ function runchoice() {
     connection=$(echo "$connection" | perl -pe "s|<password:(.*?)>|$pass|")
   fi
 
+  INSTANCE=$instance
   LABEL=$(echo $instance | perl -pe 's|^\w+:(.*).*|\1|')
   if [ "$dbtype" == "mysql" ] ; then
     runmysql "$@" $connection
