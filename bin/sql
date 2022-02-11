@@ -2,7 +2,7 @@
 
 ##
 # Script to prompt the user with a menu of available rdbms instances to connect
-# to and then connect to their chosen instance.
+# to and then open the appropriate shell for the rdbms.
 #
 # Sources the file ~/.sqlcfg which can contain a comma separated list of
 # instance names to their corresponding command line arguments:
@@ -11,17 +11,18 @@
 #     mysql:localhost: mydb,
 #     mysql:staging: -h mystaginghost -P 3307 -u myuser mydb,
 #     postgres:localhost: mydb,
-#     postgres:staging: --host mystaginghost --username myuser mydb
+#     postgres:staging: postgresql://user@host/mydb
 #   "
 #
 # The format of the CONNECTION_STRINGS is:
 #   dbtype:instance_name: <command line arguments>,
-#     dbtype: one of 'mysql', 'oracle', or 'postgres'
+#     dbtype: one of 'mysql' or 'postgres'
 #     instance_name: any name you choose, but keep it alpha numeric
 #     command line arguments: any necessary arguments that need to be supplied
 #       to the database's corresponding command line client to connect to that
 #       database.
-# Make sure each entry has a trailing comma to separate it from the next entry.
+
+# Make sure to separate each entry with a comma.
 #
 # The connction string format also supports a password placeholder allowing you
 # to pull the password from your keyring using
@@ -31,15 +32,38 @@
 #
 #     mysql:staging: -h mystaginghost -u myuser -p<password:myuser@mystaginghost> mydb,
 #
-# The ~/.sqlcfg file can also define a PRODUCTION variable which is a space
-# separated list of instance names corresponding to production databases or any
-# instance that you'd like to flag when connecting to it:
+# Since psql doesn't allow the password in the connection string, if you use a
+# url formatted connection string like the following, the user@host portion
+# will be pulled out and an attempt will be made to use that to lookup the
+# password from the keyring:
 #
-#   PRODUCTION="staging production"
+#   postgresql://user@host/mydb
+#
+# To help distiguish environments, a COLORS variable is supported allowing you
+# to define the prompt color for each instance:
+#
+#   COLORS="
+#     postgres:staging:38;5;176m,
+#     postgres:production:0;31m,
+#   "
+#
+# These use the bash escape sequences as the color value, allowing you to use
+# any color that bash supports. By default green will be used if no entry has
+# been defined.
+#
+# The ~/.sqlcfg file can also define a PRODUCTION variable which is a space
+# separated list of connection entry names corresponding to production
+# databases or any instance that you'd like to flag when connecting to it:
+#
+#   PRODUCTION="
+#     postgres:staging
+#     postgres:production
+#   "
 #
 # When starting a client for a database instance in this list, the prompt will
-# be red to remind you to be careful what you execute in this db.
-# Note: currently this feature does not support sqlplus.
+# be red, unless you have an entry in COLORS, to remind you to be careful what
+# you execute in this db. Running sql files against these entries will also be
+# prevented.
 #
 # Author: Eric Van Dewoestine
 ##
@@ -58,13 +82,9 @@ function runmysql() {
   # attempt to run a script
   runscript mysql "$@"
 
-  PROMPT_TEXT="$instance>"
-  # execute mysql normally with any user supplied args
-  if [ -n "$IS_PRODUCTION" ] ; then
-    # Note: as of the time of this writing, the color escape sequences screw up
-    # line wrapping in the client, so this adds a newline to work around that.
-    PROMPT_TEXT=$(echo -e "\\x1B[1;31m$instance\\x1B[0m\n>")
-  fi
+  # Note: as of the time of this writing, the color escape sequences screw up
+  # line wrapping in the client, so this adds a newline to work around that.
+  PROMPT_TEXT=$(echo -e "\\x1B[$COLOR$LABEL\\x1B[0m\n>")
   runclient mysql mysql --prompt "$PROMPT_TEXT " "$@"
 }
 
@@ -89,14 +109,11 @@ function runpsql() {
   # attempt to run a script
   PGPASSWORD=$PGPASSWORD runscript psql "$@"
 
-  PROMPT1="$instance(%/)%R%# "
-  PROMPT2="$instance(%/)%R%# "
-  if [ -n "$IS_PRODUCTION" ] ; then
-    PROMPT1="%[%033[0;31m%]$PROMPT1%[%033[0m%]"
-    PROMPT2="%[%033[0;33m%]$PROMPT2%[%033[0m%]"
-  fi
+  PROMPT1="$LABEL(%/)%R%# "
+  PROMPT2="$LABEL(%/)%R%# "
+  PROMPT1="%[%033[$COLOR%]$PROMPT1%[%033[0m%]"
+  PROMPT2="%[%033[0;33m%]$PROMPT2%[%033[0m%]"
 
-  # execute psql normally with any user supplied args
   PGPASSWORD=$PGPASSWORD runclient postgres psql \
     --variable PROMPT1="$PROMPT1" \
     --variable PROMPT2="$PROMPT2" \
@@ -183,31 +200,39 @@ function runchoice() {
     return
   fi
 
-  CONNECTION=$(echo $CONNECTION_STRINGS | sed "s/.*\b\($instance:[^,]*\)\s*\(,.*\|$\)/\1/")
-  TYPE=$(echo $CONNECTION | sed "s/^\(\w\+\):.*/\1/")
-  instance=$(echo $CONNECTION | sed "s/^\w\+:\(.*\):\s.*/\1/")
-  CONNECTION=$(echo $CONNECTION | sed "s/.*:\s\(.*\)/\1/")
+  echo "instance: $instance"
+  connection=$(echo $CONNECTION_STRINGS | perl -pe "s|.*\b($instance:[^,]*)\s*,?.*|\1|")
+  dbtype=$(echo $connection | perl -pe 's|^(\w+):.*|\1|')
+  connection=$(echo $connection | perl -pe 's|.*:\s(.*)|\1|')
 
   if [ -n "$(echo $PRODUCTION | grep "\<$instance\>")" ] ; then
     IS_PRODUCTION=1
+    COLOR="0;31m"
+  else
+    COLOR="0;32m"
   fi
 
-  if [[ "$CONNECTION" =~ \<password:.*\> ]] ; then
-    key=$(echo "$CONNECTION" | sed 's|.*<password:\(.*\?\)>.*|\1|')
+  if [ -n "$(echo $COLORS | grep "\<$instance\>")" ] ; then
+    COLOR=$(echo $COLORS | perl -pe "s|.*\b$instance\b:((\d+;)?\d;\d+m),?.*|\1|")
+  fi
+
+  if [[ "$connection" =~ \<password:.*\> ]] ; then
+    key=$(echo "$connection" | perl -pe 's|.*<password:(.*?)>.*|\1|')
     pass=$(_keyring $key)
     if [ -z "$pass" ] ; then
       echo "abort: unable to find password for key: $key"
       exit 1;
     fi
-    CONNECTION=$(echo "$CONNECTION" | sed "s|<password:\(.*\?\)>|$pass|")
+    connection=$(echo "$connection" | perl -pe "s|<password:(.*?)>|$pass|")
   fi
 
-  if [ "$TYPE" == "mysql" ] ; then
-    runmysql "$@" $CONNECTION
-  elif [ "$TYPE" == "oracle" ] ; then
-    runsqlplus "$@" $CONNECTION
-  elif [ "$TYPE" == "postgres" ] ; then
-    runpsql "$@" $CONNECTION
+  LABEL=$(echo $instance | perl -pe 's|^\w+:(.*).*|\1|')
+  if [ "$dbtype" == "mysql" ] ; then
+    runmysql "$@" $connection
+  elif [ "$dbtype" == "oracle" ] ; then
+    runsqlplus "$@" $connection
+  elif [ "$dbtype" == "postgres" ] ; then
+    runpsql "$@" $connection
   else
     echo "abort: missing or unrecognized dbms prefix in connection info"
   fi
@@ -219,7 +244,7 @@ function _keyring() {
 
   # try again, ignoring virtualenv path
   if [ -n "$VIRTUAL_ENV" -a -z "$path" ] ; then
-    pass=$(PATH=$(echo $VIRTUAL_PATH | sed "s|$VIRTUAL_ENV/bin:||") keyring get $key 2> /dev/null)
+    pass=$(PATH=$(echo $VIRTUAL_PATH | perl -pe "s|$VIRTUAL_ENV/bin:||") keyring get $key 2> /dev/null)
   fi
 
   echo "$pass"
@@ -253,7 +278,7 @@ OLD_IFS=$IFS
 IFS=$',\n'
 COUNT=0
 for option in $CONNECTION_STRINGS ; do
-  option=$(echo $option | sed "s/^\s*\(.*\):\s.*/\1/")
+  option=$(echo $option | perl -pe 's|^\s*(.*):\s.*|\1|')
   OPTIONS="$OPTIONS $option"
   COUNT=$((COUNT + 1))
 done
