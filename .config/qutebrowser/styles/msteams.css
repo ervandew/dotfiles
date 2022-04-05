@@ -12,16 +12,7 @@
   font-size: 14px
 }
 
-/* shrink left nav */
-.ts-left-rail-wrapper {
-  width: 225px;
-  overflow-x: scroll;
-}
-
 /* shrink far left nav icons */
-.app-bar-width {
-  width: 50px;
-}
 .app-bar .app-bar-link .app-svg {
   height: 25px;
   width: 25px;
