@@ -1,7 +1,3 @@
-[user]
-  name = ervandew
-  email = ervandew@gmail.com
-
 [alias]
   ls = ls-files
   brname = rev-parse --abbrev-ref HEAD
@@ -178,4 +174,5 @@
   open = xdg-open
 
 [include]
+  path = .gitconfig.user
   path = .gitconfig.work
