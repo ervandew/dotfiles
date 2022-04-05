@@ -197,7 +197,6 @@ function runchoice() {
     return
   fi
 
-  echo "instance: $instance"
   connection=$(echo $CONNECTION_STRINGS | perl -pe "s|.*\b($instance:[^,]*)\s*,?.*|\1|")
   dbtype=$(echo $connection | perl -pe 's|^(\w+):.*|\1|')
   connection=$(echo $connection | perl -pe 's|.*:\s(.*)|\1|')
@@ -242,7 +241,10 @@ function _keyring() {
 
   # try again, ignoring virtualenv path
   if [ -n "$VIRTUAL_ENV" -a -z "$path" ] ; then
-    pass=$(PATH=$(echo $VIRTUAL_PATH | perl -pe "s|$VIRTUAL_ENV/bin:||") keyring get $key 2> /dev/null)
+    pass=$(
+      PATH=$(echo $VIRTUAL_PATH | perl -pe "s|$VIRTUAL_ENV/bin:||")
+      keyring get $key 2> /dev/null
+    )
   fi
 
   echo "$pass"
