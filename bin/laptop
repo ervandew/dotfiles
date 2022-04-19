@@ -1,0 +1,178 @@
+#!/bin/bash
+
+##
+# Script to toggle internal laptop devices (monitor/keyboard) on/off.
+#
+# FIXME:
+#  - Doesn't handle more than one external monitor.
+#  - External is always set to the left of the internal so that dzen show up on
+#    the larger screen. Need to find out how to pin dzen to the 'primary'
+#    output regardless of whether it's left or right.
+##
+
+function usage(){
+  echo "Usage: laptop <command> <command args>"
+  echo "  Commands:"
+  echo "    monitor <on|off|toggle>"
+  echo "    keyboard <on|off|toggle>"
+  exit 1
+}
+
+function main(){
+  if [ $# -eq 0 ] ; then
+    usage
+  fi
+
+  case $1 in
+    monitor|keyboard)
+      device=$1
+      shift
+      if [ $# -ne 1 ] ; then
+        echo "abort: invalid number of arguments."
+        usage
+      fi
+      ;;
+    *)
+      echo "abort: unrecognized device: $1"
+      usage
+  esac
+
+  $device "$@"
+}
+
+function monitor(){
+  case $1 in
+    on)
+      _monitor_on ;;
+    off)
+      _monitor_off ;;
+    toggle)
+      _monitor_toggle ;;
+    *)
+      echo "abort: unrecognized device command: $2"
+      usage
+  esac
+}
+
+function keyboard(){
+  case $1 in
+    on)
+      _keyboard_on ;;
+    off)
+      _keyboard_off ;;
+    toggle)
+      _keyboard_toggle ;;
+    *)
+      echo "abort: unrecognized device command: $2"
+      usage
+  esac
+}
+
+function _monitor_on(){
+  monitors="
+    internal
+    external
+  "
+  for monitor in $monitors ; do
+    output=$(_monitor $monitor)
+    if [ -z "$output" ] ; then
+      return
+    fi
+    xrandr --output $output --auto
+  done
+
+  # by default the external and internal monitor will display the same
+  # workspace, so if both are on, then set the external as the primary and the
+  # internal as the secondary which displays another workspace.
+  # Note: needs to be done everytime the internal monitor is turned back on.
+  internal=$(_monitor internal is_on)
+  external=$(_monitor external is_on)
+  if [ -n "$external" -a -n "$internal" ] ; then
+    xrandr --output $external --left-of $internal
+    xrandr --output $external --primary
+  fi
+}
+
+function _monitor_off(){
+  output=$(_monitor internal)
+  if [ -z "$output" ] ; then
+    return
+  fi
+
+  if [[ -z "$(_monitor external is_on)" ]] ; then
+    echo "abort: preventing turning off of all outputs"
+    return
+  fi
+  xrandr --output $output --off
+}
+
+function _monitor_toggle(){
+  if [ -z "$(_monitor internal is_on)" ] ; then
+    _monitor_on
+  else
+    _monitor_off
+  fi
+}
+
+function _monitor(){
+  on="(primary )?\d"
+  internal="^(LVDS-|eDP)?\d+ connected"
+  external="^(VGA|DP|DVI|HDMI)-?\d+ connected"
+
+  eval pattern="\$$(echo $1)"
+  if [ "$pattern" == "\$" ] ; then
+    return
+  fi
+
+  if [ "$2" == "is_on" ] ; then
+    pattern="$pattern $on"
+  fi
+  echo "$(xrandr | perl -ne "print if /$pattern/" | cut -d' ' -f1)"
+}
+
+function _keyboard_on(){
+  master=$(_keyboard_master)
+  internal=$(_keyboard_internal)
+  xinput reattach $internal $master
+}
+
+function _keyboard_off(){
+  internal=$(_keyboard_internal)
+  xinput float $internal
+}
+
+function _keyboard_toggle(){
+  result=$(_keyboard_internal is_on)
+  if [ -z "$(_keyboard_internal is_on)" ] ; then
+    _keyboard_on
+  else
+    _keyboard_off
+  fi
+}
+
+function _keyboard_master(){
+  master=".*Virtual core keyboard\s+id=(\d+).*master.*"
+  _keyboard "$master"
+}
+
+function _keyboard_internal(){
+  internal=".*AT Translated .* keyboard\s+id=(\d+).*"
+  _keyboard "$internal" "$@"
+}
+
+function _keyboard(){
+  on="slave\s+keyboard.*"
+
+  pattern="$1"
+  if [ "$2" == "is_on" ] ; then
+    pattern="${pattern}${on}"
+  fi
+
+  echo "$(
+    xinput list |
+      perl -ne "print if /$pattern/" |
+      perl -pe "s|$pattern|\1|"
+  )"
+}
+
+main "$@"
