@@ -43,6 +43,10 @@
 .ts-messages-header .ts-tab-bar-wrapper {
   margin-top: 10px;
 }
+/* remove current tab underline (border) which renders out of place */
+.app-tabs a {
+  border-bottom: none !important;
+}
 
 /* expand message thread to use full width */
 .message-list-common .ts-message-list-container,
