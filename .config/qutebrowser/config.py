@@ -73,16 +73,19 @@ if os.path.isfile(redirects):
 
   interceptor.register(intercept)
 
+# load any custome stylesheets
+styles = str(config.configdir) + '/styles'
+if os.path.exists(styles):
+  c.content.user_stylesheets = [
+    '%s/%s' % (styles, f) for f in os.listdir(styles)
+  ]
+
 ### M$ Teams BS
 # hint that will work for switching between chats
 # (team channels already work by default)
 c.hints.selectors['all'].append('.cle-title')
 # hint to focus chat message input
 c.hints.selectors['inputs'].append('.cke_wysiwyg_div')
-# stylesheet to make teams bearable
-c.content.user_stylesheets = [
-  str(config.configdir) + '/styles/msteams.css',
-]
 ###
 
 ### Example setting user agent when needed (spoofing osx here)
