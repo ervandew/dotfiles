@@ -191,7 +191,7 @@
   PATH="$HOME/bin:$PATH" ; export PATH
 
   # color highlighting for grep
-  export GREP_COLOR=33 # yellow (colors start at 30)
+  export GREP_COLORS="mt=33" # yellow (colors start at 30)
 
   # set vim as the man pager
   export MANPAGER=$PAGER
