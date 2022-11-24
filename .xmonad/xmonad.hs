@@ -22,8 +22,8 @@ import XMonad.Layout.Tabbed
 import XMonad.Layout.TwoPane
 import XMonad.Prompt
 import XMonad.Util.EZConfig
+import XMonad.Util.NamedScratchpad
 import XMonad.Util.Run(spawnPipe)
-import XMonad.Util.Scratchpad
 
 import qualified XMonad.StackSet as W
 
@@ -67,14 +67,6 @@ myLayout = desktopLayoutModifiers $
       urgentBorderColor = "#343434",
       urgentTextColor = "#bb4b4b"}
 
-manageScratchPad :: ManageHook
-manageScratchPad = scratchpadManageHook (W.RationalRect l t w h)
-  where
-    h = 0.2     -- terminal height, 10%
-    w = 1       -- terminal width, 100%
-    t = 1 - h   -- distance from top edge, 90%
-    l = 1 - w   -- distance from left edge, 0%
-
 avoidMaster :: W.StackSet i l a s sd -> W.StackSet i l a s sd
 avoidMaster = W.modify' $ \c -> case c of
     W.Stack t [] (r:rs) ->  W.Stack t [r] rs
@@ -94,7 +86,7 @@ myManageHook = composeAll [
     className =? "Zenity"             --> doFloat,
     -- gimp insists on floating, so prevent that.
     role =? "gimp-image-window"       --> ask >>= doF . W.sink
-  ] <+> manageScratchPad
+  ]
   where
     name = stringProperty "WM_NAME"
     role = stringProperty "WM_WINDOW_ROLE"
@@ -104,8 +96,17 @@ barBackground = "#232323"
 barForeground = "#7e7e7e"
 
 myTerminal = "urxvt"
-myScratchpad = "urxvt -name scratchpad -e bash -c tmux -L scratchpad -A"
 myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm", "5:misc", "6:misc"]
+myScratchpads = [
+    NS "scratchterm" "urxvt -name scratchterm -e bash -c tmux -L scratch new-session -s scratch -A"
+      (resource =? "scratchterm")
+      (customFloating $ W.RationalRect l t w h)
+  ]
+  where
+    h = 0.2    -- height, 20%
+    w = 1      -- width, 100%
+    t = 1 - h  -- distance from top edge (bottom, based on height)
+    l = 0      -- distance from left edge
 
 noScratchPad ws = if ws == "NSP" then "" else ws
 
@@ -137,7 +138,11 @@ main = do
       normalBorderColor  = "#333333",
       focusedBorderColor = "#5884b0",
       workspaces         = myWorkspaces,
-      manageHook         = manageDocks <+> myManageHook <+> manageHook desktopConfig,
+      manageHook         =
+        manageDocks <+>
+        myManageHook <+>
+        manageHook desktopConfig <+>
+        namedScratchpadManageHook myScratchpads,
       layoutHook         = myLayout,
       focusFollowsMouse  = False,
       logHook            = dynamicLogWithPP xmobarPP {
@@ -170,7 +175,7 @@ main = do
                           ("Tabbed", windows W.focusDown),
                           ("", windows W.focusUp)]),
       ("M-S-s",       withFocused $ windows . W.sink),
-      ("M-p",         scratchpadSpawnActionCustom myScratchpad),
+      ("M-p",         namedScratchpadAction myScratchpads "scratchterm"),
       ("M-v",         spawn $ "sleep .2 ; xdotool type --delay 0 --clearmodifiers \"$(xclip -o)\""),
       ("M-S-p",       spawn $ "~/bin/keyring prompt --paste"),
       ("M-t",         spawn $ "pkill stalonetray || stalonetray -bg '#232323' -i 16"),
