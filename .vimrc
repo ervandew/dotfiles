@@ -79,10 +79,6 @@
       " rxvt-unicode supports changing the cursor color on the fly.
       let &t_SI = "\<Esc>]12;#bebebe\x7" " gray
       let &t_EI = "\<Esc>]12;#ac7d00\x7" " dark orange
-      if exists('$TMUX')
-        let &t_SI = "\<Esc>Ptmux;\<Esc>" . &t_SI . "\<Esc>\\"
-        let &t_EI = "\<Esc>Ptmux;\<Esc>" . &t_EI . "\<Esc>\\"
-      endif
     endif
   endif
 
