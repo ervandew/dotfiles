@@ -3,6 +3,7 @@
 " Provides some additional mappings when working with vim's quickfix, allowing
 " removal of entries or opening of entries in a split window.
 
+xnoremap <buffer> <silent> d :call <SID>Delete()<cr>
 nnoremap <buffer> <silent> dd :call <SID>Delete()<cr>
 nnoremap <buffer> <silent> D :call <SID>Delete()<cr>
 nnoremap <buffer> <silent> e <cr>:cclose<cr>
@@ -10,12 +11,22 @@ nnoremap <buffer> <silent> s :call <SID>Split(1)<cr>
 nnoremap <buffer> <silent> S :call <SID>Split(0)<cr>
 
 if !exists('*s:Delete')
-function! s:Delete() " {{{
+function! s:Delete(...) range " {{{
   let lnum = line('.')
   let cnum = col('.')
-  let qf = getqflist()
-  call remove(qf, lnum - 1)
-  call setqflist(qf, 'r')
+
+  if exists('a:firstline')
+    let start = a:firstline
+    let end = a:lastline
+  else
+    let start = lnum
+    let end = lnum
+  endif
+
+  let qf_props = getqflist({'all' : 1})
+  let qf = qf_props['items']
+  call remove(qf, start - 1, end - 1)
+  call setqflist([], 'r', qf_props)
   call cursor(lnum, cnum)
 endfunction " }}}
 endif
