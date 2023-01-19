@@ -1,8 +1,14 @@
 #!/bin/bash
 
 ##
-# pre-push hook which prevents a force push to master, staging, and sprint
-# branches.
+# pre-push hook which prevents a force push to 'protected' branches.
+#
+# List of protected branches can be configured via a custom git config
+# variable: push.force.protected
+#
+# Eg.
+#   [push "force"]
+#     protected = main staging sprint
 ##
 
 local_branch="$(git rev-parse --abbrev-ref HEAD)"

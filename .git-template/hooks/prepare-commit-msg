@@ -1,10 +1,10 @@
 #!/bin/bash
 
 ##
-# pre-commit hook used to prevent mistakes while amending commits.
-#
-# Prevents the user from amending a merge commit (can be bypassed using git
-# amend alias) and from amending a commit found in other branches.
+# pre-commit hook used to:
+# - prepopulate a ticket reference when composing a commit message
+# - prevent amending a merge commit (can be bypassed using git amend alias) and
+#   from amending a commit found in other branches.
 ##
 
 # Handle amends (third arg is only supplied on commits with one of -c, -C, or --amend)
