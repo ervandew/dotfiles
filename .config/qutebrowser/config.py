@@ -122,6 +122,8 @@ config.bind('gh', 'tab-prev')
 config.bind('gl', 'tab-next')
 config.bind('gH', 'tab-move -')
 config.bind('gL', 'tab-move +')
+for i in range(10):
+  config.bind('<ctrl-%s>' % i, 'tab-focus %s' % i)
 
 # scrolling
 # the default G/gg and <ctrl-u/d> mappings use :scroll-to-perc and :scroll-page
@@ -206,3 +208,11 @@ c.colors.tabs.selected.even.bg = selected_bg
 c.colors.tabs.selected.even.fg = selected_fg
 c.colors.tabs.selected.odd.bg = selected_bg
 c.colors.tabs.selected.odd.fg = selected_fg
+c.colors.tabs.pinned.even.bg = unfocused_bg
+c.colors.tabs.pinned.even.fg = unfocused_fg
+c.colors.tabs.pinned.odd.bg = unfocused_bg
+c.colors.tabs.pinned.odd.fg = unfocused_fg
+c.colors.tabs.pinned.selected.even.bg = selected_bg
+c.colors.tabs.pinned.selected.even.fg = selected_fg
+c.colors.tabs.pinned.selected.odd.bg = selected_bg
+c.colors.tabs.pinned.selected.odd.fg = selected_fg
