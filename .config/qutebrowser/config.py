@@ -34,6 +34,12 @@ c.new_instance_open_target_window = 'first-opened'
 # disable scrolling through tabs via mouse wheel
 c.tabs.mousewheel_switching = False
 
+# prevent sites from triggering protocol handler prompts
+# eg. for mailto:// links
+c.content.register_protocol_handler = False
+
+# Note: to get the best ad blocking install python-adblock (Brave's adblocker),
+# then in qutebrowser run: :adblock-update
 # allow some hosts that prevent some sites from working properly
 allow = str(config.configdir / 'allowlist')
 if os.path.isfile(allow):
