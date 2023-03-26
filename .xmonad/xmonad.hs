@@ -113,7 +113,7 @@ noScratchPad ws = if ws == "NSP" then "" else ws
 main = do
   workspaceBar <- spawnPipe (
     "xmobar " ++
-      "-f 'xft:Terminus:pixelsize=11' " ++
+      "-f 'Terminus 9' " ++
       "-B '" ++ barBackground ++ "' " ++
       "-F '" ++ barForeground ++ "'")
   spawn "xset -b"
@@ -122,7 +122,7 @@ main = do
   spawn "hsetroot -solid '#333333'"
   spawn "xmodmap ~/.Xmodmap"
   spawn "xrdb -load ~/.Xresources"
-  spawn "synclient HorizTwoFingerScroll=1"
+  --spawn "synclient HorizTwoFingerScroll=1"
   spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 40 -wp 60 -h 14 -ta r &"
   spawn "pkill dunst ; dunst -config ~/.dunstrc &"
   spawn "pkill keynav ; keynav &"
@@ -182,8 +182,7 @@ main = do
       ("M-z",         spawn $ "alock -cursor theme:name=xtr -auth pam"),
       ("M-S-C-s",     spawn $ "~/bin/shutdown gui"),
       ("M-q",         spawn $ "xmonad --restart"),
-      ("M-S-m",       spawn $ "~/bin/monitor external toggle ; xmonad --restart"),
-      ("M-S-C-m",     spawn $ "~/bin/monitor refresh"),
+      --("M-S-m",       spawn $ "~/bin/laptop monitor toggle ; xmonad --restart"),
 
       -- adjust screen brightness
       ("M-b",         spawn $ "xbacklight -inc 10"),
