@@ -168,12 +168,4 @@ runtime macros/matchit.vim
   nnoremap <silent> <leader>t :call taglisttoo#taglist#Taglist({'pick': 1})<cr>
 " }}}
 
-" vimperator.vim {{{
-  augroup vimperator_editor
-    autocmd SwapExists vimperator*.tmp
-      \ :runtime plugin/vimperator.vim | call VimperatorEditorRecover(1)
-  augroup END
-
-" }}}
-
 " vim:ft=vim:fdm=marker
