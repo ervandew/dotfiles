@@ -292,10 +292,6 @@
     \ ':VirtualEditDisable<cr>' .
     \ (v:count ? v:count : '') . (v:register != '"' ? '"' . v:register : '') . 'p' .
     \ ':set ve=all<cr>'
-  xnoremap <expr> <silent> y
-    \ ':VirtualEditDisable<cr>' .
-    \ 'gv' . (v:register != '"' ? '"' . v:register : '') . 'y' .
-    \ ':set ve=all<cr>'
 
 " }}}
 
