@@ -32,7 +32,6 @@ fi
 _clone_or_update git@github.com:ervandew/snipmate.vim.git snipmate
 _clone_or_update git@github.com:ervandew/nerdcommenter.git
 _clone_or_update git@github.com:ervandew/python.vim--Vasiliev.git python_syntax
-_clone_or_update git@github.com:ervandew/Jinja.git jinja_syntax
 
 _clone_or_update git://github.com/tpope/vim-endwise.git
 _clone_or_update git://github.com/tpope/vim-repeat.git
