@@ -32,7 +32,7 @@ if [ "$USER" != "$WHO" -o "$USER" == "root" ] ; then
   export HISTFILE="$USERHOME/.bash_history.$SUDO_USER"
   export PS1="\e[1;31m\u@\h\e[0m \w\n# "
 else
-  export PS1="\e[0;31m\u@\h\e[0m \w\n\$ "
+  export PS1="\e[0;33m\u@\h\e[0m \w\n\$ "
 fi
 
 alias cp="cp -i"
@@ -42,70 +42,16 @@ alias mv="mv -i"
 alias vi="vim"
 export EDITOR=vim
 
-MULTIPLEXER=`which tmux 2> /dev/null`
-if [ -z "$MULTIPLEXER" ] ; then
-  MULTIPLEXER=`which screen 2> /dev/null`
-fi
+MULTIPLEXER=$(which tmux 2> /dev/null)
 if [ -n "$MULTIPLEXER" ] ; then
-  SCREEN=`echo "$TERM" | grep "^screen"`
+  SCREEN=$(echo "$TERM" | grep "^screen")
   if [ -n "$MULTIPLEXER" -a -z "$SUDO_USER" -a -n "$SSH_TTY" -a -z "$SCREEN" ] ; then
     # force a 256color term.
     if [ "$TERM" == rxvt ] ; then
       export TERM=rxvt-256color
+      #export TERM=xterm-256color
     fi
 
-    if [ $(basename $MULTIPLEXER) == "tmux" ] ; then
-      tmux attach || tmux
-    else
-      screen -R
-    fi
-  else
-    if [ -n "$SCREEN" ] ; then
-      # set window title to the short hostname
-      PROMPT_COMMAND='echo -ne "\033k`hostname -s`\033\\"'
-
-      # handle client term w/ no term info on the server (screen-256color)
-      L=`echo $TERM | sed 's/^\(\w\).*/\1/'`
-      if [ ! -f /usr/share/terminfo/$L/$TERM ] ; then
-        export TERM=screen
-      fi
-    fi
+    tmux attach || tmux
   fi
 fi
-
-.screenrc ------------------------
-startup_message off
-hardstatus string "%t (screen %n)"
-vbell on
-
-# restore contents after vim, etc exit.
-altscreen on
-
-# always show the caption (shows that screen is running)
-caption always '%{= Kk}%-w%{= Kw}%n %t%{-}%+w %-= @%H'
-
-# set big scrolling buffer
-defscrollback 5000
-
-#### Key bindings (Ctrl-A, then the binding shown below) ####
-# Terms:
-#   window : analogous to a 'tab' in vim
-#   region : analogous to a 'window' in vim
-bind ^j focus down    # down a region
-bind  j focus down
-bind ^k focus up      # up a region
-bind  k focus up
-bind ^h prev          # previous window
-bind  h prev
-bind ^l next          # next window
-bind  l next
-bind ^t focus top     # top most region
-bind  t focus top
-bind ^b focus bottom  # bottom most region
-bind  b focus bottom
-bind ^s copy          # enter scrollback / copy mode
-bind  s copy
-bind ^x remove
-bind  x remove
-bind ^= resize =
-bind  = resize =
