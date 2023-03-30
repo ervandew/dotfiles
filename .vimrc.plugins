@@ -168,4 +168,9 @@ runtime macros/matchit.vim
   nnoremap <silent> <leader>t :call taglisttoo#taglist#Taglist({'pick': 1})<cr>
 " }}}
 
+" vcs.vim {{{
+  nnoremap <silent> <leader>ga :VcsAnnotate<cr>
+  nnoremap <silent> <leader>gl :VcsLog<cr>
+" }}}
+
 " vim:ft=vim:fdm=marker
