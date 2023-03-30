@@ -1,3 +1,3 @@
-IFACE=$(ip link show | grep "LOWER_UP" | grep -v "^[0-9]\+: \(lo\|tun\|virbr\|vnet\)[0-9]*:" | head -1 | cut -d' ' -f2)
+IFACE=$(ip link show | grep "LOWER_UP" | grep -v "^[0-9]\+: \(lo\|tun\|virbr\|vnet\)[0-9]*:" | head -1 | sed 's|^[0-9]\+: \(\w\+\):.*|\1|')
 ICON=$(if [[ $IFACE =~ ^w ]] ; then echo "wifi" ; else echo "net"; fi)
 cat $HOME/.dzen/conkyrc.network | sed "s|IFACE|$IFACE|g" | sed "s|ICON|$ICON|"
