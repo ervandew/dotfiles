@@ -180,7 +180,6 @@ main = do
       ("M-S-p",       spawn $ "~/bin/keyring prompt --paste"),
       ("M-t",         spawn $ "pkill stalonetray || stalonetray -bg '#232323' -i 16"),
       ("M-z",         spawn $ "alock -cursor theme:name=xtr -auth pam"),
-      ("M-S-C-s",     spawn $ "~/bin/shutdown gui"),
       ("M-q",         spawn $ "xmonad --restart"),
       --("M-S-m",       spawn $ "~/bin/laptop monitor toggle ; xmonad --restart"),
 
