@@ -76,9 +76,10 @@
     syntax on
     if &term =~ '^rxvt-unicode\|256color'
       set t_Co=256
-      " rxvt-unicode supports changing the cursor color on the fly.
-      let &t_SI = "\<Esc>]12;#bebebe\x7" " gray
-      let &t_EI = "\<Esc>]12;#ac7d00\x7" " dark orange
+      " rxvt-unicode supports changing the cursor on the fly.
+      let &t_EI = "\e[2 q" " normal: block
+      let &t_SI = "\e[6 q" " insert: bar
+      let &t_SR = "\e[4 q" " replace: underscore
     endif
   endif
 

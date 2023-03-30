@@ -10,6 +10,11 @@ tab: complete
 set editing-mode vi
 
 $if mode=vi
+  # update the cursor based on vi mode
+  set show-mode-in-prompt on
+  set vi-cmd-mode-string "\1\e[2 q\2"
+  set vi-ins-mode-string "\1\e[6 q\2"
+
   # this block adds mappings for vi-command mode
   set keymap vi-command
 
