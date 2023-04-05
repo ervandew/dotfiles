@@ -11,6 +11,7 @@
   ignore="&:??:clear:exit:k"
   ignore="$ignore:shutdown*:reboot:*systemctl poweroff*:*systemctl reboot*"
   ignore="$ignore:git stash pop*:git stash drop*"
+  ignore="$ignore:reload_postgresql*"
   export HISTIGNORE=$ignore
   export HISTCONTROL=ignoreboth
   export HISTSIZE=1000
