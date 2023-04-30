@@ -29,6 +29,10 @@
   untrack = pick -t file --cached
   forget = pick -t file rm --cached
 
+  # add alias to open files in editor, w/ alias to do so using pick indexes
+  edit = "!f() { $EDITOR -o \"$@\"; }; f"
+  e = pick -t file edit
+
   ignore = pick -t file update-index --assume-unchanged
   unignore = pick -t file update-index --no-assume-unchanged
 
