@@ -1,1 +1,1 @@
-/ ${if_match ${fs_used_perc /} >= 70}^fg(\#cf6171)${fs_used_perc /}%^fg()${else}${fs_used_perc /}%${endif} (${diskio /dev/sda})^pa(380)
+/ ${if_match ${fs_used_perc /} >= 70}^fg(\#cf6171)${fs_used_perc /}%^fg()${else}${fs_used_perc /}%${endif} (${diskio /dev/mapper/lvm-system})^pa(380)
