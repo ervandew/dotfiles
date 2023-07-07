@@ -15,7 +15,7 @@
   # git aliases using my git-pick script to support numbered index args
 
   # generate list indexes
-  st = !git -c color.ui=always status -sb | git pick -t file '^\\s*[AMDR?]+\\s*(?:.* -> )?(.*)'
+  st = !git -c color.ui=always status -sb | git pick -t file '^\\s*[AMDRU?]+\\s*(?:.* -> )?(.*)'
   br = !git -c color.ui=always branch "$@" | git pick -t rev '^\\s+(\\S*).*'
   slog = !git -c color.ui=always log --pretty=simple "$@" | git pick -t rev '^(\\w+) .*'
 
