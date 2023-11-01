@@ -59,14 +59,26 @@
   set wildmode=longest:full,full
   set wrap             " wrap text
 
-  set statusline=%<%f%{FF()}\ %M\ %h%r%=%-10.(%l,%c%V\ b=%n,w=%{winnr()}%)\ %P
-  " show in the status line if the file is in dos format (handle quickfix title
-  " here as well).
+  set statusline=%<%f%{%FF()%}\ %M\ %h%r%=%-10.(%l,%c%V\ b=%n,w=%{winnr()}%)\ %P
   function! FF()
+    let stl = ''
+    " show the quickfix title
     if &ft == 'qf'
-      return exists('w:quickfix_title') ? ' ' . w:quickfix_title : ''
+      let stl = exists('w:quickfix_title') ? ' ' . w:quickfix_title : ''
+    " for csv files, display which column the cursor is in
+    elseif &ft == 'csv'
+      let stl = ' [col: ' . CSV_WCol('Name') . ' (' . CSV_WCol() . ')]'
     endif
-    return &ff == 'unix'  ?  ''  :  ' [' . &ff . ']'
+
+    " show in the status line if the file is in dos format
+    if &ff != 'unix'
+      let stl = ' [' . &ff . ']' . stl
+    endif
+
+    if str2nr(g:actual_curwin) == win_getid()
+      return '%#StatusLineFF#' . stl . '%*'
+    endif
+    return stl
   endfunction
 
   filetype plugin indent on

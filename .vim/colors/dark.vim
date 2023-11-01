@@ -45,6 +45,7 @@ hi SpecialKey   ctermfg=233      ctermbg=236    cterm=NONE    guifg=#222222 guib
 hi Statement    ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#6699CC guibg=NONE    gui=NONE
 hi StatusLine   ctermfg=white    ctermbg=236    cterm=NONE    guifg=#CCCCCC guibg=#303030 gui=NONE
 hi StatusLineNC ctermfg=241      ctermbg=236    cterm=NONE    guifg=#626262 guibg=#303030 gui=NONE
+hi StatusLineFF ctermfg=yellow   ctermbg=236    cterm=NONE    guifg=#c4c466 guibg=#303030 gui=NONE
 hi String       ctermfg=green    ctermbg=NONE   cterm=NONE    guifg=#AECE91 guibg=NONE    gui=NONE
 
 hi Title        ctermfg=NONE     ctermbg=NONE   cterm=NONE    guifg=#f6f3e8 guibg=NONE    gui=bold

@@ -6,6 +6,16 @@ call pathogen#helptags()
 
 runtime macros/matchit.vim
 
+" csv.vim {{{
+  hi CSVColumnHighlight ctermfg=white
+  hi CSVDelimiter  ctermfg=239
+  hi CSVColumnEven ctermfg=243
+  hi CSVColumnOdd  ctermfg=245
+  let g:csv_highlight_column = 'y'
+  let g:csv_no_conceal = 1
+  let g:csv_hiGroup = 'CSVColumnHighlight'
+" }}}
+
 " dailylog.vim {{{
   nmap <silent> <leader>lo :DailyLogOpen<cr>
   nmap <silent> <leader>ls :DailyLogStart<cr>
