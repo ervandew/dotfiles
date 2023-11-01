@@ -28,7 +28,10 @@ URxvt*urgentOnBell: true
 URxvt*visualBell: false
 
 ! (package: ttf-dejavu)
-URxvt*font: xft:DejaVu Sans Mono:pixelsize=12
+! (package: adobe-source-han-sans-otc-fonts for various foreign langs w/ symbols)
+URxvt*font: xft:DejaVu Sans Mono:pixelsize=12,\
+            xft:Kochi Gothic:antialias=false,\
+            xft:Baekmuk Gulim
 
 xmessage*minHeight: 200
 xmessage*minWidth: 500
