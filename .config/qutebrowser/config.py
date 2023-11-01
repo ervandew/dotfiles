@@ -118,11 +118,11 @@ config.unbind('wb', mode='normal')
 config.bind('<tab>', ':nop')
 
 # open
-config.bind('O', 'set-cmd-text :open {url:pretty}')
+config.bind('O', 'cmd-set-text :open {url:pretty}')
 
 # tabs
-config.bind('t', 'set-cmd-text -s :open -t')
-config.bind('T', 'set-cmd-text :open -t {url:pretty}')
+config.bind('t', 'cmd-set-text -s :open -t')
+config.bind('T', 'cmd-set-text :open -t {url:pretty}')
 config.bind('D', 'tab-close')
 config.bind('gh', 'tab-prev')
 config.bind('gl', 'tab-next')
@@ -137,11 +137,11 @@ for i in range(10):
 # :scroll instead.
 config.bind('gg', 'scroll top')
 config.bind('G', 'scroll bottom')
-config.bind('<ctrl-u>', 'run-with-count 15 scroll up')
-config.bind('<ctrl-d>', 'run-with-count 15 scroll down')
+config.bind('<ctrl-u>', 'cmd-run-with-count 15 scroll up')
+config.bind('<ctrl-d>', 'cmd-run-with-count 15 scroll down')
 # no default 0/$ scrolling (no begin/end, so use a count of 100)
-config.bind('0', 'run-with-count 100 scroll left')
-config.bind('$', 'run-with-count 100 scroll right')
+config.bind('0', 'cmd-run-with-count 100 scroll left')
+config.bind('$', 'cmd-run-with-count 100 scroll right')
 
 # hints
 config.bind(';t', 'hint links tab-fg')
@@ -160,9 +160,9 @@ config.bind('yy', 'yank --sel')
 config.bind('<alt-r>*', 'insert-text {primary}', mode='insert')
 # best available command for custom binding to paste text into the command
 # line, but unfortunately always appends (fine most of the time)
-config.bind('<alt-r>*', 'set-cmd-text --append {primary}', mode='command')
+config.bind('<alt-r>*', 'cmd-set-text --append {primary}', mode='command')
+config.bind('<ctrl-i>', 'cmd-edit', mode='command')
 config.bind('<ctrl-i>', 'edit-text', mode='insert')
-config.bind('<ctrl-i>', 'edit-command', mode='command')
 
 # command history nav
 config.bind('<up>', 'command-history-prev', mode='command')
