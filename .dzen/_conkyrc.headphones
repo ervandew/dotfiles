@@ -1,0 +1,12 @@
+#!/bin/bash
+
+percent=$(pacmd list-cards | grep bluetooth.battery | sed 's|.*"\(.*\)%"|\1|')
+if [ -n "$percent" ]; then
+  if [ $percent -le 50 ] ; then
+    percent="^fg(\#cf6171)$percent%^fg()"
+  else
+    percent="$percent%"
+  fi
+
+  echo " | ^i($HOME/.dzen/icons/headphones.xbm) $percent"
+fi
