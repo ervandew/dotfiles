@@ -72,8 +72,11 @@ function usage() {
   echo "Usage: sql [args]"
   echo "   Start a sql console:"
   echo "     sql"
-  echo "   Run a single query in mysql:"
-  echo "     sql -e \"select 1\""
+  echo "   Run a single query:"
+  echo "     - mysql:"
+  echo "       sql -e \"select 1\""
+  echo "     - postgresql:"
+  echo "       sql -c \"select 1\""
   echo "   Execute a sql script:"
   echo "     sql somescript.sql"
 }
