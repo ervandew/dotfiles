@@ -14,7 +14,7 @@ import XMonad.Layout.Accordion
 import XMonad.Layout.Combo
 import XMonad.Layout.ComboP
 import XMonad.Layout.LayoutCombinators
-import XMonad.Layout.Named
+import XMonad.Layout.Renamed
 import XMonad.Layout.PerWorkspace
 import XMonad.Layout.Reflect
 import XMonad.Layout.StackTile
@@ -38,13 +38,13 @@ myLayout = desktopLayoutModifiers $
     onWorkspace "4:vm" Full $
     accordionTwoPane ||| tiled ||| stackTwo ||| tabs
   where
-    accordionTwoPane = named "Accordion/TwoPane" (
+    accordionTwoPane = renamed [PrependWords "Accordion/TwoPane"] (
         combineTwo (TwoPane (3/100) (1/2)) (Accordion) (Full))
     -- reflectVert so new windows open at the bottom
-    accordion = named "Accordion" (reflectVert $ Accordion)
-    stackTwo = named "StackTwo" (
+    accordion = renamed [PrependWords "Accordion"] (reflectVert $ Accordion)
+    stackTwo = renamed [PrependWords "StackTwo"] (
         combineTwo (StackTile 1 (3/100) (1/2)) (Full) (Full))
-    -- stackTwoByOne = named "Communication" (
+    -- stackTwoByOne = renamed [PrependWords "Communication" (
     --     combineTwoP
     --         (StackTile 1 (3/100) (15/24))
     --         (tabs) -- top
@@ -53,9 +53,9 @@ myLayout = desktopLayoutModifiers $
     -- seems to be a bug with tabbed that causes it to always use the full
     -- screen, including over the status bar, even when used with combineTwo
     -- using Full for now so i can work.
-    -- tabs = named "Tabbed" (reflectHoriz $ tabbed shrinkText myTabConfig)
-    tabs = named "Tabbed" (Full)
-    tiled = named "Tiled" (reflectHoriz $ Tall 1 (3/100) (1/2))
+    -- tabs = renamed [PrependWords "Tabbed" (reflectHoriz $ tabbed shrinkText myTabConfig)
+    tabs = renamed [PrependWords "Tabbed"] (Full)
+    tiled = renamed [PrependWords "Tiled"] (reflectHoriz $ Tall 1 (3/100) (1/2))
     myTabConfig = def {
       activeColor = "#222222",
       activeTextColor = "#aaaaaa",
