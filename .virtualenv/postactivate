@@ -7,7 +7,7 @@
 # handles fixing the path based on VIRTUAL_PATH set here.
 ##
 
-SCREEN=`echo "$TERM" | grep "^screen"`
+SCREEN=$(echo "$TERM" | grep "^screen")
 if [ -z "$SCREEN" -a -z "$VIRTUAL_ENV_SCREEN" ] ; then
   export VIRTUAL_PATH=$PATH
   export VIRTUAL_ENV_SCREEN=1
