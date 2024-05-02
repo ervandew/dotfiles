@@ -1,1 +1,1 @@
-Backup: ${execp $HOME/.dzen/_conkyrc.backup}
+^i($HOME/.dzen/icons/backup.xbm) ${execp $HOME/.dzen/_conkyrc.backup}
