@@ -89,9 +89,7 @@ if os.path.exists(styles):
 ### M$ Teams BS
 # hint that will work for switching between chats
 # (team channels already work by default)
-c.hints.selectors['all'].append('.cle-title')
-# hint to focus chat message input
-c.hints.selectors['inputs'].append('.cke_wysiwyg_div')
+c.hints.selectors['all'].append('.chatListItem_mainMedia')
 ###
 
 ### Example setting user agent when needed (spoofing osx here)
