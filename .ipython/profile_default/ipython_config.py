@@ -297,6 +297,9 @@ c.TerminalInteractiveShell.confirm_exit = False
 
 ## Shortcut style to use at the prompt. 'vi' or 'emacs'.
 c.TerminalInteractiveShell.editing_mode = 'vi'
+# disable any emacs bindings, which will help speed up exiting normal mode
+# (<esc>) and maybe other stuff
+c.TerminalInteractiveShell.emacs_bindings_in_vi_insert_mode = False
 
 ## Set the editor used by IPython (default to $EDITOR/vi/notepad).
 #c.TerminalInteractiveShell.editor = u'vim'
