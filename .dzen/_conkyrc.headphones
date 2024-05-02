@@ -8,5 +8,5 @@ if [ -n "$percent" ]; then
     percent="$percent%"
   fi
 
-  echo " | ^i($HOME/.dzen/icons/headphones.xbm) $percent"
+  echo " ^i($HOME/.dzen/icons/headphones.xbm) $percent"
 fi
