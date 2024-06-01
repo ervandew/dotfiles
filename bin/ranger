@@ -1,0 +1,4 @@
+#!/bin/bash
+
+PYGMENTIZE_STYLE=solarized-dark \
+/usr/bin/ranger "$@"
