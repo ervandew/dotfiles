@@ -2,6 +2,10 @@
 
 setlocal omnifunc=pythoncomplete#Complete
 
+" Note: both __pycache__ patterns are required for vim command and *Relative
+" completion, and the order of these patterns seems to matter
+set wildignore+=*.pyc,*.pyo,*/__pycache__,*/__pycache__/*
+
 let python_highlight_all = 1
 
 " python_match.vim
