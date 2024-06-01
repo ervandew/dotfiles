@@ -143,6 +143,7 @@
   prune = true
 
 [init]
+  defaultBranch = main
   templatedir = ~/.git-template
 
 [merge]
