@@ -20,6 +20,8 @@ hi Conditional  ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#6699CC guib
 hi Delimiter    ctermfg=green    ctermbg=NONE   cterm=NONE    guifg=#99CC99 guibg=NONE    gui=NONE
 hi Directory    ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#96CBFE guibg=NONE    gui=NONE
 
+hi EndOfBuffer  ctermfg=darkgray ctermbg=NONE   cterm=NONE    guifg=#070707 guibg=#222222 gui=NONE
+
 hi Error        ctermfg=red      ctermbg=NONE   cterm=NONE    guifg=#FF6C60 guibg=NONE    gui=BOLD
 hi ErrorMsg     ctermfg=white    ctermbg=red    cterm=NONE    guifg=white   guibg=#FF6C60 gui=NONE
 
@@ -33,7 +35,7 @@ hi Ignore       ctermfg=darkgray ctermbg=NONE   cterm=NONE    guifg=#7c7c7c guib
 hi Keyword      ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#96CBFE guibg=NONE    gui=NONE
 hi LineNr       ctermfg=238      ctermbg=NONE   cterm=NONE    guifg=#3D3D3D guibg=#222222 gui=NONE
 hi ModeMsg      ctermfg=white    ctermbg=NONE   cterm=NONE    guifg=#CCCCCC guibg=NONE    gui=NONE
-hi NonText      ctermfg=black    ctermbg=NONE   cterm=NONE    guifg=#070707 guibg=#222222 gui=NONE
+hi NonText      ctermfg=gray     ctermbg=NONE   cterm=NONE    guifg=#070707 guibg=#222222 gui=NONE
 hi Number       ctermfg=magenta  ctermbg=NONE   cterm=NONE    guifg=#cf9ebe guibg=NONE    gui=NONE
 hi Operator     ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#6699CC guibg=NONE    gui=NONE
 hi PreProc      ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#96CBFE guibg=NONE    gui=NONE
