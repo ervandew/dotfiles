@@ -408,4 +408,7 @@ if filereadable(expand('~/.vimrc.plugins')) | source ~/.vimrc.plugins | endif
 " settings specific to my day job
 if filereadable(expand('~/.vimrc.work')) | source ~/.vimrc.work | endif
 
+" prevent ctrl-s from suspending terminal updates when vim is running
+silent !stty -ixon
+
 " vim:ft=vim:fdm=marker
