@@ -1,13 +1,16 @@
 " Author: Eric Van Dewoestine
 "
-" Description:
-"   Plugin to provide commands for navigating changes when using vim's diff
-"   mode.  Differs from vim's default [c and ]c bindings in that these
-"   commands jump to every change instead of skipping blocks of lines, and
-"   also jumps to the changed text column instead of just the line.
+" Description: {{{
+"   Plugin that provide commands for:
+"   - diffing a modified file against the last saved version
+"   - navigating changes when using vim's diff mode.
+"     - Differs from vim's default [c and ]c bindings in that these commands
+"       jump to every change instead of skipping blocks of lines, and also
+"       jumps to the changed text column instead of just the line.
+" }}}
 "
 " License: {{{
-"   Copyright (c) 2009 - 2012, Eric Van Dewoestine
+"   Copyright (c) 2009 - 2024, Eric Van Dewoestine
 "   All rights reserved.
 "
 "   Redistribution and use of this software in source and binary forms, with
@@ -42,11 +45,46 @@
 " }}}
 
 " Command Declarations {{{
-if !exists(":DiffNextChange")
+if exists(":DiffLastSaved") != 2
+  command DiffLastSaved :call <SID>DiffLastSaved()
+endif
+
+if exists(":DiffNextChange") != 2
   command -count=1 DiffNextChange :call <SID>NextPrev(1, <count>)
   command -count=1 DiffPrevChange :call <SID>NextPrev(-1, <count>)
 endif
 " }}}
+
+function! s:DiffLastSaved() " {{{
+  " Diff a modified file with the last saved version.
+  if &modified
+    let winnum = winnr()
+    let filetype=&ft
+    vertical belowright new | r #
+    1,1delete _
+
+    diffthis
+    setlocal buftype=nofile bufhidden=wipe
+    setlocal nobuflisted noswapfile
+    setlocal readonly
+    exec "setlocal ft=" . filetype
+    let diffnum = winnr()
+
+    augroup diff_saved
+      autocmd! BufUnload <buffer>
+      autocmd BufUnload <buffer> :diffoff!
+    augroup END
+
+    exec winnum . "winc w"
+    diffthis
+
+    " for some reason, these settings only take hold if set here.
+    call setwinvar(diffnum, "&foldmethod", "diff")
+    call setwinvar(diffnum, "&foldlevel", "0")
+  else
+    echo "No changes"
+  endif
+endfunction " }}}
 
 function! s:NextPrev(dir, count) " {{{
   if !&diff
