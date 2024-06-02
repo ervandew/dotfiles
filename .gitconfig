@@ -135,6 +135,7 @@
   editor = vim
   excludesfile = ~/.gitignore
   pager = /usr/bin/less -+$LESS -FRX
+  hookspath = ~/.git-hooks
 
 [diff]
   renames = true
@@ -144,7 +145,6 @@
 
 [init]
   defaultBranch = main
-  templatedir = ~/.git-template
 
 [merge]
   tool = vimdiff
