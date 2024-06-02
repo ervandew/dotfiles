@@ -30,8 +30,10 @@
   set nobackup         " do not keep a backup file
   set number           " show line numbers
   " set the printer name to use (see 'Queue Name' at http://localhost:631/printers/)
-  set printdevice=Home
-  set printoptions=paper:letter,header:0,number:n
+  if !has('nvim')
+    set printdevice=Home
+    set printoptions=paper:letter,header:0,number:n
+  endif
   set ruler            " show the cursor position all the time
   set scrolloff=5      " always keep 5 lines of context around the cursor
   set shiftwidth=2     " number of spaces used by indenting
