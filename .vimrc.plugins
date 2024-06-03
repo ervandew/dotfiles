@@ -63,27 +63,6 @@ runtime macros/matchit.vim
 
   nnoremap <silent> <leader>> :LocateFile<cr>
   nnoremap <silent> <leader>b :BuffersToggle<cr>
-
-  nnoremap <silent> <leader>/ :ProjectTreeToggle<cr>
-
-  let g:EclimProjectTabTreeAutoOpen = 0
-
-  let g:TreeSettingsFunction = "TreeSettings"
-  let g:TreeExpandSingleDirs = 1
-  let g:TreeIndent = 2
-
-  function! TreeSettings()
-    call eclim#tree#RegisterFileAction(
-      \ '.*\.\(bmp\|gif\|ico\|jpeg\|jpg\|png\|tif\)$',
-      \ 'Feh', '!feh <file> &> /dev/null &')
-    call eclim#tree#RegisterFileAction(
-      \ '.*\.\(bmp\|gif\|ico\|jpeg\|jpg\|png\|psd\|svg\|tif\|xbm\|xpm\)$',
-      \ 'Gimp', '!gimp <file> &> /dev/null &')
-    call eclim#tree#RegisterFileAction('.*\.psd$',
-      \ 'psdview', '!psdview <file> &> /dev/null &')
-    call eclim#tree#RegisterFileAction(
-      \ '.*\.pdf$', 'zathura', '!zathura <file> &> /dev/null &')
-  endfunction
 " }}}
 
 " indentdetect.vim {{{
@@ -142,6 +121,10 @@ runtime macros/matchit.vim
 
 " notebook.vim {{{
   let g:NotebookDir = '~/notebook/'
+" }}}
+
+" ranger.vim {{{
+nnoremap <silent> <leader>/ :Ranger<cr>
 " }}}
 
 " screen.vim {{{
