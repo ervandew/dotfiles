@@ -1,25 +1,38 @@
 export PYTHONSTARTUP="$HOME/.pystartup"
 
-# for virtualenv wrapper (only source if we aren't in a virtualenv)
-if [ "$USER" != "root" -a -f "/usr/bin/virtualenvwrapper.sh" -a -z "$VIRTUAL_ENV" ] ; then
-  export WORKON_HOME=$HOME/.virtualenv
-  source /usr/bin/virtualenvwrapper.sh
-fi
+if [[ -z "$VIRTUAL_ENV" ]] ; then
+  function python-venv {
+    if [ $# != 1 ] ; then
+      echo "Please supply a venv name."
+      exit 1
+    fi
 
-SCREEN=$(echo "$TERM" | grep "^screen")
-if [ -n "$SCREEN" ] ; then
-  # hack to support starting screen from virtualenv wrapper's postactivate
-  # script, restoring the virtual path which is lost when starting screen.
-  #
-  # Note: VIRTUAL_PATH and VIRTUAL_ENV_SCREEN are set by:
-  #   ~/.virtualenv/postactivate
-  if [ -n "$VIRTUAL_PATH" -a "$VIRTUAL_PATH" != "$PATH" ] ; then
-    export PATH=$VIRTUAL_PATH
-  fi
+    venv="$HOME/.python-venv/$1"
 
-  # support re-calling postactivate to ensure any additional setup isn't lost
-  # when starting screen from postactivate
-  if [ -n "$VIRTUAL_ENV_SCREEN" -a -f "$VIRTUAL_ENV/bin/postactivate" ] ; then
-    source $VIRTUAL_ENV/bin/postactivate
-  fi
+    if [ ! -d "$venv" ] ; then
+      read -p "venv '$1' does not exist, create it? (y/n)? "
+      if [ "$REPLY" == "y" ] ; then
+        versions=$(apropos python | sort | grep "^python[0-9.]* " | cut -d ' ' -f 1)
+        readarray -t versions <<< "$versions"
+        for index in "${!versions[@]}" ; do
+          echo "$index) ${versions[index]}"
+        done
+        read -p "Please choose a python version: "
+        [[ ! "$REPLY" =~ ^[0-9]+$ ]] && echo 'not a number' && exit 1
+        [[ $REPLY -gt $index ]] && echo 'invalid index' && exit 1
+        python="${versions[REPLY]}"
+        $python -m venv "$venv"
+      fi
+    fi
+
+    if [ -d "$venv" ] ; then
+      source "$venv/bin/activate"
+
+      if [[ ! "$TERM" =~ ^screen ]] ; then
+        name=$(basename $VIRTUAL_ENV)
+        tmux -L "$name" new-session -s "$name" -A
+        deactivate
+      fi
+    fi
+  }
 fi
