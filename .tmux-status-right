@@ -8,7 +8,7 @@
 #
 # Requires some bash prompt manipulation as well:
 #
-#  function set_tmux_path() {
+#  function tmux_path() {
 #    if [ -n "$TMUX" ] ; then
 #      tmux setenv TMUXPWD_$(tmux display -p "#I_#P") "$PWD"
 #      # force an immediate refresh

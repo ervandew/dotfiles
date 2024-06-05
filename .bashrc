@@ -7,6 +7,8 @@
 [[ -f /etc/profile.d/bash-completion.sh ]] && . /etc/profile.d/bash-completion.sh
 
 ## Bash settings. {{{
+  PROMPT_COMMAND="echo -ne \"\033]0;\${USER}@\${HOSTNAME%%.*}\${showchroot}: \${PWD/\$HOME/~}\007\""
+
   # bash history settings
   ignore="&:??:clear:exit:k"
   ignore="$ignore:shutdown*:reboot:*systemctl poweroff*:*systemctl reboot*"
@@ -48,9 +50,6 @@
       fi
     }
 
-    # screen required content to auto set the shell title base on last command typed
-    export SCREEN_PS1='\[\033k\033\\\]'
-
     PS1_COLOR=${blue}
     if [ "$TERM" == "linux" ] ; then
       PS1_COLOR=${white}
@@ -58,31 +57,6 @@
     export BASH_PS1="$PS1_COLOR\u@\h${NONE} \w\$(_virtualenv_name)\n"$SCREEN_PS1'\$ '
   fi
   export PS1=$BASH_PS1
-
-  function set_multiplexer_path() {
-    if [ "$USER" == "root" ] ; then
-      return
-    fi
-
-    # force screen cwd to follow shell cwd
-    if [ -z "$TMUX" ] ; then
-      screen -X chdir "`pwd`" 2> /dev/null
-    else
-      tmux setenv TMUXPWD_$(tmux display -p "#I_#P") "$PWD"
-      tmux setenv TMUXPATH_$(tmux display -p "#I_#P") "$PATH"
-      tmux refresh-client -S
-    fi
-  }
-
-  # set terminal title
-  case $TERM in
-    *xterm|rxvt*)
-      PROMPT_COMMAND="echo -ne \"\033]0;\${USER}@\${HOSTNAME%%.*}\${showchroot}: \${PWD/\$HOME/~}\007\""
-      ;;
-    screen*)
-      PROMPT_COMMAND="set_multiplexer_path"
-      ;;
-  esac
 
   # prevent redirect (>) from clobbering an existing file (override with >|)
   # echo "foo" >| file
@@ -96,9 +70,6 @@
   shopt -s checkwinsize
   # append to history on close, don't clobber.
   shopt -s histappend
-
-  # set backspace to erase
-  #stty erase ^?
 
   # complete directories only for the supplied commands.
   # redundent if bash-completion is enabled.
@@ -122,7 +93,6 @@
 
   # make dirs, then cd into it.
   function mcd() {
-    # run in a subshell to prevent preexec from polluting $_
     args=$(printf " %q" "$@")
     dir=$(bash -c "mkdir $args && echo \$_")
     if [ -n "$dir" ] ; then
@@ -132,22 +102,14 @@
 
   # system aliases
   alias cp="cp -i"
-  alias ls="ls --color"
+  alias ls="ls --color=auto"
   alias mv="mv -i"
-  alias grep="grep --colour=auto"
+  alias grep="grep --color=auto"
 
   # prevent errors when remote shells don't understand my current term.
   alias ssh="TERM='rxvt' ssh"
 
-  # coerce screen to redraw on exit
-  if [ $TERM != "xterm" -a $TERM != "rxvt" ] ; then
-    alias screen="TERM='rxvt' screen"
-  fi
-
   # aliases for vim
-  alias vi="vim"
-  alias :e="vim"
-  alias :q="exit"
   alias less="vimpager"
   alias vimdiff="vim -d"
   alias vimmin="vim -u NONE --cmd 'set nocp | sy on | filetype plugin indent on'"
@@ -161,13 +123,10 @@
   # always use passive mode
   alias ftp="ftp -p"
 
-  alias reboot="~/bin/shutdown -r"
-  alias suspend="~/bin/shutdown -s"
   alias sudosu="sudo -E su -p"
 
   alias envmin="~/bin/envmin ~/.envmin/envmin.txt"
 
-  #alias whatismyip="wget -qnv -O - http://checkip.dyndns.org/ | grep -oP '\d+\.\d+\.\d+\.\d+'"
   alias whatismyip="dig TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed 's|\"||g'"
 
   alias irssi="urxvt -name irssi -title irssi -e irssi &"
@@ -197,17 +156,9 @@
   # set vim as the man pager
   export MANPAGER=$PAGER
 
-  # set location of cvs password file
-  export CVS_PASSFILE=~/.cvspass
-  # set edititor to use for commit comments
-  export CVSEDITOR=vim
-
   # get transparency to work with some terminal apps (mutt)
   export COLORFGBG="default;default"
   export NCURSES_ASSUMED_COLORS="-1;-1"
-
-  # disable virtualenv prompt
-  export VIRTUAL_ENV_DISABLE_PROMPT=1
 # }}}
 
 # load user bash scripts
@@ -217,8 +168,7 @@ if [ -d ~/.bashrc.d ] ; then
   done
 fi
 
-if type preexec_install &> /dev/null ; then
-  preexec_install
-fi
+# load aliases cache after we've applied all rc files
+tmux_window_title_aliases
 
 # vim:fdm=marker:nowrap

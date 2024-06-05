@@ -41,3 +41,5 @@ if $(PATH=$PATH which java > /dev/null 2>&1); then
 fi
 
 echo $repo
+
+# vim:ft=bash

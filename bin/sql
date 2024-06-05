@@ -125,26 +125,17 @@ function runpsql() {
 
 function runclient() {
   while [ 1 -eq 1 ] ; do
-    # for screen/tmux title
-    SCREEN=$(echo $TERM | grep "screen")
-    if [ -n "$SCREEN" ] ; then
-      if [ -n "$TMUX" ] ; then
-        tmux rename-window -t$TMUX_PANE "$INSTANCE"
-      else
-        echo -ne "\\ek$INSTANCE\\e\\\\"
-      fi
+    # set tmux title
+    if [ -n "$TMUX" ] ; then
+      tmux rename-window -t$TMUX_PANE "$INSTANCE"
     fi
 
     "$@"
 
-    # reset screen title
-    if [ -n "$SCREEN" ] ; then
+    # reset tmux title
+    if [ -n "$TMUX" ] ; then
       name=$(basename $SHELL 2> /dev/null)
-      if [ -n "$TMUX" ] ; then
-        tmux rename-window -t$TMUX_PANE "$name"
-      else
-        echo -ne "\\ek$name\\e\\\\"
-      fi
+      tmux rename-window -t$TMUX_PANE "$name"
     fi
 
     if [ $? -eq 0 ] ; then
