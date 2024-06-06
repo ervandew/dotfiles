@@ -26,7 +26,7 @@ function tmux_window_title() {
     # - cases where the type isn't found (setting env variables, etc)
     # - tmux commands, including our functions
     cmd=$(echo $title | perl -pe 's|(.*?)\s.*|\1|')
-    cmd_type=$(type $cmd 2> /dev/null)
+    cmd_type=$(type $cmd 2> /dev/null | head -1)
     if [[ "$cmd_type" =~ $ignore ]] ; then
       return
     fi
