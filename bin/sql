@@ -233,10 +233,10 @@ function _keyring() {
   key=$1
   pass=$(keyring get $key 2> /dev/null)
 
-  # try again, ignoring virtualenv path
+  # try again, ignoring venv path
   if [ -n "$VIRTUAL_ENV" -a -z "$path" ] ; then
     pass=$(
-      PATH=$(echo $VIRTUAL_PATH | perl -pe "s|$VIRTUAL_ENV/bin:||")
+      PATH=$(echo $PATH | perl -pe "s|$VIRTUAL_ENV/bin:||")
       keyring get $key 2> /dev/null
     )
   fi
