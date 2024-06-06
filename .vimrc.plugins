@@ -1,8 +1,11 @@
 " Author: Eric Van Dewoestine
 
-call pathogen#infect()
-call pathogen#infect('~/projects/vim/{}')
-call pathogen#helptags()
+" pathogen (plugin loading in vim) {{{
+if !has('nvim') " lazy.nvim will handle these, so don't load twice
+  call pathogen#infect()
+  call pathogen#infect('~/projects/vim/{}')
+  call pathogen#helptags()
+endif " }}}
 
 runtime macros/matchit.vim
 
@@ -68,7 +71,9 @@ runtime macros/matchit.vim
 " indentdetect.vim {{{
   " Perform after the filetype has been set since indent detection relies on
   " the file's syntax to skip comments and strings.
-  autocmd FileType * IndentDetect
+  " Note: wrapped in exists(...) call to avoid error when lazy.nvim runs at
+  " startup
+  autocmd FileType * if exists(':IndentDetect') | IndentDetect | endif
 " }}}
 
 " lookup.vim {{{
@@ -81,42 +86,43 @@ runtime macros/matchit.vim
 
 " maximize.vim {{{
   " mapping to maximize window
-  if &rtp =~ '\<maximize\>'
-    map <silent> <space><space> :MaximizeWindow<cr>
+  map <silent> <space><space> :MaximizeWindow<cr>
 
-    " use tab to simplify window switching
-    nnoremap <silent> <tab><tab> :call maximize#NavigateWindows('winc p')<cr>
-    nnoremap <silent> <tab>k :call maximize#NavigateWindows('winc k')<cr>
-    nnoremap <silent> <tab>l :call maximize#NavigateWindows('winc l')<cr>
-    nnoremap <silent> <tab>h :call maximize#NavigateWindows('winc h')<cr>
-    nnoremap <silent> <tab>j :call <SID>NavigateDownWindow()<cr>
-    function! s:NavigateDownWindow()
-      let winnr = winnr()
-      call maximize#NavigateWindows('winc j')
-      if exists('g:ScreenShellFocus') && winnr() == winnr
-        call g:ScreenShellFocus()
-      endif
-    endfunction
+  " use tab to simplify window switching
+  nnoremap <silent> <tab><tab> :call maximize#NavigateWindows('winc p')<cr>
+  nnoremap <silent> <tab>k :call maximize#NavigateWindows('winc k')<cr>
+  nnoremap <silent> <tab>l :call maximize#NavigateWindows('winc l')<cr>
+  nnoremap <silent> <tab>h :call maximize#NavigateWindows('winc h')<cr>
+  nnoremap <silent> <tab>j :call <SID>NavigateDownWindow()<cr>
+  function! s:NavigateDownWindow()
+    let winnr = winnr()
+    call maximize#NavigateWindows('winc j')
+    if exists('g:ScreenShellFocus') && winnr() == winnr
+      call g:ScreenShellFocus()
+    endif
+  endfunction
 
-    " minimize a window
-    nnoremap <silent> <leader>m
-      \ :let w = winnr()<cr>
-      \ :call maximize#NavigateWindows('winc p')<cr>
-      \ :exec 'MinimizeWindow ' . w<cr>
-      \ :unlet w<cr>
-    nnoremap <silent> <leader>M :MinimizeRestore<cr>
-  endif
+  " minimize a window
+  nnoremap <silent> <leader>m
+    \ :let w = winnr()<cr>
+    \ :call maximize#NavigateWindows('winc p')<cr>
+    \ :exec 'MinimizeWindow ' . w<cr>
+    \ :unlet w<cr>
+  nnoremap <silent> <leader>M :MinimizeRestore<cr>
 " }}}
 
 " nerdcommenter.vim {{{
+if !has('nvim') " neovim has built in support
   let g:NERDCreateDefaultMappings = 0
+  let g:NERDSpaceDelims = 0
   let g:NERDRemoveExtraSpaces = 0
   let g:NERDDefaultAlign = 'start'
-  let g:NERDDefaultDelims = {'left': '#'}
+  let g:NERDToggleCheckAllLines = 1
   vmap gc <Plug>NERDCommenterToggle
   nmap gc <Plug>NERDCommenterToggle
   vmap gC <Plug>NERDCommenterAlignLeft
   nmap gC <Plug>NERDCommenterAlignLeft
+endif
 " }}}
 
 " notebook.vim {{{
@@ -136,25 +142,23 @@ nnoremap <silent> <leader>/ :Ranger<cr>
 " }}}
 
 " supertab.vim {{{
-  if &rtp =~ '\<supertab\>'
-    let g:SuperTabDefaultCompletionType = 'context'
-    let g:SuperTabContextTextFileTypeExclusions = ['javascript', 'sql']
+  let g:SuperTabDefaultCompletionType = 'context'
+  let g:SuperTabContextTextFileTypeExclusions = ['javascript', 'sql']
 
-    " auto select the first result when using 'longest'
-    "let g:SuperTabLongestHighlight = 1
+  " auto select the first result when using 'longest'
+  "let g:SuperTabLongestHighlight = 1
 
-    let g:SuperTabLongestEnhanced = 1
-    let g:SuperTabClosePreviewOnPopupClose = 1
+  let g:SuperTabLongestEnhanced = 1
+  let g:SuperTabClosePreviewOnPopupClose = 1
 
-    " map <c-space> to <c-p> completion (useful when supertab 'context'
-    " defaults to something else).
-    imap <nul> <c-r>=SuperTabAlternateCompletion("\<lt>c-p>")<cr>
+  " map <c-space> to <c-p> completion (useful when supertab 'context'
+  " defaults to something else).
+  imap <nul> <c-r>=SuperTabAlternateCompletion("\<lt>c-p>")<cr>
 
-    autocmd FileType python
-      \ if &completefunc != '' |
-      \   call SuperTabChain(&completefunc, "<c-p>") |
-      \ endif
-  endif
+  autocmd FileType python
+    \ if &completefunc != '' |
+    \   call SuperTabChain(&completefunc, "<c-p>") |
+    \ endif
 " }}}
 
 " taglisttoo.vim {{{

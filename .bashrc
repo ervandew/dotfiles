@@ -110,7 +110,7 @@
   alias ssh="TERM='rxvt' ssh"
 
   # aliases for vim
-  alias less="vimpager"
+  alias less="pager"
   alias vimdiff="vim -d"
   alias vimmin="vim -u NONE --cmd 'set nocp | sy on | filetype plugin indent on'"
   alias vimlarge="vim -u NONE --cmd 'set noswf nowrap undolevels=-1' --cmd 'autocmd BufReadPre * setlocal bt=nowrite'"
@@ -139,9 +139,10 @@
 # }}}
 
 ## Linux Apps Variables {{{
-  export EDITOR=vim
-  export VISUAL=vim # for some crontab impls
-  export PAGER=vimpager
+  export EDITOR=nvim
+  export VISUAL=nvim # for some crontab impls
+  export PAGER=pager
+  export MANPAGER=$PAGER
 
   # force urxvt to use utf 8 (set in ~/.xinitrc as well)
   export LANG="en_US.UTF-8"
@@ -152,9 +153,6 @@
 
   # color highlighting for grep
   export GREP_COLORS="mt=33" # yellow (colors start at 30)
-
-  # set vim as the man pager
-  export MANPAGER=$PAGER
 
   # get transparency to work with some terminal apps (mutt)
   export COLORFGBG="default;default"
