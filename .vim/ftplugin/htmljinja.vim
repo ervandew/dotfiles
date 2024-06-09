@@ -1,5 +1,6 @@
 " Author:  Eric Van Dewoestine
 
+" ContextSearch (find element/file under the cursor via <cr>) {{{
 nnoremap <silent> <buffer> <cr> :call <SID>ContextSearch()<cr>
 
 try
@@ -7,7 +8,7 @@ try
     let line = getline('.')
     let col = col('.')
 
-    let path = ''
+    let paths = []
     let pattern = ''
     let ext = '.py'
 
@@ -16,9 +17,14 @@ try
       \ col('.') . "c.\\{-}\\)\\([[:space:]\"',)\\]}<>].*\\|$\\)",
       \ '\2', '')
     if possible_path =~ '\.css$'
-      let path = substitute(possible_path, '\.css$', '.scss', '')
-    elseif possible_path =~ '\.js$' && path !~ '.*/.*'
-      let path = substitute(possible_path, '\.js', '/index.js', '')
+      let paths = [
+        \ substitute(possible_path, '\.css$', '.scss', ''),
+        \ substitute(possible_path, '\.css$', '/index.scss', '')
+       \ ]
+    elseif possible_path =~ '\.js$' && possible_path !~ '.*/.*'
+      let paths = [substitute(possible_path, '\.js', '/index.js', '')]
+    elseif possible_path =~ '\.html$'
+      let paths = [possible_path]
     else
       let word = expand("<cword>")
 
@@ -60,11 +66,22 @@ try
           exec 'new | buffer ' . results[0].bufnr
         endif
       endif
-    elseif path != ''
-      call ag#search#FindFile(path, 'split')
+    elseif len(paths)
+      let found = 0
+      for path in paths
+        silent! let found = ag#search#FindFile(path, 'split')
+        if found
+          break
+        endif
+      endfor
+      if !found
+        echohl WarningMsg
+        echom 'File not found:' paths
+        echohl None
+      endif
     endif
   endfunction
 catch /E127/
-endtry
+endtry " }}}
 
-" vim:ft=vim:fdm=marker
+" vim:fdm=marker
