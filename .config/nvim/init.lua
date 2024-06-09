@@ -8,6 +8,11 @@ source ~/.vimrc
 -- neovim options {{{
 vim.opt.inccommand = 'split' -- preview changes in a separate window
 vim.opt.termguicolors = true -- use full set of gui colors
+
+if vim.env.VIRTUAL_ENV then
+  -- use the system python which should have the neovim module installed
+  vim.g.python3_host_prog = '/usr/bin/python'
+end
 -- }}}
 
 -- neovim plugins (via lazy.nvim) {{{
