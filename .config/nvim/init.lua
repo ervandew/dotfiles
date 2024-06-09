@@ -28,6 +28,10 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup(
   'plugins',  -- load plugins from .config/nvim/lua/plugins
   {           -- lazy.nvim config options
+    change_detection = {
+      enable = false,
+      notify = false,
+    },
     ui = { border = 'rounded' },
   }
 )
