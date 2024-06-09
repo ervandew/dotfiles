@@ -14,6 +14,7 @@ return {{
       },
       auto_install = true,
       highlight = { enable = true },
+      matchup = { enable = true },
     })
   end
 }}
