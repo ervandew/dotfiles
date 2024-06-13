@@ -44,12 +44,12 @@ function tmux_window_title() {
     # remove sudo, prefix with # instead
     # remove ssh, prefix with @ instead
     # remove path info
-    # remove dash params
+    # remove all but the first part of the command
     title=$(echo $title |
       perl -pe 's|^sudo\s|#|' |
       perl -pe 's|^ssh\s|@|' |
       perl -pe 's|\S*/||g' |
-      perl -pe 's|\s*-\S*||g'
+      perl -pe 's|(\S*).*|\1|'
     )
 
     tmux rename-window -t$TMUX_PANE "$title"
