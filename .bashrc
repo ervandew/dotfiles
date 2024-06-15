@@ -44,9 +44,20 @@
     export HISTFILE="$USERHOME/.bash_history.$SUDO_USER"
     export BASH_PS1="${red}\u${blue}@\h${NONE} \w\n# "
   else
-    _virtualenv_name() {
+    _info() {
+      declare -a info
+
+      branch=$(git rev-parse --abbrev-ref HEAD 2> /dev/null)
+      if [ -n "$branch" ] ; then
+        info+=("git:$branch")
+      fi
+
       if [ -n "$VIRTUAL_ENV" ] ; then
-        echo -e " $gray(ve:$(basename $VIRTUAL_ENV))$NONE"
+        info+=("ve:$(basename $VIRTUAL_ENV)")
+      fi
+
+      if [ -n "$info" ] ; then
+        echo -e " $gray(${info[@]})$NONE"
       fi
     }
 
@@ -54,7 +65,7 @@
     if [ "$TERM" == "linux" ] ; then
       PS1_COLOR=${white}
     fi
-    export BASH_PS1="$PS1_COLOR\u@\h${NONE} \w\$(_virtualenv_name)\n"$SCREEN_PS1'\$ '
+    export BASH_PS1="$PS1_COLOR\u@\h${NONE} \w\$(_info)\n"$SCREEN_PS1'\$ '
   fi
   export PS1=$BASH_PS1
 
