@@ -9,8 +9,7 @@ try
     let col = col('.')
 
     let paths = []
-    let pattern = ''
-    let ext = '.py'
+    let patterns = []
 
     let possible_path = substitute(line,
       \ "\\(.*[[:space:]\"',(\\[{><]\\|^\\)\\(.*\\%" .
@@ -30,41 +29,52 @@ try
 
       " filter ref
       if line =~ '|' . word . '\>'
-        let pattern = '\<def\s+' . word . '\>'
+        let patterns = [['.py', '\<def\s+' . word . '\>']]
 
       " url name ref
       elseif line =~ "\\<url\\s*(['\"]" . word . "\\>"
-        let pattern = '\<def\s+' . word . '\>'
+        let patterns = [['.py', '\<def\s+' . word . '\>']]
 
       " macro ref
-      elseif line =~ '\({%-\?\s*call\|{{-\?\)\s\+' . word . '\>'
-        let pattern = '\<macro\s+' . word . '\>'
-        let ext = '.html'
+      elseif line =~ '{%-\?\s*call\s\+' . word . '\>'
+        let patterns = [['.html', '\<macro\s+' . word . '\>']]
+
+      " function or macro ref
+      elseif line =~ '{{-\?\s\+' . word . '\>'
+        let patterns = [
+          \ ['.html', '\<macro\s+' . word . '\>'],
+          \ ['.py', '\<def\s+' . word . '\>'],
+        \]
 
       " method ref
       elseif line =~ '\.' . word . '\>\s*('
-        let pattern = '\<def\s+' . word . '\>'
+        let patterns = [['.py', '\<def\s+' . word . '\>']]
 
       " class reference
       elseif word =~ '^[A-Z][a-z]\+'
-        let pattern = '\<class\s+' . word . '\>'
+        let patterns = [['.py', '\<class\s+' . word . '\>']]
       endif
     endif
 
-    if pattern != ''
+    if len(patterns)
       let winnum = winnr()
       " FIXME: updating Ag to support opening a single result in a new window
       " would aleviate the need for this gross code
-      exec 'Ag! ' . pattern . ' **/*' . ext
-
-      let results = getqflist()
-      let num = len(results)
-      if num
-        if num == 1
-          cclose
-          exec winnum . 'winc w'
-          exec 'new | buffer ' . results[0].bufnr
+      for [ext, pattern] in patterns
+        silent exec 'Ag! ' . pattern . ' **/*' . ext
+        let results = getqflist()
+        let num = len(results)
+        if num
+          break
         endif
+      endfor
+
+      if num == 1
+        cclose
+        exec winnum . 'winc w'
+        exec 'new | buffer ' . results[0].bufnr
+      else
+        echohl WarningMsg | echom 'No result found:' patterns | echohl None
       endif
     elseif len(paths)
       let found = 0
@@ -75,9 +85,7 @@ try
         endif
       endfor
       if !found
-        echohl WarningMsg
-        echom 'File not found:' paths
-        echohl None
+        echohl WarningMsg | echom 'File not found:' paths | echohl None
       endif
     endif
   endfunction
