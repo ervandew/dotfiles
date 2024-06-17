@@ -4,16 +4,41 @@ return {{
   config = function()
     local autopairs = require('nvim-autopairs')
     local cond = require('nvim-autopairs.conds')
+    local default = require('nvim-autopairs.rules.basic')
     local Rule = require('nvim-autopairs.rule')
     autopairs.setup({
+      -- use treesitter
       check_ts = true,
-      map_cr = true,
+      -- prevent case where sometimes typing a closing bracket will add a new
+      -- one instead of overwriting the one that was auto inserted
+      enable_check_bracket_line = false,
+      -- don't auto add pair if the next isn't in the following negated set
+      ignored_next_char = '[^,:%s}%)%]]',
     })
+
+    -- start with default rules when overriding for file type specific pairs
+    quote = default.bracket_creator(autopairs.config)
+    bracket = default.bracket_creator(autopairs.config)
+
+    -- block_wrap (attempt to suppress closing bracket when wrapping a block {{{
+    local block_wrap = function(opts)
+      local next_line = vim.fn.getline(vim.fn.line('.') + 1)
+      -- if the next line ends in a comma, then we are probably wrapping a
+      -- block to create list, tuple, or dict
+      if next_line:match(',$') then
+        return false
+      end
+      return
+    end -- }}}
+
+    autopairs.get_rules('(')[1]:with_pair(block_wrap)
+    autopairs.get_rules('{')[1]:with_pair(block_wrap)
+    autopairs.get_rules('[')[1]:with_pair(block_wrap)
 
     -- not_after_regex {{{
     -- autopairs version doesn't use the whole line, but having the whole line
     -- to match against is much more flexible
-    not_after_regex = function(regex)
+    local not_after_regex = function(regex)
       return function(opts)
         if opts.line:match(regex) then
           return false
@@ -26,7 +51,7 @@ return {{
     --   template for the closing tag where %s is replaced with the tag name
     --   pattern used to find the tag name from the current line
     --   string or table of the file type to target
-    closetag = function(...)
+    local closetag = function(...)
       local params = {...}
 
       matched = function(opts)
@@ -76,8 +101,8 @@ return {{
     -- disable default {, replace with version that won't trigger in a comment
     -- (for folding)
     autopairs.get_rules('{')[1]:with_pair(cond.not_filetypes({ 'lua' }))
-    autopairs.add_rule(Rule('{', '}', 'lua')
-      :with_pair(not_after_regex('^%s*%-%-'))
+    autopairs.add_rule(bracket('{', '}', 'lua')
+      :with_pair(not_after_regex('%s*%-%-'))
     )
 
     -- auto close various statements
@@ -93,7 +118,8 @@ return {{
         end),
       Rule(')', 'end', 'lua')
         :end_wise(function(opts)
-          return string.match(opts.line, '%W*function%W') ~= nil
+          vim.print({'line:', opts.line})
+          return string.match(opts.line, '%W*function%s*%([^%)]*%)[%s%)}]*$') ~= nil
         end),
     })
     -- }}}
@@ -102,13 +128,13 @@ return {{
     -- disable default ", replace with version that won't trigger at the start
     -- of a comment
     autopairs.get_rules('"')[1]:with_pair(cond.not_filetypes({ 'vim' }))
-    autopairs.add_rule(Rule('"', '"', { 'vim' })
+    autopairs.add_rule(quote('"', '"', { 'vim' })
       :with_pair(not_after_regex('^%s*'))
     )
     -- disable default {, replace with version that won't trigger in a comment
     -- (for folding)
     autopairs.get_rules('{')[1]:with_pair(cond.not_filetypes({ 'vim' }))
-    autopairs.add_rule(Rule('{', '}', 'vim')
+    autopairs.add_rule(bracket('{', '}', 'vim')
       :with_pair(not_after_regex('^%s*"'))
     )
 
