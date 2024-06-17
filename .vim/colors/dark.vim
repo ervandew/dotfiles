@@ -12,6 +12,7 @@ let g:colors_name="dark"
 " Main Color Groups {{{
 hi Normal       ctermfg=white    ctermbg=NONE   cterm=NONE    guifg=#f6f3e8 guibg=#222222 gui=NONE
 
+hi Boolean      ctermfg=magenta  ctermbg=NONE   cterm=NONE    guifg=#af87d7 guibg=NONE    gui=NONE
 hi Cursor       ctermfg=black    ctermbg=gray   cterm=reverse guifg=black   guibg=gray    gui=NONE
 hi Constant     ctermfg=green    ctermbg=NONE   cterm=NONE    guifg=#99cc99 guibg=NONE    gui=NONE
 hi Comment      ctermfg=darkgray ctermbg=NONE   cterm=NONE    guifg=#7c7c7c guibg=NONE    gui=NONE
@@ -27,7 +28,7 @@ hi ErrorMsg     ctermfg=white    ctermbg=red    cterm=NONE    guifg=white   guib
 
 hi Folded       ctermfg=darkgray ctermbg=NONE   cterm=NONE    guifg=#7c7c7c guibg=NONE    gui=NONE
 hi FoldColumn   ctermfg=white    ctermbg=NONE   cterm=NONE    guifg=white   guibg=#222222 gui=NONE
-hi Function     ctermfg=brown    ctermbg=NONE   cterm=NONE    guifg=#e18964 guibg=NONE    gui=NONE
+hi Function     ctermfg=110      ctermbg=NONE   cterm=NONE    guifg=#87afd7 guibg=NONE    gui=NONE
 
 hi Identifier   ctermfg=magenta  ctermbg=NONE   cterm=NONE    guifg=#c6c5fe guibg=NONE    gui=NONE
 hi Ignore       ctermfg=darkgray ctermbg=NONE   cterm=NONE    guifg=#7c7c7c guibg=NONE    gui=NONE
@@ -42,7 +43,7 @@ hi PreProc      ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#96cbfe guib
 
 hi Search       ctermfg=233      ctermbg=243    cterm=NONE    guifg=black   guibg=#888888 gui=NONE
 hi SignColumn   ctermfg=white    ctermbg=NONE   cterm=NONE    guifg=white   guibg=#222222 gui=NONE
-hi Special      ctermfg=brown    ctermbg=NONE   cterm=NONE    guifg=#e18964 guibg=NONE    gui=NONE
+hi Special      ctermfg=110      ctermbg=NONE   cterm=NONE    guifg=#87afd7 guibg=NONE    gui=NONE
 hi SpecialKey   ctermfg=233      ctermbg=236    cterm=NONE    guifg=#222222 guibg=#333333 gui=NONE
 hi Statement    ctermfg=blue     ctermbg=NONE   cterm=NONE    guifg=#6699cc guibg=NONE    gui=NONE
 hi StatusLine   ctermfg=white    ctermbg=236    cterm=NONE    guifg=#cccccc guibg=#303030 gui=NONE
@@ -59,7 +60,6 @@ hi Visual       ctermfg=233      ctermbg=gray   cterm=NONE    guifg=black   guib
 hi WarningMsg   ctermfg=yellow   ctermbg=NONE   cterm=NONE    guifg=#c4c466 guibg=NONE    gui=BOLD
 hi WildMenu     ctermfg=black    ctermbg=yellow cterm=NONE    guifg=black   guibg=#c4c466 gui=NONE
 
-hi link Boolean         Constant
 hi link Character       Constant
 hi link Conditional     Statement
 hi link Debug           Special
