@@ -4,6 +4,7 @@ return {{
     require('nvim-treesitter.configs').setup({
       ensure_installed = {
         'bash',
+        'comment', -- to highlight FIXME, TODO, etc.
         'javascript',
         'lua',
         'query',
@@ -14,7 +15,10 @@ return {{
       },
       auto_install = true,
       highlight = { enable = true },
-      matchup = { enable = true },
+      matchup = {
+        enable = true,
+        disable_virtual_text = true,
+      },
     })
   end
 }}
