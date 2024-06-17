@@ -5,8 +5,8 @@
 ! fixes gtk font sizes (issue triggered by dual monitors?)
 Xft.dpi: 96.0
 
-*background: #222222
-*foreground: #e7e7e7
+*background: #1a1a1a
+*foreground: #cccccc
 
 ! note: do not forget to update .vimrc cursor color changing based on mode.
 *cursorColor: #ac7d00
@@ -45,40 +45,40 @@ xterm*boldFont: -misc-fixed-bold-r-normal--13-120-*-*-c-80-*-*
 
 ! Colors {{{
 
-*colorBD: #bebebe
+*colorBD: #acacac
 
 ! black
 *color0:  #111111
 ! red
-*color1:  #bb4b4b
+*color1:  #964848
 ! green
-*color2:  #aece91
+*color2:  #789978
 ! yellow
-*color3:  #e18964
+*color3:  #cfcf7c
 ! blue
-*color4:  #5884b0
+*color4:  #708090
 ! magenta
-*color5:  #963c59
+*color5:  #875f87
 ! cyan
-*color6:  #67ccbf
+*color6:  #4e9585
 ! white
-*color7:  #bebebe
+*color7:  #acacac
 ! bright black
 *color8:  #444444
 ! bright red
-*color9:  #cf6171
+*color9:  #a25757
 ! bright green
-*color10: #8eb157
+*color10: #91b791
 ! bright yellow
-*color11: #c4c466
+*color11: #bfbf6f
 ! bright blue
-*color12: #6699cc
+*color12: #808ba1
 ! bright magenta
 *color13: #cf9ebe
 ! bright cyan
-*color14: #79cccc
+*color14: #56a291
 ! bright white
-*color15: #dadada
+*color15: #aeaeae
 
 ! }}}
 

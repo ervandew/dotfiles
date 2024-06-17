@@ -311,60 +311,147 @@ c.TerminalInteractiveShell.emacs_bindings_in_vi_insert_mode = False
 ## Highlight matching brackets.
 #c.TerminalInteractiveShell.highlight_matching_brackets = True
 
-## The name or class of a Pygments style to use for syntax
-#         highlighting:
-#  solarized-dark, monokai, manni, colorful, igor, lovelace, xcode, murphy, paraiso-dark, vim, autumn, stata-light, abap, bw, sas, stata-dark, rrt, pastie, rainbow_dash, native, solarized-light, paraiso-light, perldoc, borland, trac, arduino, default, tango, fruity, vs, emacs, algol_nu, stata, algol, friendly
-#c.TerminalInteractiveShell.highlighting_style = ''
+## The name or class of a Pygments style to use for syntax highlighting:
+c.TerminalInteractiveShell.highlighting_style = 'friendly_grayscale'
 
 ## Override highlighting format for specific tokens
+from IPython.terminal import prompts
 from pygments import token
 c.TerminalInteractiveShell.highlighting_style_overrides = {
-  token.Whitespace:             '#bbbbbb',
-  token.Comment:                '#999988',
-  token.Comment.Preproc:        'bold noitalic #999999',
-  token.Comment.Special:        'bold #999999',
-  #token.Operator:               'bold',
-  token.String:                 '#bb8844',
-  token.String.Regex:           '#808000',
-  token.Number:                 '#009999',
-  token.Keyword:                '#5884b0',
-  token.Keyword.Type:           '#445588',
+  # token.Whitespace:             '#bbbbbb',
+  # token.Comment:                '#999988',
+  # token.Comment.Preproc:        'bold noitalic #999999',
+  # token.Comment.Special:        'bold #999999',
+  token.String:                 '#708090',
+  token.String.Regex:           '#708090',
+  token.Number:                 '#875f87',
+  token.Keyword:                '#666666',
+  # token.Keyword.Type:           '#666666',
   token.Name.Builtin:           '#999999',
-  token.Name.Function:          '#990000',
-  token.Name.Class:             '#445588',
-  token.Name.Exception:         '#cf6171',
+  # token.Name.Function:          '#666666',
+  # token.Name.Class:             '#666666',
+  token.Name.Exception:         '#aaaaaa',
   token.Name.Namespace:         '#aaaaaa',
-  token.Name.Variable:          '#008080',
-  token.Name.Constant:          '#008080',
-  token.Name.Tag:               '#000080',
-  token.Name.Attribute:         '#008080',
-  token.Name.Entity:            '#800080',
-  token.Generic.Heading:        '#999999',
-  token.Generic.Subheading:     '#aaaaaa',
-  token.Generic.Deleted:        'bg:#ffdddd #000000',
-  token.Generic.Inserted:       'bg:#ddffdd #000000',
-  token.Generic.Error:          '#aa0000',
-  token.Generic.Emph:           'italic',
-  token.Generic.Strong:         'bold',
-  token.Generic.Prompt:         '#555555',
-  token.Generic.Output:         '#888888',
-  token.Generic.Traceback:      '#aa0000',
-  token.Error:                  'bg:#e3d2d2 #a61717',
+  # token.Name.Variable:          '#008080',
+  # token.Name.Constant:          '#008080',
+  # token.Name.Tag:               '#000080',
+  # token.Name.Attribute:         '#008080',
+  # token.Name.Entity:            '#800080',
+  # token.Generic.Heading:        '#999999',
+  # token.Generic.Subheading:     '#aaaaaa',
+  # token.Generic.Deleted:        'bg:#ffdddd #000000',
+  # token.Generic.Inserted:       'bg:#ddffdd #000000',
+  # token.Generic.Error:          '#aa0000',
+  # token.Generic.Emph:           'italic',
+  # token.Generic.Strong:         'bold',
+  # token.Generic.Prompt:         '#555555',
+  # token.Generic.Output:         '#888888',
+  # token.Generic.Traceback:      '#aa0000',
+  # token.Error:                  'bg:#e3d2d2 #a61717',
+
+  # the ipython prompt colors
+  prompts.Token.Prompt:         '#808080',
+  prompts.Token.PromptNum:      '#8787ff',
+  prompts.Token.OutPrompt:      '#c0c0c0',
+  prompts.Token.OutPromptNum:   '#8787ff',
+
+  # prompt_toolkit completion menu colors (requires monkey patch below)
+  'completion-menu': 'bg:#333333 #cccccc',
+  'completion-menu.completion': 'bg:#333333 #cccccc',
+  'completion-menu.completion.current': 'bg:#cccccc #444444',
+  'completion-menu.meta.completion': 'bg:#333333 #cccccc',
+  'completion-menu.meta.completion.current': 'bg:#cccccc #222222',
+  'completion-menu.multi-column-meta': 'bg:#333333 #cccccc'
 }
+
+# hack to customize the exception stack trace colors
+import IPython.core.excolors
+import IPython.core.ultratb
+import IPython.utils.coloransi
+orig_ec = IPython.core.excolors.exception_colors
+def _exception_colors():
+  def _ansi(h):
+    parts = (
+      int(h[0:2], 16),
+      int(h[2:4], 16),
+      int(h[4:6], 16),
+    )
+    return '\033[38;2;%d;%d;%dm' % parts
+
+  grey = _ansi('888888')
+  ex_colors = orig_ec()
+  ex_colors.add_scheme(
+    IPython.utils.coloransi.ColorScheme('Neutral', {
+      'topline': grey,
+      'filename': grey,
+      'lineno': grey,
+      'name': grey,
+      'vName': _ansi('cccccc'),
+      'val': grey,
+      'em': grey,
+      # emphasized colors for the last frame
+      'normalEm': grey,
+      'filenameEm': grey,
+      'linenoEm': _ansi('87afd7'),
+      'nameEm': grey,
+      'valEm': grey,
+      'excName': _ansi('a25757'),
+      'line': grey,
+      'caret': grey,
+      'Normal': _ansi('cccccc'),
+      # debugger
+      'prompt': grey,
+      'breakpoint_enabled': grey,
+      'breakpoint_disabled': grey,
+    })
+  )
+  return ex_colors
+
+IPython.core.excolors.exception_colors = _exception_colors
+IPython.core.ultratb.exception_colors = _exception_colors
+IPython.core.ultratb.VerboseTB._tb_highlight = 'bg:#333333'
+IPython.core.ultratb.VerboseTB._tb_highlight_style = 'friendly_grayscale'
 
 ## Enable mouse support in the prompt
 #c.TerminalInteractiveShell.mouse_support = False
 
-version_string = '{0.major}.{0.minor}'.format(sys.version_info)
-from IPython.terminal.prompts import Prompts, Token
-class Prompt(Prompts):
+prompt_py_version = '(py %s)' % '{0.major}.{0.minor}'.format(sys.version_info)
+class Prompt(prompts.Prompts):
   def in_prompt_tokens(self):
-    tokens = super(Prompt, self).in_prompt_tokens()
-    tokens.insert(0, (Token.Prompt, '(py %s) ' % version_string))
+    tokens = super().in_prompt_tokens()
+    tokens.insert(0, (prompts.Token.Prompt, prompt_py_version))
     return tokens
 
-## Class used to generate Prompt token for prompt_toolkit
+  def out_prompt_tokens(self):
+    # added just for allignment
+    tokens = super().out_prompt_tokens()
+    padding = 0
+    for token in self.in_prompt_tokens()[:-3]:
+      padding += len(token[1])
+    tokens.insert(0, (prompts.Token.OutPrompt, ' ' * padding))
+    return tokens
+
+# Class used to generate Prompt token for prompt_toolkit
 c.TerminalInteractiveShell.prompts_class = Prompt
+
+# hack to allow prompt_toolkit completion styles to be set by
+# highlighting_style_overrides above
+import IPython.terminal.interactiveshell
+import prompt_toolkit.styles
+def _style_from_pygments_dict(pygments_dict):
+   pygments_style = []
+   for token, style in pygments_dict.items():
+     if isinstance(token, str):
+       pygments_style.append((token, style))
+     else:
+       pygments_style.append((
+         prompt_toolkit.styles.pygments.pygments_token_to_classname(token),
+         style
+       ))
+   return prompt_toolkit.styles.Style(pygments_style)
+
+prompt_toolkit.styles.pygments.style_from_pygments_dict = _style_from_pygments_dict
+IPython.terminal.interactiveshell.style_from_pygments_dict = _style_from_pygments_dict
 
 ## Use `raw_input` for the REPL, without completion and prompt colors.
 #
