@@ -45,7 +45,7 @@
   dlog = "!f() { R=HEAD; if [[ \"$1\" =~ ^[a-zA-Z0-9]+$ ]] ; then R=$1; shift; fi; git pick -t rev log -1 -p $R \"$@\"; }; f"
 
   # view the last committed version of a file, even if it has since been removed
-  view = "!f() { F=$1; if [[ ! \"$1\" == *:* ]] ; then F=$(git rev-list -n 1 HEAD -- $F)^:$F; fi; git show $F 2>&1 | vim - -c \"doautocmd BufRead $1 | set nomod noma\"; }; f"
+  view = "!f() { F=$1; if [[ ! \"$1\" == *:* ]] ; then F=$(git rev-list -n 1 HEAD -- $F)^:$F; fi; git show $F 2>&1 | $EDITOR - -c \"doautocmd BufRead $1 | set nomod noma\"; }; f"
 
   # $ git clone git://<host>/.git <target>
   # Reverse tunnel to allow checkout from a client machine to a server machine.
@@ -132,7 +132,7 @@
   untracked = white
 
 [core]
-  editor = vim
+  editor = nvim
   excludesfile = ~/.gitignore
   pager = /usr/bin/less -+$LESS -FRX
   hookspath = ~/.git-hooks
@@ -147,10 +147,13 @@
   defaultBranch = main
 
 [merge]
-  tool = vimdiff
+  tool = nvim
 
 [mergetool]
   keepBackup = false
+
+[mergetool "nvim"]
+  cmd = nvim -d -O3 "$REMOTE" "$BASE" "$LOCAL" "$MERGED" -c "Mergetool"
 
 [pretty]
   hash = "format:%h"
