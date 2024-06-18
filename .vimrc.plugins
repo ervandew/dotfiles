@@ -1,13 +1,28 @@
 " Author: Eric Van Dewoestine
 
 " pathogen (plugin loading in vim) {{{
-if !has('nvim') " lazy.nvim will handle these, so don't load twice
   call pathogen#infect()
   call pathogen#infect('~/projects/vim/{}')
   call pathogen#helptags()
-endif " }}}
+" }}}
 
 runtime macros/matchit.vim
+
+" ag.vim {{{
+  nmap gf :Ag -g<cr>
+  nmap gF :Ag! -g<cr>
+  nnoremap <silent> <leader>> :AgPrompt<cr>
+" }}}
+
+" buffers.vim {{{
+  let g:BuffersDeleteOnTabClose = 1
+
+  " replace :bd with version which won't close the current tab if deleting the
+  " last buffer on that tab
+  cabbrev <expr> bd getcmdtype() == ':' && getcmdpos() == 3 ? 'BufferDelete' : 'bd'
+
+  nnoremap <silent> <leader>b :BuffersToggle<cr>
+" }}}
 
 " csv.vim {{{
   hi CSVColumnHighlight ctermfg=white
@@ -30,20 +45,17 @@ runtime macros/matchit.vim
 " }}}
 
 " diff.vim {{{
-  nmap ]c :DiffNextChange<cr>
-  nmap [c :DiffPrevChange<cr>
-  nmap <leader>n :DiffNextChange<cr>
-  nmap <leader>N :DiffPrevChange<cr>
+  cabbrev dn DiffNextChange
+  cabbrev dp DiffPrevChange
 " }}}
 
 " eclim.vim {{{
   "let g:EclimNailgunClient = 'python'
-  let g:EclimLocateFileDefaultAction='edit'
   let g:EclimMakeDispatchEnabled = 0
   let g:EclimLargeFileEnabled = 1
 
-  " fallback to my ag plugin for non-project searching
-  let g:EclimLocateFileNonProjectScope = 'ag'
+  " tyring out lsp (pyright)
+"  let g:EclimPythonValidate = 0
 
   let g:EclimOpenUrlInVimPatterns = [
       \ '\.\(dtd\|xml\|xsd\)$',
@@ -58,14 +70,6 @@ runtime macros/matchit.vim
 
   " mark current line
   nnoremap <silent> <leader>s :Sign<cr>
-
-  " swap 2 words using ,ws
-  nnoremap <silent> <leader>ws :SwapWords<cr>
-  " swap typed method declaration arguments
-  nnoremap <silent> <buffer> <leader>aws :SwapTypedArguments<cr>
-
-  nnoremap <silent> <leader>> :LocateFile<cr>
-  nnoremap <silent> <leader>b :BuffersToggle<cr>
 " }}}
 
 " indentdetect.vim {{{
@@ -89,30 +93,22 @@ runtime macros/matchit.vim
   map <silent> <space><space> :MaximizeWindow<cr>
 
   " use tab to simplify window switching
-  nnoremap <silent> <tab><tab> :call maximize#NavigateWindows('winc p')<cr>
-  nnoremap <silent> <tab>k :call maximize#NavigateWindows('winc k')<cr>
-  nnoremap <silent> <tab>l :call maximize#NavigateWindows('winc l')<cr>
-  nnoremap <silent> <tab>h :call maximize#NavigateWindows('winc h')<cr>
-  nnoremap <silent> <tab>j :call <SID>NavigateDownWindow()<cr>
-  function! s:NavigateDownWindow()
-    let winnr = winnr()
-    call maximize#NavigateWindows('winc j')
-    if exists('g:ScreenShellFocus') && winnr() == winnr
-      call g:ScreenShellFocus()
-    endif
-  endfunction
+  "nnoremap <silent> <tab><tab> :call maximize#NavigateWindows('winc p')<cr>
+  "nnoremap <silent> <tab>k :call maximize#NavigateWindows('winc k')<cr>
+  "nnoremap <silent> <tab>l :call maximize#NavigateWindows('winc l')<cr>
+  "nnoremap <silent> <tab>h :call maximize#NavigateWindows('winc h')<cr>
+  "nnoremap <silent> <tab>j :call maximize#NavigateWindows('winc j')<cr>
 
   " minimize a window
-  nnoremap <silent> <leader>m
-    \ :let w = winnr()<cr>
-    \ :call maximize#NavigateWindows('winc p')<cr>
-    \ :exec 'MinimizeWindow ' . w<cr>
-    \ :unlet w<cr>
-  nnoremap <silent> <leader>M :MinimizeRestore<cr>
+  "nnoremap <silent> <leader>m
+  "  \ :let w = winnr()<cr>
+  "  \ :call maximize#NavigateWindows('winc p')<cr>
+  "  \ :exec 'MinimizeWindow ' . w<cr>
+  "  \ :unlet w<cr>
+  "nnoremap <silent> <leader>M :MinimizeRestore<cr>
 " }}}
 
 " nerdcommenter.vim {{{
-if !has('nvim') " neovim has built in support
   let g:NERDCreateDefaultMappings = 0
   let g:NERDSpaceDelims = 0
   let g:NERDRemoveExtraSpaces = 0
@@ -122,7 +118,6 @@ if !has('nvim') " neovim has built in support
   nmap gc <Plug>NERDCommenterToggle
   vmap gC <Plug>NERDCommenterAlignLeft
   nmap gC <Plug>NERDCommenterAlignLeft
-endif
 " }}}
 
 " notebook.vim {{{
@@ -131,10 +126,6 @@ endif
 
 " ranger.vim {{{
 nnoremap <silent> <leader>/ :Ranger<cr>
-" }}}
-
-" screen.vim {{{
-  vmap <silent> <leader>s :ScreenSend<cr>
 " }}}
 
 " snipmate.vim {{{

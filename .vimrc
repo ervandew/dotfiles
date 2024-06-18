@@ -1,7 +1,10 @@
 " Author: Eric Van Dewoestine
 
-" vim options {{{
+if has('nvim')
+  echoe 'Not compatible with neovim'
+endif
 
+" vim options {{{
   " disable vi compatability mode
   set nocompatible
 
@@ -30,10 +33,8 @@
   set nobackup         " do not keep a backup file
   set number           " show line numbers
   " set the printer name to use (see 'Queue Name' at http://localhost:631/printers/)
-  if !has('nvim')
-    set printdevice=Home
-    set printoptions=paper:letter,header:0,number:n
-  endif
+  set printdevice=Home
+  set printoptions=paper:letter,header:0,number:n
   set ruler            " show the cursor position all the time
   set scrolloff=5      " always keep 5 lines of context around the cursor
   set shiftwidth=2     " number of spaces used by indenting
@@ -55,7 +56,7 @@
   set visualbell t_vb= " turn off system beeps and visual flash
   " Note: both __pycache patterns are required for vim command and *Relative
   " completion, and the order of these patterns seems to matter
-  set wildignore+=*.pyc,*.pyo,*/__pycache__,*/__pycache__/*
+  set wildignore+=*.pyc,*.pyo,*/__pycache__,*/__pycache__/*,*.so
   set wildmenu         " for command completion, show menu of available results
   " for command completion, show menu of available results
   set wildmode=longest:full,full
@@ -69,7 +70,9 @@
       let stl = exists('w:quickfix_title') ? ' ' . w:quickfix_title : ''
     " for csv files, display which column the cursor is in
     elseif &ft == 'csv'
-      let stl = ' [col: ' . CSV_WCol('Name') . ' (' . CSV_WCol() . ')]'
+      if exists(':CSV_WCol')
+        let stl = ' [col: ' . CSV_WCol('Name') . ' (' . CSV_WCol() . ')]'
+      endif
     endif
 
     " show in the status line if the file is in dos format
@@ -97,8 +100,8 @@
     endif
   endif
 
-  function! TabLine()
-    if tabpagenr('$') == 1 && !exists('t:eclim_project')
+  function! TabLine() " {{{
+    if tabpagenr('$') == 1 && !exists('t:tab_name')
       return ''
     endif
 
@@ -120,8 +123,14 @@
       if name == ''
         let name = '[No Name]'
       endif
-      let project = gettabvar(n, 'eclim_project')
-      if project != ''
+
+      let tab_name = gettabvar(n, 'tab_name')
+      if bufname(buflist[0]) =~ '^term://.*:ranger.*'
+        let name = ''
+        let tab_name = ''
+      endif
+
+      if tab_name != ''
         " only show the vcs branch for the current tab so as to reduce time
         " spent on system calls when there are several tabs.
         if tabpagenr() == n
@@ -132,21 +141,19 @@
             " phantom characters, p starts behaving like P, other weird
             " stuff). limiting external interaction to file reads seems to be
             " safe so far.
-            let type = vcs#util#GetVcsType()
-            let branch = ''
-            if type == 'git'
-              let dotgit = finddir('.git', escape(getcwd(), ' ') . ';')
+            let dotgit = finddir('.git', escape(getcwd(), ' ') . ';')
+            if dotgit != ''
               let lines = readfile(dotgit . '/HEAD')
               let branch = len(lines) > 0 ? substitute(lines[0], 'ref: refs/heads/', '', '') : ''
-            endif
-            if branch != ''
-              let project = project . '(' . branch . ')'
+              if branch != ''
+                let tab_name = tab_name . '(' . branch . ')'
+              endif
             endif
           catch
             " ignore
           endtry
         endif
-        let name = project . ': ' . name
+        let name = tab_name . ': ' . name
       endif
       let line .= ' %{"' . name . '"} '
       if n > 0 && n != tabpagenr('$')
@@ -157,7 +164,7 @@
     " after the last tab fill with TabLineFill and reset tab page nr
     let line .= '%#TabLineFill#%T'
     return line
-  endfunction
+  endfunction " }}}
 " }}}
 
 " mappings {{{
@@ -175,14 +182,22 @@
   nnoremap <silent> <tab>l :winc l<cr>
   nnoremap <silent> <tab>h :winc h<cr>
   nnoremap <silent> <tab>m :winc x<cr>
-  nnoremap <silent> <tab>j :call <SID>NavigateDownWindow()<cr>
-  function! s:NavigateDownWindow()
-    let winnr = winnr()
-    winc j
-    if exists('g:ScreenShellFocus') && winnr() == winnr
-      call g:ScreenShellFocus()
+  nnoremap  <leader>p :call <SID>PickWindow()<cr>
+  function! s:PickWindow() " {{{
+    let max = winnr('$')
+    let result = input('Window #: ')
+    mode
+    if result == ''
+      return
     endif
-  endfunction
+
+    let num = str2nr(result)
+    if num < 1 || num > max
+      echohl WarningMsg | echo 'Invalid window number:' result | echohl None
+      return
+    endif
+    exec num . 'winc w'
+  endfunction " }}}
 
   " back tick works like single quote for jumping to a mark, but restores the
   " column position too.
@@ -210,11 +225,10 @@
   nmap <expr> <leader>lt &ft == 'qf' ? ":lclose\<cr>" : ":lopen\<cr>""
 
   " write and go to next quickfix/location list result
-  nmap <leader>cn :call <SID>NextError('c', 0)<cr>
-  nmap <leader>cf :call <SID>NextError('c', 1)<cr>
-  nmap <leader>ln :call <SID>NextError('l', 0)<cr>
-  nmap <leader>lf :call <SID>NextError('l', 1)<cr>
-  function! s:NextError(list, nextfile)
+  nmap <silent> <leader>cn :call <SID>NextError('c', 0)<cr>
+  nmap <silent> <leader>cf :call <SID>NextError('c', 1)<cr>
+  nmap <silent> <leader>ln :call <SID>NextError('l', 0)<cr>
+  function! s:NextError(list, nextfile) " {{{
     let error_count = (a:list == 'c') ? len(getqflist()) : len(getloclist(0))
     noautocmd silent update
     let command = a:list . 'nfile'
@@ -234,7 +248,28 @@
     catch /E553/
       echohl WarningMsg | echo 'No more items' | echohl None
     endtry
-  endfunction
+  endfunction " }}}
+
+  " open the quickfix/location list and jump to the first entry for the line
+  " under the cursor
+  nmap <silent> <leader>cc :call <SID>CurrentError('c')<cr>
+  nmap <silent> <leader>ll :call <SID>CurrentError('l')<cr>
+  function! s:CurrentError(list) " {{{
+    let pos = getcurpos()
+    let lnum = line('.')
+    exec a:list . 'open'
+    call cursor(1, 1)
+    let found = search('|' . pos[1] . '\>')
+    if found
+      exec line('.') . a:list . a:list
+      call cursor(lnum, pos[2])
+      exec a:list . 'open'
+    else
+      echohl WarningMsg
+      echo 'No list item found for line' lnum
+      echohl None
+    endif
+  endfunction " }}}
 
   " resize windows w/ arrow keys
   nnoremap <silent> <up> :resize +3<cr>
@@ -306,53 +341,64 @@
     \ ':VirtualEditDisable<cr>' .
     \ (v:count ? v:count : '') . (v:register != '"' ? '"' . v:register : '') . 'p' .
     \ ':set ve=all<cr>'
-
 " }}}
 
 " commands {{{
-  " replace :bd with version which won't close the current tab if deleting the
-  " last buffer on that tab
-  cabbrev <expr> bd getcmdtype() == ':' && getcmdpos() == 3 ? 'BD' : 'bd'
-  command! -bang BD :call <SID>BufferDelete('<bang>')
-  function! s:BufferDelete(bang)
-    let bufnr = bufnr('%')
-    let prevent = winnr('$') == 1 && !&modified
-    if prevent
-      new
-    endif
-    " force the BufDelete autocmd to fire before BufEnter so that eclim won't
-    " close the current tab if all that's left is a taglist, file browser,
-    " etc.
-    noautocmd exec 'bdelete' . a:bang . ' ' . bufnr
-    doautocmd BufDelete
-    doautocmd BufEnter
-    doautocmd WinEnter
-    " try loading a hidden buffer from the current tab using eclim if
-    " available
-    if prevent
-      try
-        call eclim#common#buffers#OpenNextHiddenTabBuffer(bufnr)
-      catch /E117/
-      endtry
-    endif
-    " force tabline to update
-    call feedkeys("\<c-l>", 'n')
-  endfunction
 
-  " print the syntax name applied to the text under the cursor.
+  " Tab (open a new tab using the supplied working directory) {{{
+  command! -nargs=1 -complete=dir Tab :call <SID>Tab('<args>')
+  function! s:Tab(dir)
+    if !isdirectory(a:dir)
+      echohl Error | echom 'Not found:' a:dir | echohl None
+      return
+    endif
+
+    let dir = fnamemodify(a:dir, ':p')
+    if dir =~ '/$'
+      let dir = dir[:-2]
+    endif
+
+    " if the current tab isn't already named, has no modifications, no
+    " additional windows, and only an empty [No Name] buffer, then skip
+    " opening a new tab and just name this one.
+    if exists('t:tab_name') ||
+     \ &modified ||
+     \ winnr('$') > 1 ||
+     \ expand('%') != '' ||
+     \ line('$') != 1 ||
+     \ getline(1) != ''
+      tablast | tabnew
+    endif
+    let t:tab_name = fnamemodify(dir, ':t')
+    exec 'tcd ' . escape(dir, ' ')
+
+    set showtabline=2
+    augroup tab
+      autocmd!
+      autocmd TabEnter *
+        \ if tabpagenr('$') == 1 && !exists('t:tab_name') |
+        \   set showtabline=1 |
+        \ endif
+    augroup END
+  endfunction " }}}
+
+  " Syntax (print the syntax name applied to the text under the cursor) {{{
   command! -nargs=0 Syntax
     \ echohl Statement |
     \ let id = synID(line('.'), col('.'), 1) |
     \ echo 'name: ' .  synIDattr(id, "name") |
     \ echo 'base: ' .  synIDattr(synIDtrans(id), "name") |
     \ echohl None
+  " }}}
 
+  " FormatJson (format a block of json using jshon) {{{
   command! -nargs=0 -range=% FormatJson :call <SID>FormatJson(<line1>, <line2>)
   function! s:FormatJson(line1, line2)
     let [line1, line2] = a:line1 < a:line2 ? [a:line1, a:line2] : [a:line2, a:line1]
     exec line1 . ',' . line2 . '!jshon -SC'
-  endfunction
+  endfunction " }}}
 
+  " Incr (update visual block to increment numerically) {{{
   command! -range Incr :call <SID>Incr()
   function! s:Incr()
     let [l1, l2] = [line("'<"), line("'>")]
@@ -376,11 +422,118 @@
       endif
     endfor
     call cursor(line("'<"), col("'<"))
-  endfunction
+  endfunction " }}}
+
+  " SwapWords (swap 2 words using ,ws) {{{
+  nnoremap <silent> <leader>ws :SwapWords<cr>
+  command SwapWords :call <SID>SwapWords()
+  function! s:SwapWords()
+    " save the last search pattern
+    let save_search = @/
+
+    normal! "_yiw
+    let pos = getpos('.')
+    keepjumps s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/
+    call setpos('.', pos)
+
+    " restore the last search pattern
+    let @/ = save_search
+
+    silent! call repeat#set(":call eclim#common#util#SwapWords()\<cr>", v:count)
+  endfunction " }}}
+
+  " OpenUrl (open url under the cursor) {{{
+  command -nargs=0 OpenUrl :call s:OpenUrl()
+  function! s:OpenUrl()
+    let url = substitute(getline('.'),
+      \ "\\(.*[[:space:]\"',(\\[{><]\\|^\\)\\(.*\\%" .
+      \ col('.') . "c.\\{-}\\)\\([[:space:]\"',)\\]}<>].*\\|$\\)",
+      \ '\2', '')
+
+    if url == ''
+      echohl Error
+      echom 'No url supplied at command line or found under the cursor.'
+      echohl None
+      return
+    endif
+
+    " prepend http:// or file:// if no protocol defined.
+    if url !~ '^\(https\?\|file\):'
+      " absolute file on windows or unix
+      if url =~ '^\([a-zA-Z]:[/\\]\|/\)'
+        let url = 'file://' . url
+      " everything else
+      else
+        let url = 'http://' . url
+      endif
+    endif
+
+    silent exec '!xdg-open "' . url . '"'
+    redraw
+  endfunction " }}}
+
+  " Mergetool (mergetool for git) {{{
+  " .gitconfig
+  "   [merge]
+  "     tool = nvim
+  "   [mergetool "nvim"]
+  "     cmd = nvim -d -O3 "$LOCAL" "$BASE" "$REMOTE" "$MERGED" -c "Mergetool"
+  command Mergetool :call <SID>Mergetool()
+  function! s:Mergetool()
+    if bufnr('$') != 4
+      echohl Error | echom 'Unexpected number of buffers:' bufnr('$') | echohl NONE
+      return
+    endif
+
+    if winnr('$') != 3
+      echohl Error | echom 'Unexpected number of windows:' winnr('$') | echohl NONE
+      return
+    endif
+
+    " relies on repo alias from my .gitconfg
+    let branch = split(systemlist('git repo')[0], ':')[1]
+    let files = [
+      \ ['REMOTE', 'MERGING IN'],
+      \ ['BASE', 'COMMON BASE'],
+      \ ['LOCAL', 'CURRENT BRANCH'],
+    \ ]
+    if branch == 'rebase'
+      " with a rebase the current branch becomes the REMOTE since it is
+      " applied last, and the LOCAL is the other branch that we are attempting
+      " to rebase on top of.
+      let files = [
+        \ ['REMOTE', 'CURRENT BRANCH'],
+        \ ['BASE', 'COMMON BASE'],
+        \ ['LOCAL', 'REBASE ONTO'],
+      \ ]
+    endif
+
+    for [name, display] in files
+      let pattern = '*_' . name . '_*'
+      let winnr = bufwinnr(pattern)
+      if winnr == -1
+        echohl Error | echom 'Missing expected file:' pattern | echohl NONE
+        return
+      endif
+      exec winnr . 'winc w'
+      exec 'setlocal statusline=' . escape(display, ' ')
+    endfor
+
+    let merge = bufname(4)
+    exec 'bot diffsplit' merge
+  endfunction " }}}
+
+" }}}
+
+" abbreviations {{{
+  cabbrev ln lnext
+  cabbrev t  Tab
+  cabbrev er EditRelative
+  cabbrev rr ReadRelative
+  cabbrev sr SplitRelative
 " }}}
 
 " autocommands {{{
-  if has("autocmd")
     " For various events, check whether the file has been changed by another
     " process (only really useful in console vim where focus events aren't
     " fired).
@@ -402,7 +555,6 @@
       autocmd WinEnter,VimEnter *
         \ exec 'setlocal ' . (&ft == 'qf' ? 'no' : '') . 'cursorline'
     endif
-  endif
 " }}}
 
 " plugin specific settings
