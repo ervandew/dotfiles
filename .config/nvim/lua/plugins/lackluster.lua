@@ -17,7 +17,7 @@ return {{
     vim.api.nvim_set_hl(0, '@comment', { fg = '#525252' })
     vim.api.nvim_set_hl(0, '@comment.documentation', { link = '@comment' })
     vim.api.nvim_set_hl(0, '@comment.error', { link = '@comment.todo' })
-    vim.api.nvim_set_hl(0, '@comment.todo', { fg = '#6f6f1f' })
+    vim.api.nvim_set_hl(0, '@comment.todo', { fg = '#8f8f3f' })
     vim.api.nvim_set_hl(0, '@function', { fg = '#cccccc' })
     vim.api.nvim_set_hl(0, '@function.builtin', { fg = '#666666' })
     vim.api.nvim_set_hl(0, '@function.method', { fg = '#cccccc' })
@@ -53,6 +53,13 @@ return {{
     vim.api.nvim_set_hl(0, 'VcsAnnotate', { link = 'Special' })
     vim.api.nvim_set_hl(0, 'Visual', { bg = '#353535' })
     vim.api.nvim_set_hl(0, 'WarningMsg', { fg = '#afaf5f' })
+
+    vim.api.nvim_set_hl(0, 'DiagnosticHint', { fg = '#7a7a7a' })
+    vim.api.nvim_set_hl(0, 'DiagnosticError', { link = 'Error' })
+    vim.api.nvim_set_hl(0, 'DiagnosticSignError', { link = 'DiagnosticError' })
+    vim.api.nvim_set_hl(0, 'DiagnosticSignWarn', { link = 'WarningMsg' })
+    vim.api.nvim_set_hl(0, 'DiagnosticUnnecessary', { link = 'DiagnosticHint' })
+    vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextError', { link = 'DiagnosticError' })
 
     -- file type specific changes
     vim.api.nvim_set_hl(0, '@markup.heading.gitcommit', { fg = '#888888' })
