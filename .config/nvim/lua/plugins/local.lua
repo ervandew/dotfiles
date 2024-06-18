@@ -1,17 +1,24 @@
 -- local plugins
 return {
-  {dir = '~/.vim/'},
-  {dir = '~/.vim/bundle/eclim'},
-  {dir = '~/projects/vim/ag'},
-  {dir = '~/projects/vim/archive'},
-  {dir = '~/projects/vim/buffers'},
-  {dir = '~/projects/vim/lookup'},
-  {dir = '~/projects/vim/maximize'},
-  {dir = '~/projects/vim/notebook'},
-  {dir = '~/projects/vim/regex'},
-  {dir = '~/projects/vim/relative'},
-  {dir = '~/projects/vim/sgmlendtag'},
-  {dir = '~/projects/vim/supertab'},
-  {dir = '~/projects/vim/taglisttoo'},
-  {dir = '~/projects/vim/vcs'},
+  {
+    dir = '~/.vim/',
+    config = function()
+      -- diff
+      vim.keymap.set('ca', 'dn', 'DiffNextChange')
+      vim.keymap.set('ca', 'dp', 'DiffPrevChange')
+
+      -- indentdetect
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = '*',
+        callback = function()
+          if vim.fn.exists(':IndentDetect') == 2 then
+            vim.cmd.IndentDetect()
+          end
+        end
+      })
+
+      -- ranger
+      vim.keymap.set('n', '<leader>/', ':Ranger<cr>', { silent = true })
+    end
+  },
 }
