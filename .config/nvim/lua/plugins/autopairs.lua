@@ -17,18 +17,17 @@ return {{
     })
 
     -- start with default rules when overriding for file type specific pairs
-    quote = default.bracket_creator(autopairs.config)
-    bracket = default.bracket_creator(autopairs.config)
+    local quote = default.bracket_creator(autopairs.config)
+    local bracket = default.bracket_creator(autopairs.config)
 
     -- block_wrap (attempt to suppress closing bracket when wrapping a block {{{
-    local block_wrap = function(opts)
+    local block_wrap = function(opts) ---@diagnostic disable-line: unused-local
       local next_line = vim.fn.getline(vim.fn.line('.') + 1)
       -- if the next line ends in a comma, then we are probably wrapping a
       -- block to create list, tuple, or dict
       if next_line:match(',$') then
         return false
       end
-      return
     end -- }}}
 
     autopairs.get_rules('(')[1]:with_pair(block_wrap)
@@ -53,8 +52,7 @@ return {{
     --   string or table of the file type to target
     local closetag = function(...)
       local params = {...}
-
-      matched = function(opts)
+      local matched = function(opts)
         -- only execute at the end of line
         local suffix = opts.line:sub(opts.col + 1)
         if suffix:match('^%s*$') == nil then
@@ -69,7 +67,7 @@ return {{
       end
 
       -- find the start tag to grab the name to put into the end pair
-      close = function(opts)
+      local close = function(opts)
         local tag = string.gsub(opts.line, params[3], '%1')
         return string.gsub(opts.rule.end_pair, '%%s', tag)
       end
@@ -109,11 +107,11 @@ return {{
     autopairs.add_rules({
       Rule('then', 'end', 'lua')
         :end_wise(function(opts)
-          return string.match(opts.line, '^%s*if%W') ~= nil
+          return string.match(opts.line, '^%s*if%W.*then%s*$') ~= nil
         end),
       Rule('do', 'end', 'lua')
         :end_wise(function(opts)
-          local match = string.gsub(opts.line, '^%s*(%w+)%W.*', '%1')
+          local match = string.gsub(opts.line, '^%s*(%w+)%W.*do%s*$', '%1')
           return match == 'for' or match == 'while'
         end),
       Rule(')', 'end', 'lua')
