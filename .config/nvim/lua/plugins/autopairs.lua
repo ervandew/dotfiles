@@ -7,17 +7,18 @@ return {{
     local default = require('nvim-autopairs.rules.basic')
     local Rule = require('nvim-autopairs.rule')
     autopairs.setup({
-      -- use treesitter
-      check_ts = true,
+      -- don't use treesitter, prevents adding a quote before another quoted
+      -- string
+      check_ts = false,
       -- prevent case where sometimes typing a closing bracket will add a new
       -- one instead of overwriting the one that was auto inserted
       enable_check_bracket_line = false,
       -- don't auto add pair if the next isn't in the following negated set
-      ignored_next_char = '[^,:%s}%)%]]',
+      ignored_next_char = '[^,:\'"%s}%)%]]',
     })
 
     -- start with default rules when overriding for file type specific pairs
-    local quote = default.bracket_creator(autopairs.config)
+    local quote = default.quote_creator(autopairs.config)
     local bracket = default.bracket_creator(autopairs.config)
 
     -- block_wrap (attempt to suppress closing bracket when wrapping a block {{{
