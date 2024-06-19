@@ -21,4 +21,5 @@ return {
       vim.keymap.set('n', '<leader>/', ':Ranger<cr>', { silent = true })
     end
   },
+  {dir = '~/.vim/bundle/eclim'},
 }
