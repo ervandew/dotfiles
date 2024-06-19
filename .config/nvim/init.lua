@@ -435,6 +435,7 @@ vim.keymap.set('ca', 'ln', 'lnext')
 vim.api.nvim_create_autocmd('BufReadPost', {
   pattern = '*',
   callback = function()
+    if vim.fn.bufname():match('/%.git/') ~= nil then return end
     -- wrapped since nvim may throw an error
     pcall(vim.cmd('silent normal! g`"'))
   end
