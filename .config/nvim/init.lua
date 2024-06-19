@@ -102,9 +102,11 @@ function _tab() ---@diagnostic disable-line: lowercase-global
         )
         if dotgit ~= '' then
           local lines = vim.fn.readfile(dotgit .. '/HEAD')
-          local branch = #lines > 0 and lines[1]:gsub('ref: refs/heads/', '') or ''
-          if branch ~= '' then
-            tab_name = tab_name .. '(' .. branch .. ')'
+          if #lines > 0 then
+            local branch = lines[1]:gsub('ref: refs/heads/', '')
+            if branch ~= '' and branch ~= lines[1] then
+              tab_name = tab_name .. '(' .. branch .. ')'
+            end
           end
         end
       end
