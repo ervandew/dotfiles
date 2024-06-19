@@ -7,6 +7,8 @@ return {{
     local default = require('nvim-autopairs.rules.basic')
     local Rule = require('nvim-autopairs.rule')
     autopairs.setup({
+      -- don't split pair matching into their undo
+      break_undo = false,
       -- don't use treesitter, prevents adding a quote before another quoted
       -- string
       check_ts = false,
