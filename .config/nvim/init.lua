@@ -1,5 +1,5 @@
 -- use vim settings in neovim
-vim.opt.rtp:prepend('~/.vim/')
+vim.opt.rtp:prepend('~/.vim/') ---@diagnostic disable-line: undefined-field
 vim.cmd('let &packpath = &runtimepath')
 
 -- options {{{
@@ -289,6 +289,21 @@ function _virtual_edit(key) ---@diagnostic disable-line: lowercase-global {{{
   return (vim.fn.virtcol('.') > vim.fn.col('$') and '$' or '') .. key
 end -- }}}
 
+-- temporarily disable virtual edit to avoid pasting past the end of the line
+vim.keymap.set('n', 'p', function()
+  -- we need this command for accpeting a count in the paste expression
+  -- (using :set in the resulting expression would otherwise prevent that)
+  vim.api.nvim_create_user_command('TempVEDisable', function()
+    vim.o.ve = ''
+    vim.api.nvim_del_user_command('TempVEDisable')
+  end, { count = 1 })
+  local count = vim.v.count > 0 and vim.v.count or ''
+  local register = vim.v.register ~= '"' and ('"' .. vim.v.register) or ''
+  local disable = ':TempVEDisable<cr>'
+  local restore = ':set ve=' .. vim.o.ve .. '<cr>'
+  return disable .. count .. register .. 'p' .. restore
+end, { expr = true, silent = true })
+
 -- swap 2 words
 vim.keymap.set('n', '<leader>ws', function()
   local pos = vim.fn.getpos('.')
@@ -459,9 +474,9 @@ if not vim.uv.fs_stat(lazypath) then
     lazypath,
   })
 end
-vim.opt.rtp:prepend(lazypath)
+vim.opt.rtp:prepend(lazypath) ---@diagnostic disable-line: undefined-field
 
-require('lazy').setup(
+require('lazy').setup( ---@diagnostic disable-line: undefined-field
   'plugins',  -- load plugins from .config/nvim/lua/plugins
   {           -- lazy.nvim config options
     change_detection = {
