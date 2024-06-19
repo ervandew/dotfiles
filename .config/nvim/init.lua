@@ -24,6 +24,7 @@ vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.switchbuf = 'useopen'
 vim.opt.tabstop = 2
+vim.opt.textwidth = 80
 vim.opt.timeoutlen = 500
 vim.opt.updatetime = 1000
 vim.opt.virtualedit = 'all'
@@ -448,15 +449,24 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
   callback = function() vim.o.modifiable = not vim.o.readonly end
 })
 
--- only highlight cursor line of the current window, making is easier to
+-- only highlight cursor line / color column of the current window, making is easier to
 -- pick out which window has focus
 vim.api.nvim_create_autocmd('WinLeave', {
   pattern = '*',
-  callback = function() vim.o.cursorline = false end
+  callback = function()
+    vim.o.cursorline = false
+    vim.o.colorcolumn = ''
+  end
 })
 vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'FileType' }, {
   pattern = '*',
-  callback = function() vim.o.cursorline = vim.o.ft ~= 'qf' end
+  callback = function()
+    if vim.o.ft == 'qt' then
+      return
+    end
+    vim.o.cursorline = true
+    vim.opt.colorcolumn = '+2'
+  end
 })
 
 -- }}}
