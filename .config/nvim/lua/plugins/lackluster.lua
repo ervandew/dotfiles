@@ -60,11 +60,17 @@ return {{
     vim.api.nvim_set_hl(0, 'DiagnosticSignError', { link = 'DiagnosticError' })
     vim.api.nvim_set_hl(0, 'DiagnosticSignWarn', { link = 'WarningMsg' })
     vim.api.nvim_set_hl(0, 'DiagnosticUnnecessary', { link = 'DiagnosticHint' })
+    vim.api.nvim_set_hl(0, 'DiagnosticUnderlineError', { fg = '#875f5f', italic = true, underline = false })
+    vim.api.nvim_set_hl(0, 'DiagnosticUnderlineInfo', { fg = '#878700', italic = true, underline = false })
+    vim.api.nvim_set_hl(0, 'DiagnosticUnderlineWarn', { fg = '#878700', italic = true, underline = false })
     vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextError', { link = 'DiagnosticError' })
 
     -- file type specific changes
     vim.api.nvim_set_hl(0, '@markup.heading.gitcommit', { fg = '#888888' })
     vim.api.nvim_set_hl(0, '@string.special.url.gitcommit', { link = '@markup.link.gitcommit' })
     vim.api.nvim_set_hl(0, '@number.float.python', { link = '@number' })
+
+    -- lsp specific changes
+    vim.api.nvim_set_hl(0, '@lsp.type.event.lua', { link = '@comment' })
   end,
 }}
