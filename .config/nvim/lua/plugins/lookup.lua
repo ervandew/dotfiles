@@ -5,7 +5,7 @@ return {{
     vim.g.LookupRuntimePath = 'all'
     vim.g.LookupSingleResultAction = 'split'
     vim.api.nvim_create_autocmd('FileType', {
-      pattern = { 'lua', 'vim' },
+      pattern = { 'help', 'lua', 'vim' },
       callback = function()
         vim.keymap.set('n', '<cr>', ':Lookup<cr>', { buffer = true, silent = true })
       end
