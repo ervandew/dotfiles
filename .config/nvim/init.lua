@@ -316,7 +316,6 @@ end)
 -- commands {{{
 
 -- Tab (open a new tab using the supplied working directory) {{{
--- command! -nargs=1 -complete=dir Tab :call <SID>Tab('<args>')
 vim.api.nvim_create_user_command('Tab', function(opts)
   local dir = opts.args
   if vim.fn.isdirectory(dir) == 0 then
@@ -472,7 +471,6 @@ vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'FileType' }, {
 -- plugins (via lazy.nvim) {{{
 
 local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
-
 if not vim.uv.fs_stat(lazypath) then
   vim.fn.system({
     'git',
@@ -486,7 +484,7 @@ end
 vim.opt.rtp:prepend(lazypath) ---@diagnostic disable-line: undefined-field
 
 require('lazy').setup( ---@diagnostic disable-line: undefined-field
-  'plugins',  -- load plugins from .config/nvim/lua/plugins
+  'spec',     -- load plugin specs from .config/nvim/lua/spec/*.lua
   {           -- lazy.nvim config options
     change_detection = {
       enable = false,

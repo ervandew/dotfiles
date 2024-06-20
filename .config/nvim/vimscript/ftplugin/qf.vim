@@ -6,7 +6,7 @@
 xnoremap <buffer> <silent> d :call <SID>Delete()<cr>
 nnoremap <buffer> <silent> dd :call <SID>Delete()<cr>
 nnoremap <buffer> <silent> D :call <SID>Delete()<cr>
-nnoremap <buffer> <silent> e <cr>:cclose<cr>
+nnoremap <buffer> <silent> q <cr>:cclose<cr>
 nnoremap <buffer> <silent> s :call <SID>Split(1)<cr>
 nnoremap <buffer> <silent> S :call <SID>Split(0)<cr>
 
