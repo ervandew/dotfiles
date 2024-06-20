@@ -25,17 +25,28 @@ return {{
 
     -- block_wrap (attempt to suppress closing bracket when wrapping a block {{{
     local block_wrap = function(opts) ---@diagnostic disable-line: unused-local
-      local next_line = vim.fn.getline(vim.fn.line('.') + 1)
-      -- if the next line ends in a comma, then we are probably wrapping a
-      -- block to create list, tuple, or dict
-      if next_line:match(',$') then
-        return false
+      local trailing = string.sub(opts.line, opts.col, -1)
+      if trailing:match('^%s*$') then
+        local next_line = vim.fn.getline(vim.fn.line('.') + 1)
+        -- if the next line ends in a comma, then we are probably wrapping a
+        -- block to create list, tuple, or dict
+        if next_line:match(',$') then
+          return false
+        end
       end
-    end -- }}}
+    end
 
-    autopairs.get_rules('(')[1]:with_pair(block_wrap)
-    autopairs.get_rules('{')[1]:with_pair(block_wrap)
-    autopairs.get_rules('[')[1]:with_pair(block_wrap)
+    local bracket_ignored_next_char = '[\'"]'
+    autopairs.get_rules('(')[1]
+      :with_pair(block_wrap)
+      :with_pair(cond.not_after_regex(bracket_ignored_next_char))
+    autopairs.get_rules('{')[1]
+      :with_pair(block_wrap)
+      :with_pair(cond.not_after_regex(bracket_ignored_next_char))
+    autopairs.get_rules('[')[1]
+      :with_pair(block_wrap)
+      :with_pair(cond.not_after_regex(bracket_ignored_next_char))
+    -- }}}
 
     -- not_after_regex {{{
     -- autopairs version doesn't use the whole line, but having the whole line
