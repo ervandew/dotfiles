@@ -10,8 +10,9 @@ vim.opt.completeopt = { 'menuone', 'longest', 'preview' }
 vim.opt.expandtab = true
 vim.opt.fileformats:append('mac')
 vim.opt.fillchars = { fold = ' ' }
+vim.opt.grepprg = 'rg --vimgrep'
 vim.opt.list = true
-vim.opt.listchars = { precedes = '<', extends = '>', tab = '>-', trail = '-' }
+vim.opt.listchars = { precedes = '<', extends = '>', tab = '>-', trail = '￮' }
 vim.opt.number = true
 vim.opt.scrolloff = 5
 vim.opt.shiftwidth = 2
@@ -193,7 +194,8 @@ vim.keymap.set('n', 'gF', '<c-w>F')
 vim.keymap.set(
   'n',
   '*',
-  '"syiw<esc>: let @/ = "\\\\<" . @s . "\\\\>"<cr>:set hls<cr>'
+  '"syiw<esc>: let @/ = "\\\\<" . @s . "\\\\>"<cr>:set hls<cr>',
+  { silent = true }
 )
 
 -- toggle spelling with <c-z> (normal or insert mode)
@@ -434,8 +436,7 @@ vim.api.nvim_create_autocmd('BufReadPost', {
   pattern = '*',
   callback = function()
     if vim.fn.bufname():match('/%.git/') ~= nil then return end
-    -- wrapped since nvim may throw an error
-    pcall(vim.cmd('silent normal! g`"'))
+    vim.cmd('silent! normal! g`"')
   end
 })
 
@@ -458,7 +459,8 @@ vim.api.nvim_create_autocmd('WinLeave', {
 vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'FileType' }, {
   pattern = '*',
   callback = function()
-    if vim.o.ft == 'qt' then
+    local ignore = { 'man', 'qf' }
+    if vim.list_contains(ignore, vim.o.ft) then
       return
     end
     vim.o.cursorline = true
