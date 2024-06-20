@@ -1,7 +1,3 @@
--- use vim settings in neovim
-vim.opt.rtp:prepend('~/.vim/') ---@diagnostic disable-line: undefined-field
-vim.cmd('let &packpath = &runtimepath')
-
 -- options {{{
 vim.opt.guicursor = (
   'n-c-sm:block-TermCursor,' ..
