@@ -96,9 +96,14 @@ function! s:IndentDetect() " {{{
     let num_samples = 0
     let last_indent = 0
 
+    let ts = v:false
+    if has('nvim')
+      let ts = luaeval('vim.treesitter.highlighter.active[' . bufnr() . '] ~= nil')
+    endif
+
     " TODO: take samples from other parts of the file (middle, end)
     while num_samples < 5 && search('^\s\+\S', 'eW', 500, 500)
-      if s:Syntax() !~ 'Comment\|String'
+      if !s:Ignore(ts)
         let indent = indent(line('.'))
 
         " indents larget than the previous are probably line continuations,
@@ -184,8 +189,22 @@ function! s:IndentDetect() " {{{
   endtry
 endfunction " }}}
 
-function! s:Syntax() " {{{
-  return synIDattr(synIDtrans(synID(line('.'), col('.'), 1)), "name")
+function! s:Ignore(ts) " {{{
+  let syntax = ''
+  if has('nvim') && a:ts == v:true
+    try
+      let syntax = luaeval('vim.treesitter.get_node():type()')
+    catch /E5108/
+      " treesitter state could change, so fallback to regular syntax check
+    endtry
+  endif
+
+  if syntax == ''
+    let synid = synIDtrans(synID(line('.'), col('.'), 1))
+    let syntax = synIDattr(synid, "name")
+  endif
+
+  return syntax =~? 'comment\|string'
 endfunction " }}}
 
-" vim:ft=vim:fdm=marker
+" vim:fdm=marker
