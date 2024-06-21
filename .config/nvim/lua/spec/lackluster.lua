@@ -73,5 +73,9 @@ return {{
 
     -- lsp specific changes
     vim.api.nvim_set_hl(0, '@lsp.type.event.lua', { link = '@comment' })
+
+    -- plugin specific changes
+    vim.api.nvim_set_hl(0, 'TelescopeMatching', { fg = '#afaf5f' })
+    vim.api.nvim_set_hl(0, 'TelescopeResultsNormal', { fg = '#666666' })
   end,
 }}
