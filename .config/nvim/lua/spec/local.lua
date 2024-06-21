@@ -1,7 +1,7 @@
 -- local plugins
 return {
   {
-    dir = '~/.vim/',
+    dir = vim.fn.stdpath('config') .. '/vimscript',
     config = function()
       -- diff
       vim.keymap.set('ca', 'dn', 'DiffNextChange')
