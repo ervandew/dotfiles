@@ -15,13 +15,17 @@ try
       \ "\\(.*[[:space:]\"',(\\[{><]\\|^\\)\\(.*\\%" .
       \ col('.') . "c.\\{-}\\)\\([[:space:]\"',)\\]}<>].*\\|$\\)",
       \ '\2', '')
+    echom 'possible_path:' possible_path
     if possible_path =~ '\.css$'
       let paths = [
         \ substitute(possible_path, '\.css$', '.scss', ''),
         \ substitute(possible_path, '\.css$', '/index.scss', '')
        \ ]
-    elseif possible_path =~ '\.js$' && possible_path !~ '.*/.*'
-      let paths = [substitute(possible_path, '\.js', '/index.js', '')]
+    elseif possible_path =~ '\.js$'
+      let paths = [
+        \ possible_path,
+        \ substitute(possible_path, '\.js', '/index.js', '')
+      \ ]
     elseif possible_path =~ '\.html$'
       let paths = [possible_path]
     else
@@ -58,8 +62,6 @@ try
 
     if len(patterns)
       let winnum = winnr()
-      " FIXME: updating Ag to support opening a single result in a new window
-      " would aleviate the need for this gross code
       for [ext, pattern] in patterns
         silent exec 'Ag! ' . pattern . ' **/*' . ext
         let results = getqflist()
@@ -79,7 +81,9 @@ try
     elseif len(paths)
       let found = 0
       for path in paths
-        silent! let found = ag#search#FindFile(path, 'split')
+        silent let found = luaeval(
+          \ "require('grep').find_file('" .. path .. "', 'split')"
+        \ )
         if found
           break
         endif

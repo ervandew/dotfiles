@@ -21,7 +21,6 @@ vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.switchbuf = 'useopen'
 vim.opt.tabstop = 2
-vim.opt.textwidth = 80
 vim.opt.timeoutlen = 500
 vim.opt.updatetime = 1000
 vim.opt.virtualedit = 'all'
@@ -313,119 +312,37 @@ vim.keymap.set('n', '<leader>ws', function()
   vim.fn.setpos('.', pos)
 end)
 
+vim.keymap.set('n', 'gf', ':Grep --files<cr>', { silent = true })
+vim.keymap.set('n', 'gF', ':Grep! --files<cr>', { silent = true })
 -- }}}
 
 -- commands {{{
 
--- Tab (open a new tab using the supplied working directory) {{{
-vim.api.nvim_create_user_command('Tab', function(opts)
-  local dir = opts.args
-  if vim.fn.isdirectory(dir) == 0 then
-    vim.api.nvim_echo({{ 'Not found: ' .. dir, 'Error' }}, false, {})
-    return
-  end
-
-  dir = vim.fn.fnamemodify(dir, ':p')
-  if dir:match('/$') then
-    dir = string.sub(dir, 1, -2)
-  end
-
-  -- if the current tab isn't already named, has no modifications, no
-  -- additional windows, and only an empty [No Name] buffer, then skip opening
-  -- a new tab and just name this one.
-  if vim.o.modified or
-     vim.fn.exists('t:tab_name') ~= 0 or
-     vim.fn.winnr('$') > 1 or
-     vim.fn.expand('%') ~= '' or
-     vim.fn.line('$') ~= 1 or
-     vim.fn.getline(1) ~= '' then
-    vim.cmd('tablast | tabnew')
-  end
-  vim.api.nvim_tabpage_set_var(0, 'tab_name', vim.fn.fnamemodify(dir, ':t'))
-  vim.cmd('tcd ' .. vim.fn.escape(dir, ' '))
-
-  vim.o.showtabline = 2
-
-  vim.api.nvim_create_augroup('Tab', {})
-  vim.api.nvim_create_autocmd('TabEnter', {
-    group = 'Tab',
-    pattern = '*',
-    callback = function()
-      if vim.fn.tabpagenr('$') == 1 and vim.fn.exists('t:tab_name') == 0 then
-        vim.o.showtabline = 1
-      end
-    end
-  })
-end, { nargs = 1, complete = 'dir' }) -- }}}
-
--- Mergetool (mergetool for git) {{{
--- .gitconfig
---   [merge]
---     tool = nvim
---   [mergetool "nvim"]
---     cmd = nvim -d -O3 "$LOCAL" "$BASE" "$REMOTE" "$MERGED" -c "Mergetool"
----@diagnostic disable-next-line: unused-local
-vim.api.nvim_create_user_command('Mergetool', function(opts)
-  if vim.fn.bufnr('$') ~= 4 then
-    vim.api.nvim_echo(
-      {{ 'Unexpected number of buffers: ' .. vim.fn.bufnr('$'), 'Error' }},
-      true,
-      {}
-    )
-    return
-  end
-
-  if vim.fn.winnr('$') ~= 3 then
-    vim.api.nvim_echo(
-      {{ 'Unexpected number of windows: ' .. vim.fn.winnr('$'), 'Error' }},
-      true,
-      {}
-    )
-    return
-  end
-
-  -- relies on repo alias from my .gitconfg
-  local branch = vim.fn.split(vim.fn.systemlist('git repo')[1], ':')[2]
-  local files = {
-    REMOTE = 'MERGING IN',
-    BASE = 'COMMON BASE',
-    LOCAL = 'CURRENT BRANCH',
+vim.api.nvim_create_user_command(
+  'Grep',
+  function(opts) require('grep').find(opts) end,
+  {
+    bang = true,
+    nargs = '*',
+    complete = function(...) return require('grep').complete(...) end,
   }
-  if branch == 'rebase' then
-    -- with a rebase the current branch becomes the REMOTE since it is applied
-    -- last, and the LOCAL is the other branch that we are attempting to rebase
-    -- on top of.
-    files = {
-      REMOTE = 'CURRENT BRANCH',
-      BASE = 'COMMON BASE',
-      LOCAL = 'REBASE ONTO',
-    }
-  end
+)
 
-  for name, display in pairs(files) do
-    local pattern = '*_' .. name .. '_*'
-    local winnr = vim.fn.bufwinnr(pattern)
-    if winnr == -1 then
-      vim.api.nvim_echo(
-        {{ 'Missing expected file: ' .. pattern, 'Error' }},
-        false,
-        {}
-      )
-      return
-    end
-    vim.cmd(winnr .. 'winc w')
-    vim.wo.statusline = display
-  end
+vim.api.nvim_create_user_command('Tab', function(opts)
+  require('tab').open(opts)
+end, { nargs = 1, complete = 'dir' })
 
-  local merge = vim.fn.bufname(4)
-  vim.cmd('bot diffsplit ' .. merge)
-end, { nargs = 0 }) -- }}}
+vim.api.nvim_create_user_command('Mergetool', function()
+  require('mergetool').setup()
+end, { nargs = 0 })
 
 -- }}}
 
 -- abbreviations {{{
 
 vim.keymap.set('ca', 'ln', 'lnext')
+vim.keymap.set('ca', 'gr', 'Grep')
+vim.keymap.set('ca', 'rg', 'Grep')
 
 -- }}}
 
@@ -447,8 +364,8 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
   callback = function() vim.o.modifiable = not vim.o.readonly end
 })
 
--- only highlight cursor line / color column of the current window, making is easier to
--- pick out which window has focus
+-- only highlight cursor line / color column of the current window, making is
+-- easier to pick out which window has focus
 vim.api.nvim_create_autocmd('WinLeave', {
   pattern = '*',
   callback = function()
@@ -459,12 +376,13 @@ vim.api.nvim_create_autocmd('WinLeave', {
 vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'FileType' }, {
   pattern = '*',
   callback = function()
+    -- don't show the colorcolumn for certain file types or files that can't be
+    -- edited
     local ignore = { 'man', 'qf' }
-    if vim.list_contains(ignore, vim.o.ft) then
-      return
+    if not vim.list_contains(ignore, vim.o.ft) and not vim.o.readonly then
+      vim.opt.colorcolumn = '82'
     end
     vim.o.cursorline = true
-    vim.opt.colorcolumn = '+2'
   end
 })
 
