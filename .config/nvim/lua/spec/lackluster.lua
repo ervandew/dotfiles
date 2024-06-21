@@ -66,6 +66,7 @@ return {{
     vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextError', { link = 'DiagnosticError' })
 
     -- file type specific changes
+    vim.api.nvim_set_hl(0, '@constant.git_rebase', { link = '@number' })
     vim.api.nvim_set_hl(0, '@markup.heading.gitcommit', { fg = '#888888' })
     vim.api.nvim_set_hl(0, '@string.special.url.gitcommit', { link = '@markup.link.gitcommit' })
     vim.api.nvim_set_hl(0, '@number.float.python', { link = '@number' })
