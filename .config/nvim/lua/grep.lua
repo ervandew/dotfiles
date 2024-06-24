@@ -109,6 +109,8 @@ local grep = function(opts, args, action)
 
     arg = vim.fn.escape(arg, '"')
     if arg:match('^%-') == nil then
+      -- escape vim expansion chars
+      arg = vim.fn.escape(arg, '#%')
       arg = '"' .. arg .. '"'
     end
     cmd = cmd .. ' ' .. arg
@@ -180,6 +182,14 @@ M.find = function(opts)
     return
   end
 
+  if vim.fn.bufname():match('^%.%./') then
+    echo(
+      'Attempting to grep from a file outside of the current working directory',
+      'Error'
+    )
+    return
+  end
+
   if opts.args == '' then
     local cword = vim.fn.expand('<cword>')
     if cword == '' then
@@ -245,7 +255,6 @@ M.complete = function(lead, cmdl, pos)
 
   -- complete patterns from search history
   local result = options_args(args)
-  local options = result[1]
   args = result[2]
   if #args == 0 or (#args == 1 and lead ~= '') then
     local search = {}
