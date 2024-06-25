@@ -332,6 +332,10 @@ vim.api.nvim_create_user_command('Tab', function(opts)
   require('tab').open(opts)
 end, { nargs = 1, complete = 'dir' })
 
+vim.api.nvim_create_user_command('Wrap', function()
+  require('wrap').eval()
+end, { nargs = 0 })
+
 vim.api.nvim_create_user_command('Mergetool', function()
   require('mergetool').setup()
 end, { nargs = 0 })
