@@ -14,9 +14,10 @@ vim.opt.grepprg = 'rg --vimgrep'
 vim.opt.list = true
 vim.opt.listchars = { precedes = '<', extends = '>', tab = '>-', trail = '￮' }
 vim.opt.number = true
-vim.opt.scrolloff = 5
+vim.opt.scrolloff = 10
 vim.opt.shiftwidth = 2
 vim.opt.sidescrolloff = 10
+vim.opt.signcolumn = 'number'
 vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.switchbuf = 'useopen'
@@ -41,28 +42,46 @@ end
 -- }}}
 
 -- statusline {{{
-vim.opt.statusline = '%<%f%{%v:lua._status()%} %M %h%r%=%-10.(%l,%c%V b=%n,w=%{winnr()}%) %P'
+vim.opt.statusline = '%<%{%v:lua._status()%} %h%r%=%-10.(%l,%c%V b=%n,w=%{winnr()}%) %P'
+local severities = {
+  [vim.diagnostic.severity.ERROR] = 'DiagnosticStatusError',
+  [vim.diagnostic.severity.WARN] = 'DiagnosticStatusWarn',
+  [vim.diagnostic.severity.INFO] = 'DiagnosticStatusInfo',
+  [vim.diagnostic.severity.HINT] = 'DiagnosticStatusHint',
+}
 function _status() ---@diagnostic disable-line: lowercase-global
-  local stl = ''
+  local stl = vim.fn.bufname() .. (vim.o.modified and ' +' or '')
+  local curwin = vim.fn.str2nr(vim.g.actual_curwin)
+  local winid = vim.fn.win_getid()
+  if curwin == winid then
+    -- show the max diagnostic severity in the statusline
+    if vim.b.diagnostic ~= nil then
+      local hi = severities[vim.b.diagnostic.severity]
+      stl = '%#' .. hi .. '#' .. stl .. '%*'
+    end
+  end
+
+  local stl_addl = ''
   -- show the quickfix title
   if vim.o.ft == 'qf' then
-    stl = vim.fn.getqflist({ title = true })
+    stl_addl = vim.fn.getqflist({ title = true })
   -- for csv files, display which column the cursor is in
   elseif vim.o.ft == 'csv' then
     if vim.fn.exists(':CSV_WCol') then
-      stl = ' [col: ' .. vim.fn.CSV_WCol('Name') .. ' (' .. vim.fn.CSV_WCol() .. ')]'
+      stl_addl = '[col: ' .. vim.fn.CSV_WCol('Name') .. ' (' .. vim.fn.CSV_WCol() .. ')]'
     end
   end
 
   -- show in the status line if the file is in dos format
   if vim.o.ff ~= 'unix' then
-    stl = ' [' .. vim.o.ff .. ']' .. stl
+    stl_addl = '[' .. vim.o.ff .. '] ' .. stl_addl
   end
 
-  if vim.fn.str2nr(vim.g.actual_curwin) == vim.fn.win_getid() then
-    return '%#StatusLineFF#' .. stl .. '%*'
+  if curwin == winid then
+    stl_addl = '%#StatusLineFF#' .. stl_addl .. '%*'
   end
-  return stl
+
+  return stl .. ' ' .. stl_addl
 end -- }}}
 
 -- tabline {{{
@@ -357,7 +376,7 @@ vim.api.nvim_create_autocmd('BufReadPost', {
   pattern = '*',
   callback = function()
     if vim.fn.bufname():match('/%.git/') ~= nil then return end
-    vim.cmd('silent! normal! g`"')
+    vim.cmd('silent! normal! g`"zz')
   end
 })
 
