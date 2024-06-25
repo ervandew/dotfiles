@@ -77,5 +77,8 @@ return {{
     -- plugin specific changes
     vim.api.nvim_set_hl(0, 'TelescopeMatching', { fg = '#afaf5f' })
     vim.api.nvim_set_hl(0, 'TelescopeResultsNormal', { fg = '#666666' })
+    vim.api.nvim_set_hl(0, 'TreesitterContext', { fg = '#875f87', bg = '#453e46' })
+    vim.api.nvim_set_hl(0, 'TreesitterContextLineNumber', { link = 'TreesitterContext' })
+    vim.api.nvim_set_hl(0, 'TreesitterContextBottom', { underline = true })
   end,
 }}
