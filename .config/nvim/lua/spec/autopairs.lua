@@ -14,6 +14,9 @@ return {{
       check_ts = false,
       -- prevent case where sometimes typing a closing bracket will add a new
       -- one instead of overwriting the one that was auto inserted
+      -- Note: this just prevents the default
+      -- :with_pair(cond.is_bracket_line()) call since we manually add
+      -- cond.is_bracket_line_move() to the bracket rules below.
       enable_check_bracket_line = false,
       -- don't auto add pair if the next isn't in the following negated set
       ignored_next_char = '[^,:\'"%s}%)%]]',
@@ -40,12 +43,15 @@ return {{
     autopairs.get_rules('(')[1]
       :with_pair(block_wrap)
       :with_pair(cond.not_after_regex(bracket_ignored_next_char))
+      :with_move(cond.is_bracket_line_move())
     autopairs.get_rules('{')[1]
       :with_pair(block_wrap)
       :with_pair(cond.not_after_regex(bracket_ignored_next_char))
+      :with_move(cond.is_bracket_line_move())
     autopairs.get_rules('[')[1]
       :with_pair(block_wrap)
       :with_pair(cond.not_after_regex(bracket_ignored_next_char))
+      :with_move(cond.is_bracket_line_move())
     -- }}}
 
     -- not_after_regex {{{
@@ -112,9 +118,14 @@ return {{
     -- lua {{{
     -- disable default {, replace with version that won't trigger in a comment
     -- (for folding)
-    autopairs.get_rules('{')[1]:with_pair(cond.not_filetypes({ 'lua' }))
+    autopairs.get_rules('{')[1]
+      :with_move(cond.not_filetypes({ 'lua' }))
+      :with_pair(cond.not_filetypes({ 'lua' }))
     autopairs.add_rule(bracket('{', '}', 'lua')
+      :with_pair(block_wrap)
       :with_pair(not_after_regex('%s*%-%-'))
+      :with_pair(cond.not_after_regex(bracket_ignored_next_char))
+      :with_move(cond.is_bracket_line_move())
     )
 
     -- auto close various statements
@@ -130,7 +141,6 @@ return {{
         end),
       Rule(')', 'end', 'lua')
         :end_wise(function(opts)
-          vim.print({'line:', opts.line})
           return string.match(opts.line, '%W*function%s*%([^%)]*%)[%s%)}]*$') ~= nil
         end),
     })
@@ -139,9 +149,14 @@ return {{
     -- vim {{{
     -- disable default ", replace with version that won't trigger at the start
     -- of a comment
-    autopairs.get_rules('"')[1]:with_pair(cond.not_filetypes({ 'vim' }))
+    autopairs.get_rules('"')[1]
+      :with_move(cond.not_filetypes({ 'vim' }))
+      :with_pair(cond.not_filetypes({ 'vim' }))
     autopairs.add_rule(quote('"', '"', { 'vim' })
+      :with_pair(block_wrap)
       :with_pair(not_after_regex('^%s*'))
+      :with_pair(cond.not_after_regex(bracket_ignored_next_char))
+      :with_move(cond.is_bracket_line_move())
     )
     -- disable default {, replace with version that won't trigger in a comment
     -- (for folding)
