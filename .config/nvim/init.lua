@@ -384,7 +384,7 @@ vim.api.nvim_create_autocmd('BufReadPost', {
 -- autocmd BufNewFile,BufRead * :let &modifiable = !&readonly
 vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
   pattern = '*',
-  callback = function() vim.o.modifiable = not vim.o.readonly end
+  callback = function() vim.bo.modifiable = not vim.bo.readonly end
 })
 
 -- only highlight cursor line / color column of the current window, making is
