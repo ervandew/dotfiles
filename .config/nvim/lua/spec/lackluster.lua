@@ -104,6 +104,8 @@ return {{
     vim.api.nvim_set_hl(0, 'TreesitterContext', { fg = purple, bg = '#453e46' })
     vim.api.nvim_set_hl(0, 'TreesitterContextLineNumber', { link = 'TreesitterContext' })
     vim.api.nvim_set_hl(0, 'TreesitterContextBottom', { underline = true })
+    -- added by spec
+    vim.api.nvim_set_hl(0, 'TreesitterContextVisible', { bg = '#302931' })
 
     -- providing ctermfg prevents underline on DiffChange lines:
     -- bug: https://github.com/neovim/neovim/issues/9800.
