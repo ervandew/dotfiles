@@ -116,20 +116,20 @@
   alias ls="ls --color=auto"
   alias mv="mv -i"
   alias grep="grep --color=auto"
+  # pager that uses nvim
+  alias less="pager"
+
+  # for dotfiles sync
+  function dotfiles() {
+    if [[ $PWD =~ .*/dotfiles.* ]] ; then
+      stow --target=$HOME "$@" .
+    else
+      echo 'error: not a dotfiles directory'
+    fi
+  }
 
   # prevent errors when remote shells don't understand my current term.
   alias ssh="TERM='xterm-256color' ssh"
-
-  # aliases for vim
-  alias less="pager"
-  alias vimdiff="vim -d"
-  alias vimmin="vim -u NONE --cmd 'set nocp | sy on | filetype plugin indent on'"
-  alias vimlarge="vim -u NONE --cmd 'set noswf nowrap undolevels=-1' --cmd 'autocmd BufReadPre * setlocal bt=nowrite'"
-
-  # if not in X, tell vim not to attempt connection w/ X server
-  if [ "$DISPLAY" == "" ] ; then
-    alias vim="vim -X"
-  fi
 
   # always use passive mode
   alias ftp="ftp -p"
@@ -166,6 +166,8 @@
   # get transparency to work with some terminal apps (mutt)
   export COLORFGBG="default;default"
   export NCURSES_ASSUMED_COLORS="-1;-1"
+
+  export MYSQL_PS1="\u@\h:\p> "
 # }}}
 
 # load user bash scripts
