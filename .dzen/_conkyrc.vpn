@@ -1,0 +1,8 @@
+#!/bin/bash
+
+service=$(systemctl --no-pager list-units *vpn*service* | grep 'vpn.*active')
+service=$(echo $service | perl -pe "s|.*@(.*?)\.service.*|\1|")
+service=$(echo $service | perl -pe "s|\s*(.*?)\.service.*|\1|")
+if [ -n "$service" ] ; then
+  echo " | ^fg(\#c4c466)$service^fg()"
+fi

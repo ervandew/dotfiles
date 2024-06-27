@@ -1,1 +1,1 @@
-${if_up tun0} | ^fg(\#c4c466)${exec systemctl --no-pager list-units openvpn-client* | grep 'openvpn.*active' | perl -pe "s|.*openvpn-client@(.*?)\.service.*|\1|"}^fg()${endif}
+${execp $HOME/.dzen/_conkyrc.vpn}
