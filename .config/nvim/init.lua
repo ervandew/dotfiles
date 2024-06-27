@@ -2,7 +2,7 @@
 vim.opt.guicursor = (
   'n-c-sm:block-TermCursor,' ..
   'i-ci-ve:ver25-TermCursor,' ..
-  'r-cr-o:hor20-TermCursor,v:block-Cursor'
+  'r-cr-o:hor20-TermCursor,v:block-VisualCursor'
 )
 vim.opt.clipboard = 'unnamed'
 vim.opt.complete:remove({ 'i', 't', 'u' })
@@ -12,7 +12,7 @@ vim.opt.fileformats:append('mac')
 vim.opt.fillchars = { fold = ' ' }
 vim.opt.grepprg = 'rg --vimgrep'
 vim.opt.list = true
-vim.opt.listchars = { precedes = '<', extends = '>', tab = '>-', trail = '￮' }
+vim.opt.listchars = { precedes = '<', extends = '>', tab = '>-', trail = '\\u25e6' }
 vim.opt.number = true
 vim.opt.scrolloff = 10
 vim.opt.shiftwidth = 2
@@ -50,7 +50,11 @@ local severities = {
   [vim.diagnostic.severity.HINT] = 'DiagnosticStatusHint',
 }
 function _status() ---@diagnostic disable-line: lowercase-global
-  local stl = vim.fn.bufname() .. (vim.o.modified and ' +' or '')
+  local name = vim.fn.bufname()
+  if name == '' then
+    name = '[No Name]'
+  end
+  local stl = name .. (vim.o.modified and ' +' or '')
   local curwin = vim.fn.str2nr(vim.g.actual_curwin)
   local winid = vim.fn.win_getid()
   if curwin == winid then
@@ -406,6 +410,22 @@ vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'FileType' }, {
       vim.opt.colorcolumn = '82'
     end
     vim.o.cursorline = true
+  end
+})
+
+-- allow opening a file at a line number: foo/bar.txt:12
+vim.api.nvim_create_autocmd('BufReadCmd', {
+  pattern = '*:*',
+  callback = function(args)
+    local path, line = unpack(vim.fn.split(args.match, ':'))
+    if vim.fn.filereadable(path) == 1 then
+      vim.cmd('bwipeout!')
+      if vim.fn.bufexists(path) == 0 then
+        vim.cmd('edit ' .. path)
+        vim.cmd('silent ' .. line)
+        vim.cmd('filetype detect')
+      end
+    end
   end
 })
 

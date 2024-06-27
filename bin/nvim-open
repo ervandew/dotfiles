@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# convert python stack reference to file:line
+files=$(echo "$@" | perl -pe 's|File "(.*)", line (\d+),.*|\1:\2|')
+
+server=$(ls -1tr /run/user/$(id -u)/nvim* | head -1)
+nvim --server $server --remote-send "<c-\><c-n>:Split $files<cr>"

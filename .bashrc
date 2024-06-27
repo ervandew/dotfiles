@@ -118,7 +118,7 @@
   alias grep="grep --color=auto"
 
   # prevent errors when remote shells don't understand my current term.
-  alias ssh="TERM='rxvt' ssh"
+  alias ssh="TERM='xterm-256color' ssh"
 
   # aliases for vim
   alias less="pager"
@@ -140,8 +140,6 @@
 
   alias whatismyip="dig TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed 's|\"||g'"
 
-  alias irssi="urxvt -name irssi -title irssi -e irssi &"
-
   # postgres db shortcuts
   alias lsdb="psql postgres -c '\l'"
   function renamedb(){
@@ -155,7 +153,7 @@
   export PAGER=pager
   export MANPAGER=$PAGER
 
-  # force urxvt to use utf 8 (set in ~/.xinitrc as well)
+  # force use of utf 8 (set in ~/.xinitrc as well)
   export LANG="en_US.UTF-8"
   export LC_CTYPE="$LANG"
 

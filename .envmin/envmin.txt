@@ -44,14 +44,8 @@ export EDITOR=vim
 
 MULTIPLEXER=$(which tmux 2> /dev/null)
 if [ -n "$MULTIPLEXER" ] ; then
-  SCREEN=$(echo "$TERM" | grep "^screen")
+  SCREEN=$(echo "$TERM" | grep "^tmux")
   if [ -n "$MULTIPLEXER" -a -z "$SUDO_USER" -a -n "$SSH_TTY" -a -z "$SCREEN" ] ; then
-    # force a 256color term.
-    if [ "$TERM" == rxvt ] ; then
-      export TERM=rxvt-256color
-      #export TERM=xterm-256color
-    fi
-
     tmux attach || tmux
   fi
 fi

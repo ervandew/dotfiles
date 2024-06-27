@@ -95,11 +95,11 @@ myManageHook = composeAll [
 barBackground = "#232323"
 barForeground = "#7e7e7e"
 
-myTerminal = "urxvt"
+myTerminal = "alacritty"
 myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm", "5:misc", "6:misc"]
 myScratchpads = [
-    NS "scratchterm" "urxvt -name scratchterm -e bash -c tmux -L scratch new-session -s scratch -A"
-      (resource =? "scratchterm")
+    NS "scratchterm" "alacritty --class scratchterm -e bash -c tmux -L scratch new-session -s scratch -A"
+      (className =? "scratchterm")
       (customFloating $ W.RationalRect l t w h)
   ]
   where
@@ -184,13 +184,13 @@ main = do
       --("M-S-m",       spawn $ "~/bin/laptop monitor toggle ; xmonad --restart"),
 
       -- adjust screen brightness
-      ("M-b",         spawn $ "xbacklight -inc 10"),
-      ("M-S-b",       spawn $ "xbacklight -dec 10"),
+      -- ("M-b",         spawn $ "xbacklight -inc 10"),
+      -- ("M-S-b",       spawn $ "xbacklight -dec 10"),
 
       -- mnemonics based on the shift version of the key:
       --   -,+ - increase/decrease volume
       ("M-=",         spawn $ "~/bin/volume 3+"),
       ("M--",         spawn $ "~/bin/volume 3-") ]
-    `removeKeysP` [ ("M-r") ]
+    `removeKeysP` [ ("M-r"), ("M-b") ]
 
   xmonad config

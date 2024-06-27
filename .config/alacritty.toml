@@ -1,0 +1,69 @@
+[font]
+size = 9.5
+
+[font.normal]
+family = 'DejaVu Sans Mono'
+
+[colors.primary]
+background = '#1a1a1a'
+foreground = '#acacac'
+
+[colors.normal]
+black = '#111111'
+blue = '#708090'
+cyan = '#4e9585'
+green = '#789978'
+magenta = '#875f87'
+red = '#964848'
+white = '#acacac'
+yellow = '#cfcf7c'
+
+[colors.bright]
+black = '#444444'
+blue = '#808ba1'
+cyan = '#56a291'
+green = '#91b791'
+magenta = '#cf9ebe'
+red = '#a25757'
+white = '#aeaeae'
+yellow = '#bfbf6f'
+
+[colors.cursor]
+cursor = '#acacac'
+text = '#111111'
+
+[colors.vi_mode_cursor]
+cursor = '#d787d7'
+text = '#111111'
+
+[colors.search.matches]
+background = '#607080'
+foreground = '#111111'
+
+[colors.search.focused_match]
+background = '#638465'
+foreground = '#111111'
+
+[colors.hints]
+start = { background = '#d787d7' }
+
+[cursor.vi_mode_style]
+shape = 'block'
+
+[keyboard]
+bindings = [
+  { key = 's', mods = 'alt', action = 'ToggleViMode' },
+  { key = 'y', mode = 'Vi', action = 'CopySelection' },
+  { key = 'y', mode = 'Vi', action = 'ClearSelection' },
+  { key = 'Enter', mode = 'Vi', action = 'ToggleViMode' },
+  { key = 'Escape', mode = 'Vi', action = 'ToggleViMode' },
+]
+
+[scrolling]
+history = 20000
+
+[hints]
+enabled = [
+  {  command = 'xdg-open', binding = { key = 'b', mods = 'alt'}, hyperlinks = true, regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+" },
+  {  command = 'nvim-open', binding = { key = 'f', mods = 'alt' }, regex = 'File ".*", line \d+, in .*' },
+]

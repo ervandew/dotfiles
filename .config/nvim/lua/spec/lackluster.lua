@@ -66,10 +66,11 @@ return {{
     vim.api.nvim_set_hl(0, 'TabLineFill', { bg = background })
     vim.api.nvim_set_hl(0, 'TagListFileName', { link = 'Special' })
     vim.api.nvim_set_hl(0, 'TagListKeyword', { link = '@keyword' })
-    vim.api.nvim_set_hl(0, 'TermCursor', { bg= '#ac7d00' })
+    vim.api.nvim_set_hl(0, 'TermCursor', { bg= '#acacac' })
     vim.api.nvim_set_hl(0, 'VcsAnnotate', { fg = yellow_dark })
     vim.api.nvim_set_hl(0, 'VcsAnnotateUncommitted', { fg = green })
     vim.api.nvim_set_hl(0, 'Visual', { bg = '#353535' })
+    vim.api.nvim_set_hl(0, 'VisualCursor', { bg = '#d787d7' })
     vim.api.nvim_set_hl(0, 'WarningMsg', { fg = warn })
 
     vim.api.nvim_set_hl(0, 'DiagnosticHint', { fg = hint })
