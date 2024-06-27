@@ -34,13 +34,11 @@ less_vim() {
 }
 
 # Check if called from man, perldoc or pydoc
-if ps fuxw | grep -q '\(py\(thon\|doc\)\|man\|perl\(doc\)\?\([0-9.]*\)\?\)\>'; then
+if ps fuxw | grep -q '\(man\|py\(thon\|doc\)\|perl\(doc\)\?\([0-9.]*\)\?\)\>'; then
   proc=$$
   while next_parent=$(ps -p $proc -o ppid=) && [ $next_parent != 1 ]; do
     pproc=$(ps -p $next_parent -o comm=)
-    if [[ "$pproc" == "man" ]] ; then
-      cat $file | sed -e 's/\[[^m]*m//g' | sed -e 's/.//g' | less_vim -c 'set ft=man' -; exit
-    elif [[ "$pproc" == "pydoc" ]] ; then
+    if [[ "$pproc" == "man" || "$pproc" == "pydoc" ]] ; then
       cat $file | sed -e 's/\[[^m]*m//g' | sed -e 's/.//g' | less_vim -c 'set ft=man' -; exit
     elif [[ "$pproc" == "perldoc" ]] ; then
       cat $file | sed -e 's/.//g' | less_vim -c 'set ft=man' -; exit
@@ -49,5 +47,5 @@ if ps fuxw | grep -q '\(py\(thon\|doc\)\|man\|perl\(doc\)\?\([0-9.]*\)\?\)\>'; t
   done
 fi
 
-echo less_vim "$file"
-less_vim "$file"
+# remove any terminal control characters (colors, etc)
+cat $file | perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | less_vim
