@@ -1,7 +1,0 @@
-load adv_windowlist.pl
-load keyring.pl
-load nm.pl
-load spellcheck.pl
-load trackbar.pl
-load uberprompt.pl
-load vim_mode.pl
