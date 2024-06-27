@@ -5,6 +5,21 @@ return {{
       multiline_threshold = 1, -- number of lines per context
     })
 
+    vim.keymap.set('n', '<leader>u', function()
+      local count = vim.v.count1
+      -- first check visible contexts
+      local contexts = vim.b.treesitter_contexts
+      if count <= #contexts then
+        local context = contexts[#contexts - (count - 1)]
+        vim.cmd([[ normal! m' ]]) -- update jump list
+        vim.api.nvim_win_set_cursor(0, { context['line'] + 1, context['col'] })
+
+      -- fall back to non-visible contexts
+      else
+        require('treesitter-context').go_to_context(count - #contexts)
+      end
+    end, { silent = true })
+
     -- replace CursorMoved with CursorHold to avoid overhead of moving
     -- around a file
     local tc_au_opts = {
@@ -18,6 +33,7 @@ return {{
       callback = tc_callback,
     })
 
+    -- add highlighting of visible parent contexts
     local sign_group = 'treesitter_context_visible'
     local sign_name = 'treesitter_context_visible_line'
     ---@diagnostic disable-next-line: missing-fields
@@ -26,13 +42,13 @@ return {{
     })
 
     local ns = vim.api.nvim_create_namespace('treesitter-context-spec')
-    local function highlight_parent(bufnr, lnum, query, parent)
+    local function highlight_parent(bufnr, lnum, query, parent, contexts)
       for _, match in query:iter_matches(
         parent, bufnr, 0, -1, { max_start_depth = 0 }
       ) do
         --- @cast match table<integer,TSNode>
         for id, node in pairs(match) do
-          local line = node:start()
+          local line, col = node:start()
           if line < lnum and query.captures[id] == 'context' then
             vim.fn.sign_place(
               0,
@@ -49,6 +65,7 @@ return {{
               0,
               -1
             )
+            contexts[#contexts + 1] = { line = line, col = col }
           end
         end
       end
@@ -58,6 +75,8 @@ return {{
       callback = function()
         local bufnr = vim.api.nvim_get_current_buf()
         local winid = vim.api.nvim_get_current_win()
+
+        vim.b[bufnr].treesitter_contexts = {}
         vim.fn.sign_unplace(sign_group, { buffer = bufnr })
         vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
 
@@ -112,15 +131,17 @@ return {{
         end
 
         local top_row = vim.fn.line('w0', winid) - 1
+        local contexts = {}
         for i = #parents, 1, -1 do
           local parent = parents[i]
           local parent_start_row = parent:range()
 
           -- Only process the parent if it is in view.
           if parent_start_row > top_row then
-            highlight_parent(bufnr, lnum, query, parent)
+            highlight_parent(bufnr, lnum, query, parent, contexts)
           end
         end
+        vim.b[bufnr].treesitter_contexts = contexts
       end
     })
   end
