@@ -38,7 +38,7 @@ return {{
           preview_height = .5,
           prompt_position = 'top',
         },
-        path_display = { 'smart' },
+        path_display = { filename_first = { reverse_directories = true } },
         mappings = {
           i = {
             ['<tab>'] = actions.move_selection_next,
