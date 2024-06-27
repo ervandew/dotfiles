@@ -5,6 +5,26 @@ return {{
       multiline_threshold = 1, -- number of lines per context
     })
 
+    -- replace CursorMoved with CursorHold to avoid overhead of moving
+    -- around a file
+    local tc_au_opts = {
+      group = 'treesitter_context_update',
+      event = 'CursorMoved',
+    }
+    local tc_callback = vim.api.nvim_get_autocmds(tc_au_opts)[1].callback
+    vim.api.nvim_clear_autocmds(tc_au_opts)
+    vim.api.nvim_create_autocmd('CursorHold', {
+      group = 'treesitter_context_update',
+      callback = tc_callback,
+    })
+
+    local sign_group = 'treesitter_context_visible'
+    local sign_name = 'treesitter_context_visible_line'
+    ---@diagnostic disable-next-line: missing-fields
+    vim.fn.sign_define(sign_name, {
+      numhl = 'TreesitterContextVisibleLine',
+    })
+
     local ns = vim.api.nvim_create_namespace('treesitter-context-spec')
     local function highlight_parent(bufnr, lnum, query, parent)
       for _, match in query:iter_matches(
@@ -14,6 +34,13 @@ return {{
         for id, node in pairs(match) do
           local line = node:start()
           if line < lnum and query.captures[id] == 'context' then
+            vim.fn.sign_place(
+              0,
+              sign_group,
+              sign_name,
+              bufnr,
+              { lnum = line + 1 }
+            )
             vim.api.nvim_buf_add_highlight(
               bufnr,
               ns,
@@ -31,6 +58,7 @@ return {{
       callback = function()
         local bufnr = vim.api.nvim_get_current_buf()
         local winid = vim.api.nvim_get_current_win()
+        vim.fn.sign_unplace(sign_group, { buffer = bufnr })
         vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
 
         if vim.wo[winid].previewwindow or
