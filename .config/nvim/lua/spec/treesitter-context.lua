@@ -65,7 +65,9 @@ return {{
               0,
               -1
             )
-            contexts[#contexts + 1] = { line = line, col = col }
+            if #contexts == 0 or contexts[#contexts]['line'] ~= line then
+              contexts[#contexts + 1] = { line = line, col = col }
+            end
           end
         end
       end
