@@ -1,4 +1,6 @@
+from collections import defaultdict
 import os
+import re
 
 # don't load settings configured from the gui, only from this file.
 config.load_autoconfig(False)
@@ -54,32 +56,41 @@ if os.path.isfile(allow):
 
 redirects = str(config.configdir / 'redirects')
 if os.path.isfile(redirects):
-  redirect_domains = {}
+  redirect_patterns = defaultdict(list)
   with open(redirects) as f:
+    from_ = None
     for line in f.readlines():
       line = line.strip()
       if not line or line.startswith('#'):
         continue
 
-      from_domain, __, to_domain = line.partition(' ')
-      redirect_domains[from_domain.strip()] = to_domain.strip()
+      if from_:
+        host = re.sub(r'^.*?//(.*?)/.*$', r'\1', from_)
+        redirect_patterns[host].append((from_, line.strip()))
+        from_ = None
+      else:
+        from_ = line.strip()
 
-  from PyQt5.QtCore import QUrl
   from qutebrowser.api import interceptor
+  from qutebrowser.qt.core import QUrl
 
   def intercept(info: interceptor.Request):
-    redirect = redirect_domains.get(info.request_url.host())
-    if redirect:
-      new_url = QUrl(info.request_url)
-      new_url.setHost(redirect)
-      try:
-        info.redirect(new_url)
-      except interceptors.RedirectFailedException:
-        pass
+    host = info.request_url.host()
+    for pattern, result in redirect_patterns.get(host, []):
+      match = re.match(pattern, info.request_url.url())
+      if match:
+        for i, group in enumerate(match.groups(), 1):
+          result = result.replace('$%s' % i, group)
+        new_url = QUrl(result)
+        try:
+          info.redirect(new_url)
+        except Exception as ex:
+          print(ex)
+        break
 
   interceptor.register(intercept)
 
-# load any custome stylesheets
+# load any custom stylesheets
 styles = str(config.configdir) + '/styles'
 if os.path.exists(styles):
   c.content.user_stylesheets = [
