@@ -1,12 +1,13 @@
 return {{
   'ervandew/supertab',
   dir = '~/projects/vim/supertab',
-  config = function()
+  init = function()
     vim.g.SuperTabDefaultCompletionType = 'context'
     vim.g.SuperTabContextTextFileTypeExclusions = {'javascript', 'sql'}
     vim.g.SuperTabLongestEnhanced = 1
     vim.g.SuperTabClosePreviewOnPopupClose = 1
-
+  end,
+  config = function()
     -- map <c-space> to <c-p> completion (useful when supertab 'context'
     -- defaults to something else).
     vim.keymap.set('i', '<c-space>', '<c-r>=SuperTabAlternateCompletion("\\<lt>c-p>")<cr>')
@@ -19,7 +20,7 @@ return {{
         end
       end
     })
-  end
+  end,
 }}
 
 -- vim:fdm=marker
