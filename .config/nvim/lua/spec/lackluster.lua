@@ -39,6 +39,7 @@ return {{
     vim.api.nvim_set_hl(0, '@function.method', { fg = white })
     vim.api.nvim_set_hl(0, '@markup.heading', { fg = white })
     vim.api.nvim_set_hl(0, '@number', { fg = '#624646' })
+    vim.api.nvim_set_hl(0, '@string.special.url.comment', { underline = false })
     vim.api.nvim_set_hl(0, 'Comment', { link = '@comment' })
     vim.api.nvim_set_hl(0, 'ColorColumn', { bg = '#181818' })
     -- vim.api.nvim_set_hl(0, 'CursorLine', { bg = '#2c2c2c' })
