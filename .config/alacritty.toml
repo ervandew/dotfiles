@@ -64,6 +64,7 @@ history = 20000
 
 [hints]
 enabled = [
-  {  command = 'xdg-open', binding = { key = 'b', mods = 'alt'}, hyperlinks = true, regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+" },
-  {  command = 'nvim-open', binding = { key = 'f', mods = 'alt' }, regex = 'File ".*", line \d+, in .*' },
+  { command = 'xdg-open', binding = { key = 'b', mods = 'alt'}, hyperlinks = true, regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+" },
+  { command = 'nvim-open', binding = { key = 'f', mods = 'alt' }, regex = 'File ".*", line \d+, in .*' },
+  { command = 'git-ticket', binding = { key = 'g', mods = 'alt' }, regex = '((fixes|refs|resolves)\s+#\S+|BOS-\d+)' },
 ]

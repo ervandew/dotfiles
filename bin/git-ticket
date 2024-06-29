@@ -1,0 +1,46 @@
+#!/bin/bash
+
+##
+# Open a ticket reference in the browser using patterns and url pairs
+# configured per repository via .gitconfig
+#
+# Eg.
+#   [ticket "project-name"]
+#     pattern = "#\\d+ https://github.com/user/project-name/issues/\\1"
+#
+# Things to note:
+# - backslashes need to be escaped
+# - if the pattern starts with ; or #, then the whole value needs to be quoted
+# - the current working directory is used to determine the git repo name, the
+#   "project-name" referenced above.
+#
+# This can be combined with alacritty to support hints to open ticket
+# references from git log.
+# Eg. in alacritty.toml
+#
+# [hints]
+# enabled = [
+#  { command = 'git-ticket', binding = { key = 'g', mods = 'alt' }, regex = '#\d+' },
+# ]
+##
+
+value=$1
+IFS_ORIG=$IFS
+
+repo=$(basename $(git rev-parse --show-toplevel))
+
+IFS=$'\r\n'
+patterns=($(git config --get-all ticket.$repo.pattern))
+
+IFS=$IFS_ORIG
+for pair in "${patterns[@]}" ; do
+  pair=($pair)
+  pattern=${pair[0]}
+  url=${pair[1]}
+  match=$(echo "$value" | perl -pe "s|.*${pattern}.*|\1| || exit 1")
+  if [ "$?" -eq 0 ] ; then
+    url=$(echo "$url" | perl -pe "s|\\\1|$match|")
+    xdg-open "$url"
+    break
+  fi
+done
