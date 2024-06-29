@@ -422,9 +422,18 @@ vim.api.nvim_create_autocmd('BufReadCmd', {
       vim.cmd('bwipeout!')
       if vim.fn.bufexists(path) == 0 then
         vim.cmd('edit ' .. path)
-        vim.cmd('silent ' .. line)
         vim.cmd('filetype detect')
+      else
+        local bufnr = vim.fn.bufnr(path)
+        local winnr = vim.fn.bufwinnr(bufnr)
+        if winnr == -1 then
+          vim.cmd('new +' .. bufnr .. 'buffer')
+        else
+          vim.cmd(winnr .. 'winc w')
+        end
       end
+      vim.cmd('silent ' .. line)
+      vim.cmd('normal zz')
     end
   end
 })
