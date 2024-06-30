@@ -1,5 +1,4 @@
 import XMonad hiding ((|||))
-import XMonad.Actions.PerLayoutKeys
 import XMonad.Actions.WindowNavigation
 import XMonad.Config.Desktop
 import XMonad.Hooks.DynamicLog
