@@ -207,10 +207,6 @@ vim.keymap.set('n', '<leader>d', function()
   vim.cmd(vim.o.diff and 'diffoff' or 'diffthis')
 end)
 
--- gF is the same as gf + supports jumping to line number (file:100)
-vim.keymap.set('n', 'gf', 'gF')
-vim.keymap.set('n', 'gF', '<c-w>F')
-
 -- modified version of '*' which doesn't move the cursor
 vim.keymap.set(
   'n',
