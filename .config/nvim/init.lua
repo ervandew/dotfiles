@@ -71,7 +71,7 @@ function _status() ---@diagnostic disable-line: lowercase-global
     stl_addl = vim.fn.getqflist({ title = true })
   -- for csv files, display which column the cursor is in
   elseif vim.o.ft == 'csv' then
-    if vim.fn.exists(':CSV_WCol') then
+    if vim.fn.exists(':CSV_WCol') == 3 then
       stl_addl = '[col: ' .. vim.fn.CSV_WCol('Name') .. ' (' .. vim.fn.CSV_WCol() .. ')]'
     end
   end
