@@ -24,7 +24,6 @@ vim.opt.switchbuf = 'useopen'
 vim.opt.tabstop = 2
 vim.opt.timeoutlen = 500
 vim.opt.updatetime = 1000
-vim.opt.virtualedit = 'all'
 vim.opt.wildignore:append({
   '*.pyc',
   '*.pyo',
@@ -232,33 +231,6 @@ end)
 -- preserve the " register when pasting over a visual selection
 vim.keymap.set('x', 'p', 'P')
 
--- virtualedit mappings to start insert no farther than the end of the actual
--- line
-vim.keymap.set('n', 'a', function() return _virtual_edit('a') end, { expr = true })
-vim.keymap.set('n', 'i', function() return _virtual_edit('i') end, { expr = true })
-function _virtual_edit(key) ---@diagnostic disable-line: lowercase-global {{{
-  -- when starting insert on an empty line, start it at the correct indent
-  if #vim.fn.getline('.') == 0 and vim.fn.line('$') ~= 1 then
-    return vim.fn.line('.') == vim.fn.line('$') and 'ddo' or 'ddO'
-  end
-  return (vim.fn.virtcol('.') > vim.fn.col('$') and '$' or '') .. key
-end -- }}}
-
--- temporarily disable virtual edit to avoid pasting past the end of the line
-vim.keymap.set('n', 'p', function()
-  -- we need this command for accpeting a count in the paste expression
-  -- (using :set in the resulting expression would otherwise prevent that)
-  vim.api.nvim_create_user_command('TempVEDisable', function()
-    vim.o.ve = ''
-    vim.api.nvim_del_user_command('TempVEDisable')
-  end, { count = 1 })
-  local count = vim.v.count > 0 and vim.v.count or ''
-  local register = vim.v.register ~= '"' and ('"' .. vim.v.register) or ''
-  local disable = ':TempVEDisable<cr>'
-  local restore = ':set ve=' .. vim.o.ve .. '<cr>'
-  return disable .. count .. register .. 'p' .. restore
-end, { expr = true, silent = true })
-
 -- swap 2 words
 vim.keymap.set('n', '<leader>ws', function()
   local pos = vim.fn.getpos('.')
@@ -271,6 +243,7 @@ vim.keymap.set('n', 'gf', ':Grep --files<cr>', { silent = true })
 vim.keymap.set('n', 'gF', ':Grep! --files<cr>', { silent = true })
 
 require('qf').mappings()
+require('virtualedit').mappings()
 
 vim.keymap.set('n', '<space><space>', function()
   require('maximize').toggle()
