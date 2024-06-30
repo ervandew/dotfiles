@@ -341,9 +341,17 @@ vim.keymap.set('n', 'gF', ':Grep! --files<cr>', { silent = true })
 vim.keymap.set('n', '<space><space>', function()
   require('maximize').toggle()
 end)
+
+vim.keymap.set('n', '<leader>b', function()
+  require('buffers').toggle()
+end)
 -- }}}
 
 -- commands {{{
+
+vim.api.nvim_create_user_command('BufferDelete', function()
+  require('buffers').delete()
+end, { nargs = 0 })
 
 vim.api.nvim_create_user_command(
   'Grep',
@@ -371,6 +379,7 @@ end, { nargs = 0 })
 
 -- abbreviations {{{
 
+vim.keymap.set('ca', 'bd', 'BufferDelete')
 vim.keymap.set('ca', 'ln', 'lnext')
 vim.keymap.set('ca', 'gr', 'Grep')
 vim.keymap.set('ca', 'rg', 'Grep')
@@ -442,6 +451,7 @@ vim.api.nvim_create_autocmd('BufReadCmd', {
   end
 })
 
+require('buffers').tab_tracking()
 -- }}}
 
 -- plugins (via lazy.nvim) {{{
