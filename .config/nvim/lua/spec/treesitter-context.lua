@@ -21,14 +21,15 @@ return {{
     end, { silent = true })
 
     -- replace CursorMoved with CursorHold to avoid overhead of moving
-    -- around a file
+    -- around a file (also add WinResized for quicker update when resizing a
+    -- window)
     local tc_au_opts = {
       group = 'treesitter_context_update',
       event = 'CursorMoved',
     }
     local tc_callback = vim.api.nvim_get_autocmds(tc_au_opts)[1].callback
     vim.api.nvim_clear_autocmds(tc_au_opts)
-    vim.api.nvim_create_autocmd('CursorHold', {
+    vim.api.nvim_create_autocmd({ 'CursorHold', 'WinResized' }, {
       group = 'treesitter_context_update',
       callback = tc_callback,
     })
