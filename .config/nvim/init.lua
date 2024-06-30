@@ -232,74 +232,6 @@ end)
 -- preserve the " register when pasting over a visual selection
 vim.keymap.set('x', 'p', 'P')
 
--- toggle quickfix/location lists
-vim.keymap.set('n', '<leader>ct', function()
-  vim.cmd(vim.o.ft == 'qf' and 'cclose' or 'copen')
-end)
-vim.keymap.set('n', '<leader>lt', function()
-  local list = vim.fn.getloclist(0)
-  if #list == 0 then
-    vim.api.nvim_echo({{ 'no location list', 'WarningMsg' }}, false, {})
-    return
-  end
-  vim.cmd(vim.o.ft == 'qf' and 'lclose' or 'lopen')
-end)
-
--- write and go to next quickfix/location list result
-vim.keymap.set('n', '<leader>cn', function() _next_error('c', 'cnext') end)
-vim.keymap.set('n', '<leader>cf', function() _next_error('c', 'cnfile') end)
-vim.keymap.set('n', '<leader>ln', function() _next_error('l', 'lnext') end)
-function _next_error(list, cmd) ---@diagnostic disable-line: lowercase-global {{{
-  local func = list  == 'c' and
-    function(...) return vim.fn.getqflist(...) end or
-    function(...) return vim.fn.getloclist(0, ...) end
-  local error_count = #func()
-  if error_count == 0 then
-    vim.api.nvim_echo({{ 'no entries', 'WarningMsg' }}, false, {})
-    return
-  end
-
-  -- write the file if necessary
-  vim.cmd('noautocmd silent update')
-
-  -- check new error count to handle case where writing the file modifies the
-  -- results.
-  local updated_error_count = #func()
-  if updated_error_count ~= error_count then
-     -- cc or ll (return to the current error position)
-    cmd = list .. list
-  end
-  local current = func({ idx = 0 })['idx']
-  if current == updated_error_count then
-    vim.api.nvim_echo({{ 'no more entries', 'WarningMsg' }}, false, {})
-    return
-  end
-  vim.cmd(cmd)
-end -- }}}
-
--- open the quickfix/location list and jump to the first entry for the line
--- under the cursor
-vim.keymap.set('n', '<leader>cc', function() _current_error('c') end)
-vim.keymap.set('n', '<leader>ll', function() _current_error('l') end)
-function _current_error(list) ---@diagnostic disable-line: lowercase-global {{{
-  local pos = vim.fn.getcurpos()
-  local lnum = vim.fn.line('.')
-  local open = list .. 'open'
-  vim.cmd(open)
-  vim.fn.cursor(1, 1)
-
-  local found = vim.fn.search('|' .. pos[2] .. '\\>')
-  if found then
-    vim.cmd(vim.fn.line('.') .. list .. list)
-    vim.fn.cursor(lnum, pos[2])
-    vim.cmd(open)
-  else
-    vim.api.nvim_echo(
-      {{ 'no entry found for line ' .. lnum, 'WarningMsg' }}, false, {}
-    )
-  end
-end -- }}}
-
 -- virtualedit mappings to start insert no farther than the end of the actual
 -- line
 vim.keymap.set('n', 'a', function() return _virtual_edit('a') end, { expr = true })
@@ -337,6 +269,8 @@ end)
 
 vim.keymap.set('n', 'gf', ':Grep --files<cr>', { silent = true })
 vim.keymap.set('n', 'gF', ':Grep! --files<cr>', { silent = true })
+
+require('qf').mappings()
 
 vim.keymap.set('n', '<space><space>', function()
   require('maximize').toggle()
