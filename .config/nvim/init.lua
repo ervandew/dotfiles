@@ -337,6 +337,10 @@ end)
 
 vim.keymap.set('n', 'gf', ':Grep --files<cr>', { silent = true })
 vim.keymap.set('n', 'gF', ':Grep! --files<cr>', { silent = true })
+
+vim.keymap.set('n', '<space><space>', function()
+  require('maximize').toggle()
+end)
 -- }}}
 
 -- commands {{{
