@@ -203,7 +203,7 @@ vim.keymap.set('n', '<c-l>', ':nohl | diffu<cr><c-l>', { silent = true })
 vim.keymap.set('n', '<leader>w', ':let &wrap = !&wrap<cr>', { silent = true })
 
 -- toggle diff of the current buffer
-vim.keymap.set('n', '<leader>d', function()
+vim.keymap.set('n', '<leader>dt', function()
   vim.cmd(vim.o.diff and 'diffoff' or 'diffthis')
 end)
 
@@ -247,6 +247,10 @@ end)
 
 vim.keymap.set('n', '<leader>b', function()
   require('buffers').toggle()
+end)
+
+vim.keymap.set('n', '<leader>ds', function()
+  require('diff').last_saved()
 end)
 -- }}}
 
@@ -355,6 +359,7 @@ vim.api.nvim_create_autocmd('BufReadCmd', {
 })
 
 require('buffers').tab_tracking()
+require('diff').autocmd()
 require('indentdetect').autocmd()
 require('maximize').autocmd()
 -- }}}
