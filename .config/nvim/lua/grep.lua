@@ -99,7 +99,7 @@ local qf_restore = function()
   end
 end
 
-local grep = function(opts, args, action)
+local grep = function(opts, args, action, suppress_messages)
   local cmd = 'grep --sort=path'
   local files = false
   for _, arg in ipairs(args) do
@@ -127,14 +127,16 @@ local grep = function(opts, args, action)
     vim.o.grepformat = '%-GERR:%.%#,%f,%-G%.%#'
   end
 
-  vim.cmd(cmd)
+  vim.cmd('silent ' .. cmd)
 
   local results = vim.fn.getqflist()
   if #results == 0 then
     if files then
       qf_restore()
     end
-    echo('No results found: ' .. cmd, 'WarningMsg')
+    if not suppress_messages then
+      echo('No results found: ' .. cmd, 'WarningMsg')
+    end
     return false
   end
 
@@ -229,7 +231,7 @@ end
 
 M.find_file = function(path, cmd)
   -- A helper function that other scripts can use to locate a file by path
-  return grep({}, {'--files', '-g', '**/' .. path}, cmd)
+  return grep({}, {'--files', '-g', '**/' .. path}, cmd, true)
 end
 
 M.complete = function(lead, cmdl, pos)
