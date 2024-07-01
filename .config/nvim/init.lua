@@ -355,6 +355,7 @@ vim.api.nvim_create_autocmd('BufReadCmd', {
 })
 
 require('buffers').tab_tracking()
+require('indentdetect').autocmd()
 -- }}}
 
 -- plugins (via lazy.nvim) {{{
