@@ -256,9 +256,9 @@ end)
 
 -- commands {{{
 
-vim.api.nvim_create_user_command('BufferDelete', function()
-  require('buffers').delete()
-end, { nargs = 0 })
+vim.api.nvim_create_user_command('BufferDelete', function(opts)
+  require('buffers').delete(opts)
+end, { bang = true, nargs = 0 })
 
 vim.api.nvim_create_user_command(
   'Grep',

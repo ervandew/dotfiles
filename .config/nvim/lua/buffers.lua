@@ -324,7 +324,7 @@ M.tab_tracking = function()
   })
 end
 
-M.delete = function()
+M.delete = function(opts)
   local bufnr = vim.api.nvim_get_current_buf()
   local windows = 0
   for winnr = 1, vim.fn.winnr('$') do
@@ -342,7 +342,7 @@ M.delete = function()
     open_next_hidden_tab_buffer(bufnr)
   end
 
-  vim.api.nvim_buf_delete(bufnr, {})
+  vim.api.nvim_buf_delete(bufnr, { force = opts.bang })
   vim.cmd('redraw') -- force tabline to update
 end
 
