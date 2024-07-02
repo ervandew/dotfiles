@@ -4,7 +4,7 @@ vim.opt.guicursor = (
   'i-ci-ve:ver25-TermCursor,' ..
   'r-cr-o:hor20-TermCursor,v:block-VisualCursor'
 )
-vim.opt.clipboard = 'unnamed'
+vim.opt.clipboard = 'unnamedplus'
 vim.opt.complete:remove({ 'i', 't', 'u' })
 vim.opt.completeopt = { 'menuone', 'longest', 'preview' }
 vim.opt.expandtab = true

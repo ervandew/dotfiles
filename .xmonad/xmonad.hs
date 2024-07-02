@@ -118,7 +118,6 @@ main = do
       ("M-<Tab>",     windows W.focusDown),
       ("M-S-<Tab>",   windows W.focusUp),
       ("M-p",         namedScratchpadAction myScratchpads "scratchterm"),
-      ("M-v",         spawn $ "sleep .2 ; xdotool type --delay 0 --clearmodifiers \"$(xclip -o)\""),
       ("M-S-p",       spawn $ "~/bin/keyring prompt --paste"),
       ("M-z",         spawn $ "alock -cursor theme:name=xtr -auth pam"),
       ("M-q",         spawn $ "xmonad --restart"),

@@ -162,16 +162,9 @@ config.bind(';i', 'hint inputs')
 # single web app, but you want the option to open links in your main browser)
 config.bind(';x', 'hint links spawn xdg-open {hint-url}')
 
-# yanking
-config.bind('yy', 'yank --sel')
-
-# editing
-config.bind('<alt-r>*', 'insert-text {primary}', mode='insert')
-# best available command for custom binding to paste text into the command
-# line, but unfortunately always appends (fine most of the time)
-config.bind('<alt-r>*', 'cmd-set-text --append {primary}', mode='command')
-config.bind('<ctrl-i>', 'cmd-edit', mode='command')
-config.bind('<ctrl-i>', 'edit-text', mode='insert')
+# yank selected content
+config.bind('yy', 'yank selection')
+config.bind('yu', 'yank url')
 
 # command history nav
 config.bind('<up>', 'command-history-prev', mode='command')
