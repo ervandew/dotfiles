@@ -367,6 +367,7 @@ M.toggle = function()
   vim.bo.buflisted = false
   vim.bo.buftype = 'nofile'
   vim.bo.bufhidden = 'wipe'
+  vim.cmd('resize 10')
   vim.cmd('doautocmd WinNew')
   vim.cmd('doautocmd WinEnter')
 
