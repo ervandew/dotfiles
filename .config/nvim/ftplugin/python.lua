@@ -1,3 +1,6 @@
+-- prevent nvim/runtime/ftplugin/python.vim from settings shiftwidth, etc.
+vim.g.python_recommended_style = 0
+
 vim.keymap.set('n', '<cr>', function()
   local line = vim.fn.getline('.')
   local possible_path = vim.fn.substitute(line,
