@@ -168,6 +168,10 @@ local grep = function(opts, args, action, suppress_messages)
     -- open up the fold on the first result
     vim.cmd('normal! zv')
 
+    -- allow any messages, etc to fire
+    vim.cmd('doautocmd CursorMoved')
+    vim.cmd('doautocmd CursorHold')
+
   else
     -- if the user doesn't want to jump to the first result, then navigate back
     -- to where they were (cexpr! just ignores changes to the current file, so
