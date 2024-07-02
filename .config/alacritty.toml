@@ -55,9 +55,11 @@ bindings = [
   { key = 's', mods = 'alt', action = 'ToggleViMode' },
   { key = 'y', mode = 'Vi', action = 'Copy' },
   { key = 'y', mode = 'Vi', action = 'ClearSelection' },
-  { key = 'v', mods = 'control', action = 'Paste' },
   { key = 'Enter', mode = 'Vi', action = 'ToggleViMode' },
   { key = 'Escape', mode = 'Vi', action = 'ToggleViMode' },
+  # Note: ~Alt disables this binding in nvim, and unfortuantely tmux as well,
+  # so a separate binding for ctrl-v can be found in .tmux.conf
+  { key = 'v', mods = 'control', mode = '~Alt|~Vi', action = 'Paste' },
 ]
 
 [scrolling]
