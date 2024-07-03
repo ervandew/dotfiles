@@ -128,20 +128,25 @@ return {{
       :with_move(cond.is_bracket_line_move())
     )
 
+    local eol = function(opts)
+      local suffix = string.sub(opts.line, opts.col + 1, #opts.line)
+      return suffix == '' or suffix:match('^%s*$') ~= nil
+    end
+
     -- auto close various statements
     autopairs.add_rules({
       Rule('then', 'end', 'lua')
         :end_wise(function(opts)
-          return string.match(opts.line, '^%s*if%W.*then%s*$') ~= nil
+          return eol(opts) and opts.line:match('^%s*if%W.*then%s*$') ~= nil
         end),
       Rule('do', 'end', 'lua')
         :end_wise(function(opts)
           local match = string.gsub(opts.line, '^%s*(%w+)%W.*do%s*$', '%1')
-          return match == 'for' or match == 'while'
+          return eol(opts) and (match == 'for' or match == 'while')
         end),
       Rule(')', 'end', 'lua')
         :end_wise(function(opts)
-          return string.match(opts.line, '%W*function%s*%([^%)]*%)[%s%)}]*$') ~= nil
+          return opts.line:match('%W*function%s*%w*%s*%([^%)]*%)[%s%)}]*$') ~= nil
         end),
     })
     -- }}}
@@ -172,7 +177,7 @@ return {{
         :end_wise(function(opts)
           local keywords = { 'if', 'for', 'while', 'try', 'function' }
           for _, keyword in ipairs(keywords) do
-            if string.match(opts.line, '^%s*' .. keyword .. '%W') ~= nil then
+            if opts.line:match('^%s*' .. keyword .. '%W') ~= nil then
               return true
             end
           end
