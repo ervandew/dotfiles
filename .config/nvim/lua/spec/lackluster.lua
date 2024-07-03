@@ -13,13 +13,14 @@ return {{
     vim.cmd.colorscheme('lackluster-hack')
 
     local white = '#cccccc'
+    local gray6 = '#666666'
+    local gray8 = '#888888'
 
     local green = '#789978'
     local purple = '#875f87'
     local red = '#964848'
     local yellow = '#afaf5f'
     local yellow_mid = '#8f8f3f'
-    local yellow_dark = '#575700'
 
     local background = '#303030'
 
@@ -35,7 +36,7 @@ return {{
     vim.api.nvim_set_hl(0, '@comment.error', { link = '@comment.todo' })
     vim.api.nvim_set_hl(0, '@comment.todo', { fg = yellow_mid })
     vim.api.nvim_set_hl(0, '@function', { fg = white })
-    vim.api.nvim_set_hl(0, '@function.builtin', { fg = '#666666' })
+    vim.api.nvim_set_hl(0, '@function.builtin', { fg = gray6 })
     vim.api.nvim_set_hl(0, '@function.method', { fg = white })
     vim.api.nvim_set_hl(0, '@markup.heading', { fg = white })
     vim.api.nvim_set_hl(0, '@number', { fg = '#624646' })
@@ -91,7 +92,7 @@ return {{
 
     -- file type specific changes
     vim.api.nvim_set_hl(0, '@constant.git_rebase', { link = '@number' })
-    vim.api.nvim_set_hl(0, '@markup.heading.gitcommit', { fg = '#888888' })
+    vim.api.nvim_set_hl(0, '@markup.heading.gitcommit', { fg = gray8 })
     vim.api.nvim_set_hl(0, '@string.special.url.gitcommit', { link = '@markup.link.gitcommit' })
     vim.api.nvim_set_hl(0, '@number.float.python', { link = '@number' })
 
@@ -100,7 +101,7 @@ return {{
 
     -- plugin specific changes
     vim.api.nvim_set_hl(0, 'TelescopeMatching', { fg = yellow })
-    vim.api.nvim_set_hl(0, 'TelescopeResultsNormal', { fg = '#666666' })
+    vim.api.nvim_set_hl(0, 'TelescopeResultsNormal', { fg = gray6 })
     vim.api.nvim_set_hl(0, 'TreesitterContext', { fg = purple, bg = '#453e46' })
     vim.api.nvim_set_hl(0, 'TreesitterContextLineNumber', { link = 'TreesitterContext' })
     vim.api.nvim_set_hl(0, 'TreesitterContextBottom', { underline = true })
@@ -108,9 +109,11 @@ return {{
     vim.api.nvim_set_hl(0, 'TreesitterContextVisible', { bg = '#302931' })
     vim.api.nvim_set_hl(0, 'TreesitterContextVisibleLine', { fg = '#673f67' })
 
-    vim.api.nvim_set_hl(0, 'VcsAnnotate', { fg = '#666666' })
+    vim.api.nvim_set_hl(0, 'VcsAnnotate', { fg = gray6 })
     vim.api.nvim_set_hl(0, 'VcsAnnotateMe', { fg = purple })
     vim.api.nvim_set_hl(0, 'VcsAnnotateUncommitted', { fg = green })
+    vim.api.nvim_set_hl(0, 'VcsAuthor', { fg = gray6 })
+    vim.api.nvim_set_hl(0, 'VcsRevision', { link = '@number' })
 
     -- providing ctermfg prevents underline on DiffChange lines:
     -- bug: https://github.com/neovim/neovim/issues/9800.
