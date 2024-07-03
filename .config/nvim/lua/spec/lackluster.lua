@@ -68,8 +68,6 @@ return {{
     vim.api.nvim_set_hl(0, 'TagListFileName', { link = 'Special' })
     vim.api.nvim_set_hl(0, 'TagListKeyword', { link = '@keyword' })
     vim.api.nvim_set_hl(0, 'TermCursor', { bg= '#acacac' })
-    vim.api.nvim_set_hl(0, 'VcsAnnotate', { fg = yellow_dark })
-    vim.api.nvim_set_hl(0, 'VcsAnnotateUncommitted', { fg = green })
     vim.api.nvim_set_hl(0, 'Visual', { bg = '#353535' })
     vim.api.nvim_set_hl(0, 'VisualCursor', { bg = '#d787d7' })
     vim.api.nvim_set_hl(0, 'WarningMsg', { fg = warn })
@@ -109,6 +107,10 @@ return {{
     -- added by spec
     vim.api.nvim_set_hl(0, 'TreesitterContextVisible', { bg = '#302931' })
     vim.api.nvim_set_hl(0, 'TreesitterContextVisibleLine', { fg = '#673f67' })
+
+    vim.api.nvim_set_hl(0, 'VcsAnnotate', { fg = '#666666' })
+    vim.api.nvim_set_hl(0, 'VcsAnnotateMe', { fg = purple })
+    vim.api.nvim_set_hl(0, 'VcsAnnotateUncommitted', { fg = green })
 
     -- providing ctermfg prevents underline on DiffChange lines:
     -- bug: https://github.com/neovim/neovim/issues/9800.
