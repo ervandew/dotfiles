@@ -74,8 +74,16 @@ return {{
       end
     end
 
-    vim.api.nvim_create_autocmd('CursorHold', {
-      callback = function()
+    vim.api.nvim_create_autocmd({ 'CursorHold', 'BufWinEnter', 'WinEnter' }, {
+      callback = function(opts)
+        if opts.event ~= 'CursorHold' then
+          for winnr = 1, vim.fn.winnr('$') do
+            local winbufnr = vim.fn.winbufnr(winnr)
+            vim.fn.sign_unplace(sign_group, { buffer = winbufnr })
+            vim.api.nvim_buf_clear_namespace(winbufnr, ns, 0, -1)
+          end
+        end
+
         local bufnr = vim.api.nvim_get_current_buf()
         local winid = vim.api.nvim_get_current_win()
 
