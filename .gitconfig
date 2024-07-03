@@ -17,7 +17,7 @@
   # generate list indexes
   st = !git -c color.ui=always status -sb | git pick -t file '^\\s*[AMDRU?]+\\s*(?:.* -> )?(.*)'
   br = !git -c color.ui=always branch "$@" | git pick -t rev '^\\s+(\\S*).*'
-  slog = !git -c color.ui=always log --pretty=simple "$@" | git pick -t rev '^(\\w+) .*'
+  slog = !git -c color.ui=always log --pretty=simple "$@" | git pick -t rev '^(?:.*\\dm)?(\\w+) .*'
 
   # act on file list indexes
   u = pick -t file checkout
@@ -92,7 +92,7 @@
   din = !git log -p ..origin/$(git brname)
   fin = !git in --name-status
 
-  out = !git -c color.ui=always log --pretty=simple origin/$(git brname).. | git pick -t rev '^(\\w+) .*'
+  out = !git -c color.ui=always log --pretty=simple origin/$(git brname).. | git pick -t rev '^(?:.*\\dm)?(\\w+) .*'
   dout = !git log -p origin/$(git brname)..
   fout = !git log --pretty=simple origin/$(git brname).. --name-status
 
@@ -157,8 +157,8 @@
 
 [pretty]
   hash = "format:%h"
-  simple = "format:%h %Cblue%<(11,trunc)%ar%Creset %<(8,trunc)%an %Cgreen%<(60,trunc)%s%Creset"
-  blog = "format:%m %h %Cblue%<(11,trunc)%ar%Creset %<(8,trunc)%an %Cgreen%<(60,trunc)%s%Creset"
+  simple = "format:%C(#624646)%h %Cblue%<(11,trunc)%ar%C(#666666) %<(8,trunc)%an %Creset%<(60,trunc)%s"
+  blog = "format:%m %C(#624646)%h %Cblue%<(11,trunc)%ar%C(#666666) %<(8,trunc)%an %Creset%<(60,trunc)%s"
 
 [push]
   default = current
@@ -174,9 +174,6 @@
 
 [rerere]
   enabled = true
-
-[tig "color"]
-  cursor = default color236 bold
 
 [web]
   open = xdg-open
