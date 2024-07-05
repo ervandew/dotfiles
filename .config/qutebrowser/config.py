@@ -152,6 +152,11 @@ config.bind('<ctrl-d>', 'cmd-run-with-count 15 scroll down')
 config.bind('0', 'cmd-run-with-count 100 scroll left')
 config.bind('$', 'cmd-run-with-count 100 scroll right')
 
+# zoom
+config.bind('zz', 'zoom') # back to the default, which may not be 100%
+config.bind('zi', 'zoom-in')
+config.bind('zo', 'zoom-out')
+
 # hints
 config.bind(';t', 'hint links tab-fg')
 config.bind(';T', 'hint links fill :open -t {hint-url}')
@@ -181,8 +186,15 @@ unfocused_bg = '#777'
 unfocused_fg = '#bbb'
 selected_bg = '#aaa'
 selected_fg = '#222'
-c.fonts.default_size = '8pt'
+
 c.fonts.default_family = 'sans-serif'
+
+# 4k monitor
+c.fonts.default_size = '12pt'
+c.zoom.default = '125%'
+# 1080p (no need to zoom)
+# c.fonts.default_size = '8pt'
+
 c.tabs.title.format = '{index}{perc}: {current_title}'
 c.tabs.indicator.width = 0 # disable the indicator
 c.hints.border = '1px solid #8eb157'

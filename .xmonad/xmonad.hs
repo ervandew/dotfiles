@@ -44,9 +44,6 @@ myManageHook = composeAll [
   where
     role = stringProperty "WM_WINDOW_ROLE"
 
-barBackground = "#232323"
-barForeground = "#7e7e7e"
-
 myTerminal = "alacritty"
 myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm"]
 myScratchpads = [
@@ -63,10 +60,18 @@ myScratchpads = [
 
 noScratchPad ws = if ws == "NSP" then "" else ws
 
+-- 4k monitor
+barFont = "Terminus 14"
+-- 1080p
+--barFont = "Terminus 9"
+barBackground = "#232323"
+barForeground = "#aaaaaa"
+
 main = do
   workspaceBar <- spawnPipe (
     "xmobar " ++
-      "-f 'Terminus 9' " ++
+      "-p 'TopH 25' " ++
+      "-f '" ++ barFont ++ "' " ++
       "-B '" ++ barBackground ++ "' " ++
       "-F '" ++ barForeground ++ "'")
   spawn "xset -b"
@@ -74,8 +79,13 @@ main = do
   spawn "xsetroot -cursor_name left_ptr"
   spawn "hsetroot -solid '#333333'"
   spawn "xmodmap ~/.Xmodmap"
-  spawn "xrdb -load ~/.Xresources"
-  spawn "pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 -xp 40 -wp 60 -h 14 -ta r &"
+  spawn ("pkill conky ; conky -c ~/.dzen/conkyrc | ~/bin/dzen2 " ++
+    "-xp 40 " ++
+    "-wp 60 " ++
+    "-fn '" ++ barFont ++ "' " ++
+    "-bg '" ++ barBackground ++ "' " ++
+    "-fg '" ++ barForeground ++ "' " ++
+    "-ta r &")
   spawn "pkill keynav ; keynav &"
   spawn "pkill xcompmgr ; xcompmgr -c -r0 &"
   spawn "pkill -9 unclutter ; sleep 0.3 ; unclutter --timeout 2 &"
@@ -98,7 +108,7 @@ main = do
       logHook            = dynamicLogWithPP xmobarPP {
         ppOutput  = hPutStrLn workspaceBar,
         ppSep     = " | ",
-        ppCurrent = xmobarColor "#5884b0" barBackground . wrap "[" "]",
+        ppCurrent = xmobarColor "#98c4f0" barBackground . wrap "[" "]",
         ppVisible = xmobarColor "#58738d" barBackground . wrap "[" "]",
         ppHidden  = xmobarColor barForeground barBackground . wrap "[" "]" . noScratchPad,
         ppLayout  = xmobarColor barForeground barBackground . wrap "{ " " }",
