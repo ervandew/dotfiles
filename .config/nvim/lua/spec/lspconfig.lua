@@ -2,11 +2,8 @@ return {{
   'neovim/nvim-lspconfig',
 
   config = function()
-    -- update the sign symbol
-    for _, name in ipairs({'Error', 'Warn', 'Info', 'Hint'}) do
-      local hl = 'DiagnosticSign' .. name
-      vim.fn.sign_define(hl, { text = '>', texthl = hl, numhl = hl })
-    end
+
+    -- Diagnostics {{{
 
     -- ability to ignore/filter diagnostics {{{
     local ignore = {
@@ -69,6 +66,12 @@ return {{
       orig_set(namespace, bufnr, filtered, opts)
     end
 
+    -- update the sign symbols
+    for _, name in ipairs({'Error', 'Warn', 'Info', 'Hint'}) do
+      local hl = 'DiagnosticSign' .. name
+      vim.fn.sign_define(hl, { text = '>', texthl = hl, numhl = hl })
+    end
+
     local ns = vim.api.nvim_create_namespace('filtered')
     local orig_signs_handler = vim.diagnostic.handlers.signs
     vim.diagnostic.handlers.signs = {
@@ -110,7 +113,9 @@ return {{
 
         orig_signs_handler.hide(ns, bufnr)
       end,
-    } -- }}}
+    }
+
+    -- }}}
 
     -- show diagnostics (linter results) in the location list -- {{{
     local errlist_type_map = {
@@ -188,7 +193,11 @@ return {{
             message = vim.fn.substitute(loc.text, '^\\s\\+', '', '')
             message = vim.fn.substitute(message, '\n', ' ', 'g')
             message = vim.fn.substitute(message, '\t', '  ', 'g')
-            message = (loc.user_data and (loc.user_data .. ': ') or ' ') .. message
+            if loc.user_data and type(loc.user_data) == 'string' then
+              message = loc.user_data .. ': ' .. message
+            else
+              message = ' ' .. message
+            end
             message = name .. ' - (' .. locnum .. ' of ' .. #locs .. '):' .. message
             break
           end
@@ -205,7 +214,77 @@ return {{
       underline = true, -- using italic  instead in colorscheme
       virtual_text = false,
       update_in_insert = false,
+    }) -- }}}
+
+    -- Mappings {{{
+
+    local on_list = function(options)
+      local item
+      if #options.items == 1 then
+        item = options.items[1]
+      elseif #options.items > 1 then
+        -- check if all items are on the same line, and if so just
+        -- use the first
+        local prev_line
+        local single_line = true
+        for _, i in ipairs(options.items) do
+          if prev_line and i.lnum ~= prev_line then
+            single_line = false
+            break
+          end
+          prev_line = i.lnum
+        end
+        if single_line then
+          item = options.items[1]
+        end
+      end
+
+      if item then
+        local filename = item.filename
+        local winnr = vim.fn.bufwinnr(vim.fn.bufnr('^' .. filename .. '$'))
+        if winnr ~= -1 then
+          vim.cmd(winnr .. 'winc w')
+        else
+          local cmd = 'split'
+          if vim.fn.expand('%') == '' and
+             not vim.o.modified and
+             vim.fn.line('$') == 1 and
+             vim.fn.getline(1) == ''
+          then
+            cmd = 'edit'
+          end
+          vim.cmd(cmd .. filename)
+        end
+        vim.fn.cursor(item.lnum, item.col)
+      elseif #options.items > 1 then
+        vim.fn.setqflist({}, ' ', options)
+        vim.cmd.copen()
+      end
+    end
+
+    vim.api.nvim_create_autocmd('LspAttach', {
+      pattern = '*',
+      callback = function(args)
+        local bufnr = args.buf
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        if client and client.server_capabilities.definitionProvider then
+          vim.keymap.set('n', '<cr>', function()
+            -- for lua files, try looking up docs first
+            if vim.bo.filetype == 'lua' then
+              if vim.fn['lookup#Lookup']('', '') then
+                return
+              end
+            end
+
+            vim.lsp.buf.definition({on_list = on_list})
+          end, { buffer = bufnr, silent = true })
+        end
+      end
     })
+
+    -- }}}
+
+    -- Servers {{{
 
     local lspconfig = require('lspconfig')
 
@@ -247,6 +326,9 @@ return {{
         }
       },
     }) -- }}}
+
+    -- }}}
+
   end,
 }}
 
