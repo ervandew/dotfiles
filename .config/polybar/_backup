@@ -1,7 +1,8 @@
 #!/bin/bash
 
 if [ ! -f $HOME/.backup.log ] ; then
-  echo "^fg(\#cf6171)never^fg()"
+  echo "never"
+  exit 1
 else
   seconds=$(($(date +%s) - $(stat --format=%Y $HOME/.backup.log)))
   hours=$((seconds / 60 / 60))
@@ -18,12 +19,12 @@ else
   elif [ $days -le 1 ] ; then
     diff="1 day ago"
   else
-    diff="^fg(\#cf6171)$days days ago^fg()"
-  fi
-
-  if [ "$retcode" != "0" ] ; then
-    diff="^fg(\#cf6171)$diff^fg()"
+    diff="$days days ago"
   fi
 
   echo $diff
+
+  if [ "$retcode" != "0" ] ; then
+    exit 1
+  fi
 fi

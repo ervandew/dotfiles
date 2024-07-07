@@ -1,1 +1,0 @@
-^i($HOME/.dzen/icons/vol.xbm) ${exec pactl get-sink-volume @DEFAULT_SINK@ | head -1 | sed 's|.* \([0-9]\+%\).*|\1|'}${execp $HOME/.dzen/_conkyrc.headphones}
