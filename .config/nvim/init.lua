@@ -339,7 +339,7 @@ vim.api.nvim_create_autocmd('BufReadCmd', {
   callback = function(args)
     local path, line = unpack(vim.fn.split(args.match, ':'))
     if vim.fn.filereadable(path) == 1 then
-      vim.cmd('bwipeout!')
+      local tempbufnr = vim.fn.bufnr()
       if vim.fn.bufexists(path) == 0 then
         vim.cmd('edit ' .. path)
         vim.cmd('filetype detect')
@@ -354,6 +354,8 @@ vim.api.nvim_create_autocmd('BufReadCmd', {
       end
       vim.cmd('silent ' .. line)
       vim.cmd('normal zz')
+      vim.cmd('doautocmd BufWinEnter')
+      vim.cmd(tempbufnr .. 'bwipeout!')
     end
   end
 })
