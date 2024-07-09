@@ -168,8 +168,7 @@ config.bind(';i', 'hint inputs')
 config.bind(';x', 'hint links spawn xdg-open {hint-url}')
 
 # yank selected content
-config.bind('yy', 'yank selection')
-config.bind('yu', 'yank url')
+config.bind('yy', 'yank url')
 
 # command history nav
 config.bind('<up>', 'command-history-prev', mode='command')
