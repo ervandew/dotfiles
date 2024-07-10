@@ -6,38 +6,8 @@ return {{
     -- Diagnostics {{{
 
     -- ability to ignore/filter diagnostics {{{
-    local ignore = {
-      -- FIXME: move to pyright setup (insert into 'ignore' table
-      Pyright = { -- {{{
-        '"__" is not accessed',
-        'No overloads',
-        'not supported for "None"',
-        'Object of type "None"',
-        (function(bufnr, d)
-          if d.code == 'reportWildcardImportFromLibrary' and
-             string.find(vim.fn.bufname(bufnr), '__init__.py') then
-            return true
-          end
-          -- ignore 'not accessed' hints for parameters
-          if d._tags and d._tags.unnecessary then
-            local node = vim.treesitter.get_node({
-              bufnr = bufnr,
-              pos = { d.lnum, d.col },
-            })
-            local parent = node ~= nil and node:parent() or nil
-            if parent ~= nil and string.find(parent:type(), 'splat_pattern') then
-              parent = parent:parent()
-            end
-            local parent_type = parent ~= nil and parent:type() or ''
-            if parent_type == 'parameters' or
-               parent_type == 'default_parameter' then
-              return true
-            end
-          end
-          return false
-        end),
-      }, -- }}}
-    }
+    -- note: patterns use vim's regex
+    local ignore = {}
     local ignored = function(bufnr, diagnostic)
       if not ignore[diagnostic.source] then
         return false
@@ -47,8 +17,11 @@ return {{
           if i(bufnr, diagnostic) then
             return true
           end
-        elseif string.find(diagnostic.message, i) then
-          return true
+        else
+          local message = diagnostic.message
+          if vim.fn.substitute(message, i, '', '') ~= message then
+            return true
+          end
         end
       end
       return false
@@ -126,7 +99,8 @@ return {{
     }
     vim.api.nvim_create_autocmd('DiagnosticChanged', {
       callback = function(args)
-        local diagnostics = args.data.diagnostics
+        -- all diagnostics in the current buffer
+        local diagnostics = vim.diagnostic.get(args.buf)
         local filtered = {}
         for _, d in ipairs(diagnostics) do
           table.insert(filtered, {
@@ -152,11 +126,13 @@ return {{
           end
         end)
 
-        local winnr = vim.fn.bufwinnr(args.file)
-        vim.fn.setloclist(winnr, filtered, 'r')
-        vim.fn.setloclist(winnr, {}, 'r', { title = 'Diagnostics' })
-        -- fire autocmd to display diagnostic on the current line
-        vim.cmd('doautocmd CursorMoved')
+        local winnr = vim.fn.bufwinnr(args.buf)
+        if winnr ~= -1 then
+          vim.fn.setloclist(winnr, filtered, 'r')
+          vim.fn.setloclist(winnr, {}, 'r', { title = 'Diagnostics' })
+          -- fire autocmd to display diagnostic on the current line
+          vim.cmd('doautocmd CursorMoved')
+        end
       end,
     }) -- }}}
 
@@ -244,6 +220,7 @@ return {{
         local winnr = vim.fn.bufwinnr(vim.fn.bufnr('^' .. filename .. '$'))
         if winnr ~= -1 then
           vim.cmd(winnr .. 'winc w')
+          vim.cmd([[ normal! m' ]]) -- update jump list
         else
           local cmd = 'split'
           if vim.fn.expand('%') == '' and
@@ -288,22 +265,59 @@ return {{
 
     local lspconfig = require('lspconfig')
 
-    -- pyright -- {{{
-    -- lspconfig.pyright.setup({
-    --   settings = {
-    --     python = {
-    --       -- alternate way to set a global python path
-    --       -- pythonPath = '/usr/bin/python',
-    --       -- NOTE: to avoid a bunch of pyright type errors w/ django
-    --       -- $ pip install django-stubs 
-    --     },
-    --   },
-    --   on_attach = function(client, bufnr)
-    --     lspconfig.pyright.commands.PyrightSetPythonPath[1](
-    --       client.root_dir .. '/.virtualenv/bin/python'
-    --     )
-    --   end,
-    -- }) -- }}}
+    -- pyright {{{
+    lspconfig.pyright.setup({
+      settings = {
+        python = {
+          -- alternate way to set a global python path
+          -- pythonPath = '/usr/bin/python',
+          -- NOTE: to avoid a bunch of pyright type errors w/ django
+          -- $ pip install django-stubs
+        },
+      },
+      on_attach = function(client)
+        lspconfig.pyright.commands.PyrightSetPythonPath[1](
+          client.root_dir .. '/.virtualenv/bin/python'
+        )
+
+        ignore['Pyright'] = {
+          '"\\(__\\|args\\|kwargs\\|self\\)" is not accessed',
+          -- 'No overloads',
+          -- 'not supported for "None"',
+          -- 'Object of type "None"',
+          (function(bufnr, d)
+            if d.code == 'reportWildcardImportFromLibrary' and
+               string.find(vim.fn.bufname(bufnr), '__init__.py') then
+              return true
+            end
+            -- ignore 'not accessed' hints for parameters
+            if d._tags and d._tags.unnecessary then
+              local ok, node = pcall(vim.treesitter.get_node, {
+                bufnr = bufnr,
+                pos = { d.lnum, d.col },
+              })
+              if ok then
+                local parent = node ~= nil and node:parent() or nil
+                if parent ~= nil and string.find(parent:type(), 'splat_pattern') then
+                  parent = parent:parent()
+                end
+                local parent_type = parent ~= nil and parent:type() or ''
+                if parent_type == 'parameters' or
+                   parent_type == 'default_parameter' then
+                  return true
+                end
+              end
+            end
+            return false
+          end),
+        }
+
+      end,
+    }) -- }}}
+
+    -- ruff {{{
+    lspconfig.ruff.setup({})
+    -- }}}
 
     -- lua-language-server (lua_ls) {{{
     local library = {
