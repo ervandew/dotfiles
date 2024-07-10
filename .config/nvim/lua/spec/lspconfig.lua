@@ -253,6 +253,24 @@ return {{
               end
             end
 
+            -- for python files, see if the reference under the cursor is to an
+            -- html file
+            if vim.bo.filetype == 'python' then
+              local line = vim.fn.getline('.')
+              local possible_path = vim.fn.substitute(line,
+                "\\(.*[[:space:]\"',(\\[{><]\\|^\\)\\(.*\\%" ..
+                vim.fn.col('.') .. "c.\\{-}\\)\\([[:space:]\"',)\\]}<>].*\\|$\\)",
+                '\\2',
+                ''
+              )
+              local index = string.find(possible_path, '.html', 1, true)
+              if index == #possible_path - 4 then
+                vim.cmd('Grep! --files')
+                return
+              end
+            end
+
+            -- now we can run lsp definition lookup
             vim.lsp.buf.definition({on_list = on_list})
           end, { buffer = bufnr, silent = true })
         end
