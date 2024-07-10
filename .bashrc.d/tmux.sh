@@ -41,11 +41,13 @@ function tmux_window_title() {
       fi
     done
 
+    # remove dash args, must be before removing sudo/ssh
     # remove sudo, prefix with # instead
     # remove ssh, prefix with @ instead
     # remove path info
     # remove all but the first part of the command
     title=$(echo $title |
+      perl -pe 's|\s-.?\s| |' |
       perl -pe 's|^sudo\s|#|' |
       perl -pe 's|^ssh\s|@|' |
       perl -pe 's|\S*/||g' |
