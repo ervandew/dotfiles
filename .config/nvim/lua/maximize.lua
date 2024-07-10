@@ -10,17 +10,19 @@ end
 
 local function height(winid)
   local bufnr = vim.fn.winbufnr(winid)
-  if vim.bo[bufnr].ft == 'qf' then
-    vim.w[winid].height = 10
-    vim.wo[winid].winfixheight = true
-  elseif vim.wo[winid].previewwindow then
-    vim.w[winid].height = vim.o.previewheight
-  elseif vim.wo[winid].winfixheight then
-    if not vim.w[winid].height then
-      vim.w[winid].height = vim.fn.winheight(winid)
+  if bufnr ~= -1 then
+    if vim.bo[bufnr].ft == 'qf' then
+      vim.w[winid].height = 10
+      vim.wo[winid].winfixheight = true
+    elseif vim.wo[winid].previewwindow then
+      vim.w[winid].height = vim.o.previewheight
+    elseif vim.wo[winid].winfixheight then
+      if not vim.w[winid].height then
+        vim.w[winid].height = vim.fn.winheight(winid)
+      end
     end
+    return vim.w[winid].height
   end
-  return vim.w[winid].height
 end
 
 local function disable()
@@ -41,11 +43,13 @@ local function update()
     if ignore(vim.fn.win_getid()) then
       local curwin = vim.fn.winnr()
       for winnr = vim.fn.winnr('$'), 1, -1 do
-        local winid = vim.fn.win_getid(winnr)
-        if not ignore(winid) then
-          vim.cmd('noautocmd ' .. winnr .. 'winc w')
-          vim.cmd('winc _')
-          break
+        if winnr < curwin then
+          local winid = vim.fn.win_getid(winnr)
+          if not ignore(winid) then
+            vim.cmd('noautocmd ' .. winnr .. 'winc w')
+            vim.cmd('winc _')
+            break
+          end
         end
       end
       vim.cmd('noautocmd ' .. curwin .. 'winc w')
@@ -56,10 +60,18 @@ local function update()
     end
 
     -- set all fixed height windows to their fixed height
+    local curwinid = vim.fn.win_getid(vim.fn.winnr())
     for winnr = 1, vim.fn.winnr('$') do
       local winid = vim.fn.win_getid(winnr)
       if vim.wo[winid].winfixheight then
-        if vim.w[winid].height then
+        -- for loclist windows, only resize the one associated with the current
+        -- window
+        if vim.fn.getwininfo(winid)[1].loclist == 1 then
+          local pwinid = vim.fn.getloclist(winid, { filewinid = 0 }).filewinid
+          if winid == curwinid or pwinid == curwinid then
+            vim.cmd(winnr .. 'resize ' .. vim.w[winid].height)
+          end
+        elseif vim.w[winid].height then
           vim.cmd(winnr .. 'resize ' .. vim.w[winid].height)
         end
       end
