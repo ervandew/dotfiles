@@ -133,7 +133,20 @@ M.mappings = function()
       vim.keymap.set('n', 'dd', delete, opts)
       vim.keymap.set('n', 's',  function() split(true) end, opts)
       vim.keymap.set('n', 'S',  function() split(false) end, opts)
-      vim.keymap.set('n', 'q', ':close')
+      vim.keymap.set('n', 'q', ':close<cr>', opts)
+
+      -- for loclist windows, auto close when associated window/buffer is closed
+      local winid = vim.api.nvim_get_current_win()
+      if vim.fn.getwininfo(winid)[1].loclist == 1 then
+        local pwinid = vim.fn.getloclist(winid, { filewinid = 0 }).filewinid
+        vim.api.nvim_create_autocmd('BufWinLeave', {
+          buffer = vim.fn.winbufnr(pwinid),
+          callback = function()
+            vim.cmd.lclose()
+          end,
+          once = true,
+        })
+      end
     end
 })
 end
