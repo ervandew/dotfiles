@@ -9,5 +9,6 @@ if [ -n "$percent" ]; then
   fi
   percent="$percent%"
   echo $percent
+else
+  echo ""
 fi
-echo ""
