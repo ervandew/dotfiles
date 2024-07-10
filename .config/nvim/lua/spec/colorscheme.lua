@@ -3,13 +3,11 @@ return {{
   lazy = false,
   priority = 1000,
   config = function()
-    local lackluster = require("lackluster")
-    lackluster.setup({
+    require('lackluster').setup({
       tweek_background = {
         normal = 'none',
       },
     })
-
     vim.cmd.colorscheme('lackluster-hack')
 
     local white = '#cccccc'
@@ -29,7 +27,7 @@ return {{
     local info = '#878700'
     local hint = '#7a7a7a'
 
-    -- override some of lackluster's colors
+    -- override various colors
     vim.api.nvim_set_hl(0, '@boolean', { fg = purple })
     vim.api.nvim_set_hl(0, '@comment', { fg = '#525252' })
     vim.api.nvim_set_hl(0, '@comment.documentation', { link = '@comment' })
@@ -38,6 +36,7 @@ return {{
     vim.api.nvim_set_hl(0, '@function', { fg = white })
     vim.api.nvim_set_hl(0, '@function.builtin', { fg = gray6 })
     vim.api.nvim_set_hl(0, '@function.method', { fg = white })
+    vim.api.nvim_set_hl(0, '@keyword', { fg = gray8 })
     vim.api.nvim_set_hl(0, '@markup.heading', { fg = white })
     vim.api.nvim_set_hl(0, '@number', { fg = '#624646' })
     vim.api.nvim_set_hl(0, '@string.special.url.comment', { underline = false })
@@ -92,9 +91,11 @@ return {{
 
     -- file type specific changes
     vim.api.nvim_set_hl(0, '@constant.git_rebase', { link = '@number' })
-    vim.api.nvim_set_hl(0, '@markup.heading.gitcommit', { fg = gray8 })
+    vim.api.nvim_set_hl(0, '@markup.heading.gitcommit', { link = '@keyword' })
     vim.api.nvim_set_hl(0, '@string.special.url.gitcommit', { link = '@markup.link.gitcommit' })
     vim.api.nvim_set_hl(0, '@number.float.python', { link = '@number' })
+    vim.api.nvim_set_hl(0, '@property.ini', { link = '@keyword' })
+    vim.api.nvim_set_hl(0, '@type.ini', { link = 'Special' })
 
     -- lsp specific changes
     vim.api.nvim_set_hl(0, '@lsp.type.event.lua', { link = '@comment' })
