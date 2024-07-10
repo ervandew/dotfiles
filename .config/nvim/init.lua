@@ -41,6 +41,10 @@ end
 -- }}}
 
 -- statusline {{{
+-- diable nvim's default qf status line, which for some reason can also bleed
+-- out to non-qf windows
+vim.g.qf_disable_statusline = true
+
 vim.opt.statusline = '%<%{%v:lua._status()%} %h%r%=%-10.(%l,%c%V b=%n,w=%{winnr()}%) %P'
 local severities = {
   [vim.diagnostic.severity.ERROR] = 'DiagnosticStatusError',
@@ -49,14 +53,22 @@ local severities = {
   [vim.diagnostic.severity.HINT] = 'DiagnosticStatusHint',
 }
 function _status() ---@diagnostic disable-line: lowercase-global
+  local curwinid = vim.fn.str2nr(vim.g.actual_curwin)
+  local winid = vim.fn.win_getid()
   local name = vim.fn.bufname()
   if name == '' then
-    name = '[No Name]'
+    if vim.w.quickfix_title then
+      if vim.fn.getwininfo(winid)[1].loclist == 1 then
+        name = '[Location List] ' .. vim.w.quickfix_title
+      else
+        name = '[Quickfix] ' .. vim.w.quickfix_title
+      end
+    else
+      name = '[No Name]'
+    end
   end
   local stl = name .. (vim.o.modified and ' +' or '')
-  local curwin = vim.fn.str2nr(vim.g.actual_curwin)
-  local winid = vim.fn.win_getid()
-  if curwin == winid then
+  if curwinid == winid then
     -- show the max diagnostic severity in the statusline
     if vim.b.diagnostic ~= nil then
       local hi = severities[vim.b.diagnostic.severity]
@@ -65,11 +77,8 @@ function _status() ---@diagnostic disable-line: lowercase-global
   end
 
   local stl_addl = ''
-  -- show the quickfix title
-  if vim.o.ft == 'qf' then
-    stl_addl = vim.fn.getqflist({ title = true })
   -- for csv files, display which column the cursor is in
-  elseif vim.o.ft == 'csv' then
+  if vim.o.ft == 'csv' then
     if vim.fn.exists(':CSV_WCol') == 3 then
       stl_addl = '[col: ' .. vim.fn.CSV_WCol('Name') .. ' (' .. vim.fn.CSV_WCol() .. ')]'
     end
@@ -80,7 +89,7 @@ function _status() ---@diagnostic disable-line: lowercase-global
     stl_addl = '[' .. vim.o.ff .. '] ' .. stl_addl
   end
 
-  if curwin == winid then
+  if curwinid == winid then
     stl_addl = '%#StatusLineFF#' .. stl_addl .. '%*'
   end
 
