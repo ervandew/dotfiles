@@ -89,6 +89,9 @@ return {{
       -- find the start tag to grab the name to put into the end pair
       local close = function(opts)
         local tag = string.gsub(opts.line, params[3], '%1')
+        if params[5] then
+          tag = params[5](tag)
+        end
         return string.gsub(opts.rule.end_pair, '%%s', tag)
       end
 
@@ -110,7 +113,8 @@ return {{
       '%}',
       '{% end%s %}',
       '.*{%%%-?%s*(%a*).*%-?%%}',
-      'htmljinja'
+      'htmljinja',
+      function(tag) return (tag == 'elif' or tag == 'else') and 'if' or tag end
     ))
 
     -- }}}
