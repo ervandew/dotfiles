@@ -94,7 +94,6 @@ local function split(close)
   local wininfo = vim.fn.getwininfo(vim.fn.win_getid())
   local type = wininfo[1].loclist == 1 and 'loc' or 'qf'
   local list = type == 'qf' and vim.fn.getqflist() or vim.fn.getloclist(0)
-
   local bufnum = vim.fn.bufnr()
   local entry = list[vim.fn.line('.')].bufnr
   if not vim.list_contains(vim.fn.tabpagebuflist(), entry) then
@@ -102,7 +101,9 @@ local function split(close)
     vim.cmd('new | buffer ' .. entry)
     vim.cmd(vim.fn.bufwinnr(bufnum) .. 'winc w')
   end
-  vim.cmd('normal! \\<cr>')
+
+  local cr = vim.api.nvim_replace_termcodes('<cr>', true, false, true)
+  vim.cmd('normal! ' .. cr)
 
   if close then
     vim.cmd(type == 'qf' and 'cclose' or 'lclose')
