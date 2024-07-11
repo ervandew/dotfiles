@@ -74,7 +74,7 @@ return {{
         -- statusline or other things to access it.
         vim.api.nvim_buf_set_var(bufnr, 'diagnostic', max_diagnostic)
         -- force statusline to re-evaluate
-        vim.o.statusline = vim.o.statusline
+        vim.wo.statusline = vim.wo.statusline
 
         -- call the default handler with our filtered results
         local filtered = vim.tbl_values(max_severity_per_line)
@@ -83,7 +83,7 @@ return {{
       hide = function(_, bufnr)
         pcall(function() vim.api.nvim_buf_del_var(bufnr, 'diagnostic') end)
         -- force statusline to re-evaluate
-        vim.o.statusline = vim.o.statusline
+        vim.wo.statusline = vim.wo.statusline
 
         orig_signs_handler.hide(ns, bufnr)
       end,
