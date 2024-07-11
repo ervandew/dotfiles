@@ -47,6 +47,7 @@ return {{
 
     local ns = vim.api.nvim_create_namespace('filtered')
     local orig_signs_handler = vim.diagnostic.handlers.signs
+    ---@diagnostic disable-next-line: inject-field
     vim.diagnostic.handlers.signs = {
       show = function(_, bufnr, _, opts)
         -- all diagnostics in the current buffer
