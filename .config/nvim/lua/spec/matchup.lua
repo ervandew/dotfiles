@@ -6,4 +6,29 @@ return {{
     -- disabled, usse nvim-treesitter-context instead
     vim.g.matchup_matchparen_offscreen = {}
   end,
+  init = function()
+
+    -- htmljinja {{{
+    vim.api.nvim_create_autocmd('FileType', {
+      pattern = 'htmljinja',
+      callback = function()
+        vim.b.match_words = table.concat({
+          '<!--:-->',
+          '<:>',
+          '<\\@<=[ou]l\\>[^>]*\\%(>\\|$\\):<\\@<=li\\>:<\\@<=/[ou]l>',
+          '<\\@<=dl\\>[^>]*\\%(>\\|$\\):<\\@<=d[td]\\>:<\\@<=/dl>',
+          '<\\@<=\\([^/!][^ \\t>]*\\)[^>]*\\%(>\\|$\\):<\\@<=/\\1>',
+          '{%-\\?\\s*\\<block\\>:{%-\\?\\s*\\<endblock\\>\\s*-\\?%}',
+          '{%-\\?\\s*\\<call\\>:{%-\\?\\s*\\<endcall\\>\\s*-\\?%}',
+          '{%-\\?\\s*\\<filter\\>:{%-\\?\\s*\\<endfilter\\>\\s*-\\?%}',
+          '{%-\\?\\s*\\<for\\>:{%-\\?\\s*\\<endfor\\>\\s*-\\?%}',
+          '{%-\\?\\s*\\<if\\>:{%-\\?\\s*\\<elif\\>:{%-\\?\\s*\\<else\\>:{%-\\?\\s*\\<endif\\>\\s*-\\?%}',
+          '{%-\\?\\s*\\<macro\\>:{%-\\?\\s*\\<endmacro\\>\\s*-\\?%}',
+        }, ',')
+      end
+    }) -- }}}
+
+  end,
 }}
+
+-- vim:fdm=marker
