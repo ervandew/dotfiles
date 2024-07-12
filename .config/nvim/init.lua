@@ -77,8 +77,10 @@ function _status() ---@diagnostic disable-line: lowercase-global
           max_severity = diagnostic.severity
         end
       end
-      local hi = severities[max_severity]
-      stl = '%#' .. hi .. '#' .. stl .. '%*'
+      if max_severity then
+        local hi = severities[max_severity]
+        stl = '%#' .. hi .. '#' .. stl .. '%*'
+      end
     end
   end
 

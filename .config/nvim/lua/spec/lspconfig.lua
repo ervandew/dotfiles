@@ -84,6 +84,7 @@ return {{
         local max_diagnostics = vim.b[bufnr].max_diagnostics or {}
         local ns_name = vim.diagnostic.get_namespace(ns).name
         max_diagnostics[ns_name] = nil
+        vim.b[bufnr].max_diagnostics = max_diagnostics
         -- force statusline to re-evaluate
         vim.wo.statusline = vim.wo.statusline
       end,
