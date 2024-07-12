@@ -70,8 +70,14 @@ function _status() ---@diagnostic disable-line: lowercase-global
   local stl = name .. (vim.o.modified and ' +' or '')
   if curwinid == winid then
     -- show the max diagnostic severity in the statusline
-    if vim.b.diagnostic ~= nil then
-      local hi = severities[vim.b.diagnostic.severity]
+    if vim.b.max_diagnostics ~= nil then
+      local max_severity = nil
+      for _, diagnostic in pairs(vim.b.max_diagnostics) do
+        if not max_severity or diagnostic.severity < max_severity then
+          max_severity = diagnostic.severity
+        end
+      end
+      local hi = severities[max_severity]
       stl = '%#' .. hi .. '#' .. stl .. '%*'
     end
   end

@@ -45,15 +45,11 @@ return {{
       vim.fn.sign_define(hl, { text = '>', texthl = hl, numhl = hl })
     end
 
-    local ns = vim.api.nvim_create_namespace('filtered')
     local orig_signs_handler = vim.diagnostic.handlers.signs
     ---@diagnostic disable-next-line: inject-field
     vim.diagnostic.handlers.signs = {
-      show = function(_, bufnr, _, opts)
-        -- all diagnostics in the current buffer
-        local diagnostics = vim.diagnostic.get(bufnr)
-
-        -- track the highest severity for the whole buffer
+      show = function(ns, bufnr, diagnostics, opts)
+        -- track the highest severity diagnostic
         local max_diagnostic = nil
         -- only show sign for the highest severity
         local max_severity_per_line = {}
@@ -70,22 +66,26 @@ return {{
           end
         end
 
-        -- set a bufer local variable to the highest severity, allowing
-        -- statusline or other things to access it.
-        vim.api.nvim_buf_set_var(bufnr, 'diagnostic', max_diagnostic)
-        -- force statusline to re-evaluate
-        vim.wo.statusline = vim.wo.statusline
-
         -- call the default handler with our filtered results
         local filtered = vim.tbl_values(max_severity_per_line)
         orig_signs_handler.show(ns, bufnr, filtered, opts)
-      end,
-      hide = function(_, bufnr)
-        pcall(function() vim.api.nvim_buf_del_var(bufnr, 'diagnostic') end)
+
+        -- set a bufer local variable to the highest severity diagnostic per
+        -- namespace, allowing statusline or other things to access it.
+        local max_diagnostics = vim.b[bufnr].max_diagnostics or {}
+        local ns_name = vim.diagnostic.get_namespace(ns).name
+        max_diagnostics[ns_name] = max_diagnostic
+        vim.b[bufnr].max_diagnostics = max_diagnostics
         -- force statusline to re-evaluate
         vim.wo.statusline = vim.wo.statusline
-
+      end,
+      hide = function(ns, bufnr)
         orig_signs_handler.hide(ns, bufnr)
+        local max_diagnostics = vim.b[bufnr].max_diagnostics or {}
+        local ns_name = vim.diagnostic.get_namespace(ns).name
+        max_diagnostics[ns_name] = nil
+        -- force statusline to re-evaluate
+        vim.wo.statusline = vim.wo.statusline
       end,
     }
 
