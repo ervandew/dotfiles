@@ -321,6 +321,30 @@ vim.api.nvim_create_autocmd('BufReadPost', {
   end
 })
 
+-- disable the netrw plugin and raise an error attempting to open a directory
+vim.g.loaded_netrwPlugin = 1
+vim.api.nvim_create_autocmd('BufWinEnter', {
+  pattern = '*',
+  callback = function()
+    if vim.fn.isdirectory(vim.fn.bufname()) == 1 then
+      local bufnr = vim.fn.bufnr()
+      vim.schedule(function()
+        vim.api.nvim_echo(
+          {{ 'Attempting to edit a directory', 'Error' }}, false, {}
+        )
+      end)
+      vim.api.nvim_create_autocmd('BufWinLeave', {
+        buffer = bufnr,
+        once = true,
+        callback = function()
+          vim.schedule(function() vim.cmd(bufnr .. 'bwipeout') end)
+        end,
+      })
+      return
+    end
+  end
+})
+
 -- disallow writing to read only files
 -- autocmd BufNewFile,BufRead * :let &modifiable = !&readonly
 vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
