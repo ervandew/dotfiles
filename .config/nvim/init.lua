@@ -312,6 +312,21 @@ vim.keymap.set('ca', 'rg', 'Grep')
 
 -- autocmds {{{
 
+-- follow symlinks to open the actual file
+vim.api.nvim_create_autocmd('BufReadPost', {
+  pattern = '*',
+  callback = function()
+    local buf = vim.fn.bufname()
+    local path = vim.fn.resolve(buf)
+    if path ~= buf then
+      vim.cmd('enew')
+      vim.cmd('bwipeout #')
+      vim.cmd('edit ' .. path)
+      vim.cmd('filetype detect')
+    end
+  end
+})
+
 -- when editing a file, jump to the last known cursor position.
 vim.api.nvim_create_autocmd('BufReadPost', {
   pattern = '*',
