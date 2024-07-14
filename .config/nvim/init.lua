@@ -305,8 +305,6 @@ end, { nargs = 0 })
 
 vim.keymap.set('ca', 'bd', 'BufferDelete')
 vim.keymap.set('ca', 'ln', 'lnext')
-vim.keymap.set('ca', 'gr', 'Grep')
-vim.keymap.set('ca', 'rg', 'Grep')
 
 -- }}}
 
