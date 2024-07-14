@@ -100,7 +100,8 @@ local qf_restore = function()
 end
 
 local grep = function(opts, args, action, suppress_messages)
-  local cmd = 'grep --sort=path'
+  -- search hidden files, excluding .git dir
+  local cmd = 'grep --sort=path --hidden --glob \'!.git\''
   local files = false
   for _, arg in ipairs(args) do
     if arg == '--files' then
