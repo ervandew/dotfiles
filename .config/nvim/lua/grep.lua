@@ -218,6 +218,11 @@ M.find = function(opts)
       return
     end
     opts.args = '\\<' .. cword .. '\\>'
+
+    if vim.fn.histget('cmd', -1) == 'Grep' then
+      vim.fn.histdel('cmd', -1)
+      vim.fn.histadd('cmd', 'Grep ' .. opts.args)
+    end
   elseif opts.args == '--files' then
     local uri = vim.fn.substitute(
       vim.fn.getline('.'),
@@ -229,8 +234,8 @@ M.find = function(opts)
     )
     opts.args = opts.args .. ' -g **/' .. uri
   end
-  local args = parse(opts.args)
 
+  local args = parse(opts.args)
   local result = options_args(args)
   local options = result[1]
   -- if pattern and dir supplied, see if dir is a glob pattern
