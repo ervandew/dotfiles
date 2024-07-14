@@ -128,6 +128,17 @@ local grep = function(opts, args, action, suppress_messages)
     vim.o.grepformat = '%-GERR:%.%#,%f,%-G%.%#'
   end
 
+  -- if the current file is outside of the current work directory, then attempt
+  -- to locate the project root and grep that directory
+  local cwd = vim.fn.getcwd()
+  local buf = vim.fn.fnamemodify(vim.fn.bufname(), ':p')
+  if not string.find(buf, cwd, 1, true) then
+    local git = vim.fn.finddir('.git', vim.fn.fnamemodify(buf, ':h') .. ';')
+    if git ~= '' then
+      cmd = cmd .. ' ' .. vim.fn.fnamemodify(git, ':h')
+    end
+  end
+
   vim.cmd('silent ' .. cmd)
 
   local results = vim.fn.getqflist()
