@@ -200,7 +200,7 @@ end)
 vim.keymap.set('n', '<c-l>', ':nohl | diffu<cr><c-l>', { silent = true })
 
 -- toggle wrapping of text
-vim.keymap.set('n', '<leader>w', ':let &wrap = !&wrap<cr>', { silent = true })
+vim.keymap.set('n', '<leader>wt', ':let &wrap = !&wrap<cr>', { silent = true })
 
 -- toggle diff of the current buffer
 vim.keymap.set('n', '<leader>dt', function()
