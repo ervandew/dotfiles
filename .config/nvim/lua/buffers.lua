@@ -117,7 +117,7 @@ local function open_file(cmd)
   if cmd == 'split' and
      vim.fn.expand('%') == '' and
      not vim.o.modified and
-     line('$') == 1 and
+     vim.fn.line('$') == 1 and
      vim.fn.getline(1) == ''
   then
     cmd = 'edit'
