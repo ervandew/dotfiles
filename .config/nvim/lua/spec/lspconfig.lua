@@ -296,9 +296,11 @@ return {{
         },
       },
       on_attach = function(client)
-        lspconfig.pyright.commands.PyrightSetPythonPath[1](
-          client.root_dir .. '/.virtualenv/bin/python'
-        )
+        if client.root_dir then
+          lspconfig.pyright.commands.PyrightSetPythonPath[1](
+            client.root_dir .. '/.virtualenv/bin/python'
+          )
+        end
 
         ignore['Pyright'] = {
           '"\\(__\\|args\\|kwargs\\|self\\)" is not accessed',
