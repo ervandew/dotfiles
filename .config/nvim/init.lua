@@ -172,23 +172,6 @@ vim.keymap.set('n', '<tab>k', ':winc k<cr>', { silent = true })
 vim.keymap.set('n', '<tab>l', ':winc l<cr>', { silent = true })
 vim.keymap.set('n', '<tab>h', ':winc h<cr>', { silent = true })
 vim.keymap.set('n', '<tab>m', ':winc x<cr>', { silent = true })
-vim.keymap.set('n', '<leader>p', ':call v:lua._pick_window()<cr>', { silent = true })
-function _pick_window() ---@diagnostic disable-line: lowercase-global {{{
-  local max = vim.fn.winnr('$')
-  local result = vim.fn.input('Window #: ')
-  vim.cmd.mode()
-  if result == '' then
-    return
-  end
-  local num = vim.fn.str2nr(result)
-  if num < 1 or num > max then
-    vim.api.nvim_echo(
-      {{ 'Invalid window number: ' .. result, 'WarningMsg' }}, false, {}
-    )
-    return
-  end
-  vim.cmd(num .. 'winc w')
-end -- }}}
 
 -- tab nav/manipulation mappings
 vim.keymap.set('n', 'gh', ':tabprev<cr>', { silent = true })
