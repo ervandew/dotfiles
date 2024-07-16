@@ -5,18 +5,68 @@ return {{
       multiline_threshold = 1, -- number of lines per context
     })
 
+    local ext_ns = vim.api.nvim_create_namespace('treesitter-context-spec-ext')
     vim.keymap.set('n', '<leader>u', function()
       local count = vim.v.count1
-      -- first check visible contexts
       local contexts = vim.b.treesitter_contexts
-      if count <= #contexts then
-        local context = contexts[#contexts - (count - 1)]
-        vim.cmd([[ normal! m' ]]) -- update jump list
-        vim.api.nvim_win_set_cursor(0, { context['line'] + 1, context['col'] })
+      local _jump = function(index)
+        -- first check visible contexts
+        if index <= #contexts then
+          local context = contexts[#contexts - (index - 1)]
+          vim.cmd([[ normal! m' ]]) -- update jump list
+          vim.api.nvim_win_set_cursor(0, { context['line'] + 1, context['col'] })
 
-      -- fall back to non-visible contexts
+        -- fall back to non-visible contexts
+        else
+          require('treesitter-context').go_to_context(index - #contexts)
+        end
+      end
+
+      -- if a count already supplied then go to it
+      if count ~= 1 then
+        _jump(count)
+
+      -- otherwise set some numbered extmarks and have the user choose
       else
-        require('treesitter-context').go_to_context(count - #contexts)
+        -- visible contexts
+        for i = 1, #contexts do
+          local context = contexts[#contexts + 1 - i]
+          vim.api.nvim_buf_set_extmark(0, ext_ns, context['line'], 0, {
+            virt_text_pos = 'overlay',
+            virt_text = { { tostring(i), 'MatchParen' } }
+          })
+        end
+
+        -- non-visible contexts (displayed in 1 line floating windows)
+        local index = #contexts
+        local contextbuf = nil
+        for winnr = 1, vim.fn.winnr('$') do
+          local winid = vim.fn.win_getid(winnr)
+          vim.print('win:', winnr, vim.w[winid]['treesitter_context_line_number'])
+          if vim.w[winid]['treesitter_context'] then
+            contextbuf = vim.fn.winbufnr(winnr)
+            for lnum = vim.fn.line('$', winid), 1, -1 do
+              index = index + 1
+              vim.api.nvim_buf_set_extmark(contextbuf, ext_ns, lnum - 1, 0, {
+                virt_text_pos = 'overlay',
+                virt_text = { { tostring(index), 'TreesitterContextLineNumber' } }
+              })
+            end
+            break
+          end
+        end
+        vim.cmd('redraw')
+        local choice = vim.fn.input('context [' .. 1 .. '-' .. index .. ']: ')
+        if choice:match('^%d+$') then
+          local loc = tonumber(choice)
+          if 1 <= loc and loc <= index then
+            _jump(loc)
+          end
+        end
+        vim.api.nvim_buf_clear_namespace(0, ext_ns, 0, -1)
+        if contextbuf then
+          vim.api.nvim_buf_clear_namespace(contextbuf, ext_ns, 0, -1)
+        end
       end
     end, { silent = true })
 
@@ -42,7 +92,7 @@ return {{
       numhl = 'TreesitterContextVisibleLine',
     })
 
-    local ns = vim.api.nvim_create_namespace('treesitter-context-spec')
+    local hl_ns = vim.api.nvim_create_namespace('treesitter-context-spec-hi')
     local function highlight_parent(bufnr, lnum, query, parent, contexts)
       for _, match in query:iter_matches(
         parent, bufnr, 0, -1, { max_start_depth = 0 }
@@ -60,7 +110,7 @@ return {{
             )
             vim.api.nvim_buf_add_highlight(
               bufnr,
-              ns,
+              hl_ns,
               'TreesitterContextVisible',
               line,
               0,
@@ -80,7 +130,7 @@ return {{
           for winnr = 1, vim.fn.winnr('$') do
             local winbufnr = vim.fn.winbufnr(winnr)
             vim.fn.sign_unplace(sign_group, { buffer = winbufnr })
-            vim.api.nvim_buf_clear_namespace(winbufnr, ns, 0, -1)
+            vim.api.nvim_buf_clear_namespace(winbufnr, hl_ns, 0, -1)
           end
         end
 
@@ -89,7 +139,7 @@ return {{
 
         vim.b[bufnr].treesitter_contexts = {}
         vim.fn.sign_unplace(sign_group, { buffer = bufnr })
-        vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+        vim.api.nvim_buf_clear_namespace(bufnr, hl_ns, 0, -1)
 
         if vim.wo[winid].previewwindow or
            vim.bo[bufnr].filetype == '' or
