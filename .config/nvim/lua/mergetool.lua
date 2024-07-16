@@ -58,7 +58,7 @@ M.setup = function()
   end
 
   local merge = vim.fn.bufname(4)
-  vim.cmd('bot diffsplit ' .. merge)
+  vim.cmd('bot split ' .. merge)
 end
 
 return M
