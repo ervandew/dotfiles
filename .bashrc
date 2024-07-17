@@ -168,6 +168,8 @@
   export NCURSES_ASSUMED_COLORS="-1;-1"
 
   export MYSQL_PS1="\u@\h:\p> "
+
+  export PSQLRC=$HOME/.config/psql/psqlrc
 # }}}
 
 # load user bash scripts
