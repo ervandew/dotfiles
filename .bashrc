@@ -122,7 +122,7 @@
   # for dotfiles sync
   function dotfiles() {
     if [[ $PWD =~ .*/dotfiles.* ]] ; then
-      stow --target=$HOME "$@" .
+      stow --ignore=.dotignore --target=$HOME "$@" .
     else
       echo 'error: not a dotfiles directory'
     fi
