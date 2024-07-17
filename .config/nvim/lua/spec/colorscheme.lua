@@ -13,6 +13,7 @@ return {{
     local white = '#cccccc'
     local gray6 = '#666666'
     local gray8 = '#888888'
+    local gray9 = '#999999'
 
     local green = '#789978'
     local purple = '#875f87'
@@ -51,6 +52,8 @@ return {{
     vim.api.nvim_set_hl(0, 'Error', { fg = error, bg = 'none' })
     vim.api.nvim_set_hl(0, 'Folded', { fg = '#5c5c5c', bg = 'none' })
     vim.api.nvim_set_hl(0, 'MatchParen', { fg = '#cf9ebe', bg = background })
+    vim.api.nvim_set_hl(0, 'ModeMsg', { fg = gray9 })
+    vim.api.nvim_set_hl(0, 'MoreMsg', { link = 'ModeMsg' })
     vim.api.nvim_set_hl(0, 'MsgArea', { fg = white })
     vim.api.nvim_set_hl(0, 'PmenuSel', {bg = '#333333' })
     vim.api.nvim_set_hl(0, 'Search', { fg = white, bg = '#607080' })
