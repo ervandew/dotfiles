@@ -27,8 +27,9 @@ _JAVA_AWT_WM_NONREPARENTING=1 ; export _JAVA_AWT_WM_NONREPARENTING
 # }}}
 
 # load user level xinitrc files
-if [ -d ~/.xinitrc.d ] ; then
-  for xrc in $(find -L ~/.xinitrc.d -name '*.sh' | sort) ; do
+rc_dir=$HOME/.config/xinit/rc.d
+if [ -d $rc_dir ] ; then
+  for xrc in $(find -L $rc_dir -name '*.sh' | sort) ; do
     echo "Running user level xinitrc: $xrc"
     . "$xrc"
   done
