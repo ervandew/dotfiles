@@ -1,0 +1,177 @@
+set nocompatible
+set autoindent       " always set autoindenting on
+set backspace=2      " backspace over indent, eol, start
+set clipboard=unnamed
+set complete-=i      " exclude include files
+set complete-=t      " exclude tags
+set complete-=u      " exclude unloaded buffers
+set completeopt=menuone,longest,preview
+set display=lastline " if last line doesn't fit on screen, show as much as possible.
+set expandtab        " expand tabs to spaces
+set fillchars=vert:\ ,fold:-
+set formatoptions+=n " support formatting of numbered lists.
+set history=50       " keep 50 lines of command line history
+set hlsearch         " highlight all search matches
+set incsearch        " do incremental searching
+set laststatus=2     " always show the status line.
+" show all tabs as >- and tailing spaces as -
+set list listchars=precedes:<,extends:>,tab:>-,trail:-
+set nobackup         " do not keep a backup file
+set number           " show line numbers
+set ruler            " show the cursor position all the time
+set scrolloff=5      " always keep 5 lines of context around the cursor
+set shiftwidth=2     " number of spaces used by indenting
+set showcmd          " display incomplete commands
+set showtabline=1    " show the tabline if there are multiple tabs
+set spellsuggest=10  " limit number of spelling suggestions to 10.
+set sidescroll=10    " minimum number of columns to scroll
+set sidescrolloff=20 " always keep 10 columns of horizontal context
+set splitbelow       " default :split to split files below the current window.
+set splitright       " default :vsplit to split files to the right of the current window.
+set ssop+=globals    " save global variables (required by some plugins to restore from session).
+set switchbuf=useopen,usetab
+set tabstop=2        " set the default tab width
+set timeoutlen=500   " timeout on mappings in .5 second
+set updatetime=1000  " timeout in millis for CursorHold event and swap writting.
+set virtualedit=all  " prevent the cursor from bouncing around columns while scrolling.
+set visualbell t_vb= " turn off system beeps and visual flash
+set wildmenu         " for command completion, show menu of available results
+" for command completion, show menu of available results
+set wildmode=longest:full,full
+set wrap             " wrap text
+
+filetype plugin indent on
+syntax on
+colorscheme habamax
+" another good default
+"colorscheme slate
+
+" sets the value of <Leader>
+let mapleader=","
+
+" navigate windows
+nnoremap <silent> <tab><tab> :winc p<cr>
+nnoremap <silent> <tab>j :winc j<cr>
+nnoremap <silent> <tab>k :winc k<cr>
+nnoremap <silent> <tab>l :winc l<cr>
+nnoremap <silent> <tab>h :winc h<cr>
+nnoremap <silent> <tab>m :winc x<cr>
+
+" back tick works like single quote for jumping to a mark, but restores the
+" column position too.
+nnoremap ' `
+
+" redraw screen + clear search highlights + update diffs
+nnoremap <silent> <c-l> :nohl \| diffu<cr><c-l>
+nnoremap <silent> <c-l><c-l> :syn sync minlines=500<cr>
+
+" toggle wrapping of text
+nmap <silent> <leader>w :let &wrap = !&wrap<cr>
+
+" toggle diff of the current buffer
+nmap <expr> <leader>d &diff ? ":diffoff\<cr>" : ":diffthis\<cr>"
+
+" write and go to next quickfix/location list result
+nmap <silent> <leader>cn :call <SID>NextError('c', 0)<cr>
+nmap <silent> <leader>cf :call <SID>NextError('c', 1)<cr>
+nmap <silent> <leader>ln :call <SID>NextError('l', 0)<cr>
+function! s:NextError(list, nextfile) " {{{
+  let error_count = (a:list == 'c') ? len(getqflist()) : len(getloclist(0))
+  noautocmd silent update
+  let command = a:list . 'nfile'
+  if !a:nextfile
+    " check new error count to handle case where writing the file modifies
+    " the results.
+    let length = (a:list == 'c') ? len(getqflist()) : len(getloclist(0))
+    let command = (length == error_count) ? a:list . 'next' : a:list . a:list
+  endif
+  try
+    exec command
+    " WinEnter is not fired by default for some reason, so force it to
+    " execute so we get our cursorline set by the autocmd setup elsewhere in
+    " this file.
+    doautocmd WinEnter %
+    normal! zv
+  catch /E553/
+    echohl WarningMsg | echo 'No more items' | echohl None
+  endtry
+endfunction " }}}
+
+" allow g. to move back through the change list (like the single use '.)
+nnoremap <silent> g. g;
+" map '. to use changelist operation so that if the location isn't the one I
+" want, I don't have to hit g. twice just to get to the next change in the
+" list (wrapped in try since vim throws an error if already at the head of
+" the list and won't move the cursor).
+nnoremap <silent> '.
+  \ :try \| exec 'normal! 999g,' \| catch /E663/ \| exec 'normal! `.' \| endtry<cr>
+
+" tab nav/manipulation mappings
+nnoremap <silent> gh :tabprev<cr>
+nnoremap <silent> gl :tabnext<cr>
+nnoremap <silent> gH :exec 'tabmove ' . max([tabpagenr() - 2, 0])<cr>
+nnoremap <silent> gL :exec 'tabmove ' . min([tabpagenr(), tabpagenr('$')])<cr>
+nnoremap <silent> g0 :tabfirst<cr>
+nnoremap <silent> g$ :tablast<cr>
+
+" modified version of '*' which doesn't move the cursor
+nnoremap <silent> * :let @/='\<<c-r>=expand("<cword>")<cr>\>'<cr>:set hls<cr>
+
+" toggle spelling with <c-z> (normal or insert mode)
+nnoremap <silent> <c-z>
+  \ :setlocal spell! spelllang=en_us \|
+  \ :echohl Statement \| echo 'spell check ' . (&spell ? 'on' : 'off') \| echohl None<cr>
+imap <c-z> <c-o><c-z>
+
+" preserve the " register when pasting over a visual selection
+xnoremap p <esc>:let reg = @"<cr>gvp:let @" = reg<cr>
+
+" virtualedit mappings to start insert no farther than the end of the actual
+" line
+function! s:VirtualEditEOLExpr(keys)
+  " when starting insert on an empty line, start it at the correct indent
+  if !len(getline('.')) && line('$') != 1
+    " gross hack to temporarily set lazy redraw so the text doesn't shift
+    " around when deleting the line, then using O to start a new one at the
+    " correct indentation.
+    set lz
+    augroup temp_lz
+      autocmd!
+      autocmd CursorHold,CursorHoldI,InsertLeave <buffer> set nolz | autocmd! temp_lz
+    augroup END
+    return line('.') == line('$') ? "ddo" : "ddO"
+  endif
+  return (virtcol('.') > col('$') ? '$' : '') . a:keys
+endfunction
+nnoremap <expr> <silent> a <SID>VirtualEditEOLExpr('a')
+nnoremap <expr> <silent> i <SID>VirtualEditEOLExpr('i')
+
+" we only really need this command for its '-count=1' so that the paste
+" mapping below can accept a count and the yank mapping can take a range.
+command! -count=1 VirtualEditDisable set ve=
+" temporarily disable virtual edit when pasting/yanking to avoid behavior of
+" paste/yank in virtualedit mode (pasting past the end of the line, trailing
+" spaces on yank, etc).
+nnoremap <expr> <silent> p
+  \ ':VirtualEditDisable<cr>' .
+  \ (v:count ? v:count : '') . (v:register != '"' ? '"' . v:register : '') . 'p' .
+  \ ':set ve=all<cr>'
+
+" when editing a file, jump to the last known cursor position.
+autocmd BufReadPost * silent! exec 'normal g`"'
+
+" disallow writing to read only files
+autocmd BufNewFile,BufRead * :let &modifiable = !&readonly
+
+" only highlight cursor line of the current window, making is easier to
+" pick out which window has focus
+if &term =~ '^\(rxvt-unicode\|.*256color\)' || has('gui_running')
+  autocmd WinLeave * setlocal nocursorline
+  autocmd WinEnter,VimEnter *
+    \ exec 'setlocal ' . (&ft == 'qf' ? 'no' : '') . 'cursorline'
+endif
+
+" prevent ctrl-s from suspending terminal updates when vim is running
+silent !stty -ixon
+
+" vim:fdm=marker
