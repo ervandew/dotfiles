@@ -4,8 +4,8 @@
 # Script to prompt the user with a menu of available rdbms instances to connect
 # to and then open the appropriate shell for the rdbms.
 #
-# Sources the file ~/.sqlcfg which can contain a comma separated list of
-# instance names to their corresponding command line arguments:
+# Sources the file ~/.config/sql/config which can contain a comma separated
+# list of instance names to their corresponding command line arguments:
 #
 #   CONNECTION_STRINGS="
 #     mysql:localhost: mydb,
@@ -51,8 +51,8 @@
 # any color that bash supports. By default green will be used if no entry has
 # been defined.
 #
-# The ~/.sqlcfg file can also define a PRODUCTION variable which is a space
-# separated list of connection entry names corresponding to production
+# The ~/.config/sql/config file can also define a PRODUCTION variable which is
+# a space separated list of connection entry names corresponding to production
 # databases or any instance that you'd like to flag when connecting to it:
 #
 #   PRODUCTION="
@@ -249,11 +249,12 @@ if [ "$1" == "-?" -o "$1" == "-h" -o "$1" == "--help" ] ; then
   exit 0
 fi
 
-if [ ! -f ~/.sqlcfg ] ; then
-  echo "abort: ~/.sqlcfg not found. This file should contain your connection settings."
+CONFIG=$HOME/.config/sql/config
+if [ ! -f $CONFIG ] ; then
+  echo "abort: $CONFIG not found. This file should contain your connection settings."
   exit 1
 fi
-source ~/.sqlcfg
+source $CONFIG
 
 # see if a db choice was supplied
 if $(echo "$1" | grep ":" &> /dev/null) ; then
@@ -263,7 +264,7 @@ if $(echo "$1" | grep ":" &> /dev/null) ; then
 fi
 
 if [ -z "$CONNECTION_STRINGS" ] ; then
-  echo "abort: missing CONNECTION_STRING setting from ~/.sqlcfg"
+  echo "abort: missing CONNECTION_STRING setting from $CONFIG"
   exit 1
 fi
 
@@ -278,7 +279,7 @@ for option in $CONNECTION_STRINGS ; do
 done
 
 if [ "$COUNT" -eq 0 ] ; then
-  echo "abort: no entries found in your CONNECTION_STRING setting from ~/.sqlcfg"
+  echo "abort: no entries found in your CONNECTION_STRING setting from $CONFIG"
   exit 1
 elif [ "$COUNT" -eq 1 ] ; then
   runchoice $option "$@"
