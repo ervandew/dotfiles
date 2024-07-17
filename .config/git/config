@@ -135,7 +135,7 @@
   editor = nvim
   excludesfile = ~/.gitignore
   pager = /usr/bin/less -+$LESS -FRX
-  hookspath = ~/.git-hooks
+  hookspath = ~/.config/git/hooks
 
 [diff]
   renames = true
@@ -179,5 +179,5 @@
   open = xdg-open
 
 [include]
-  path = .gitconfig.user
-  path = .gitconfig.work
+  path = config.user
+  path = config.work
