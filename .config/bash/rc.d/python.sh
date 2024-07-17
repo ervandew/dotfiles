@@ -1,4 +1,7 @@
-export PYTHONSTARTUP="$HOME/.pystartup"
+export PYTHONSTARTUP=$HOME/.config/python/startup
+export PYTHON_HISTORY=$HOME/.local/share/python/history
+export PYENV_ROOT=$HOME/.config/python/venv
+export IPYTHONDIR=$HOME/.config/ipython
 
 if [[ -z "$VIRTUAL_ENV" ]] ; then
   function python-venv {
@@ -7,7 +10,7 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
       exit 1
     fi
 
-    venv="$HOME/.python-venv/$1"
+    venv="$PYENV_ROOT/$1"
 
     if [ ! -d "$venv" ] ; then
       read -p "venv '$1' does not exist, create it? (y/n)? "
@@ -28,7 +31,7 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
     if [ -d "$venv" ] ; then
       source "$venv/bin/activate"
 
-      if [[ ! "$TERM" =~ ^screen ]] ; then
+      if [[ ! "$TERM" =~ ^tmux ]] ; then
         name=$(basename $VIRTUAL_ENV)
         tmux -L "$name" new-session -s "$name" -A
         deactivate
