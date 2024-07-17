@@ -167,6 +167,8 @@
   export COLORFGBG="default;default"
   export NCURSES_ASSUMED_COLORS="-1;-1"
 
+  export MPLAYER_HOME=$HOME/.config/mplayer
+
   export MYSQL_PS1="\u@\h:\p> "
 
   export PSQLRC=$HOME/.config/psql/psqlrc
