@@ -17,6 +17,7 @@
   export HISTIGNORE=$ignore
   export HISTCONTROL=ignoreboth
   export HISTSIZE=1000
+  export HISTFILE=$HOME/.local/share/bash/history
 
   # colors {{{
     red='\e[0;31m'
@@ -139,6 +140,9 @@
 
   alias envmin="~/bin/envmin ~/.config/envmin/envmin.txt"
 
+  mkdir $HOME/.local/share/wget 2> /dev/null || true
+  alias wget="wget --hsts-file=$HOME/.local/share/wget/hsts"
+
   alias whatismyip="dig TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed 's|\"||g'"
 
   # postgres db shortcuts
@@ -170,8 +174,12 @@
 
   export MPLAYER_HOME=$HOME/.config/mplayer
 
+  mkdir $HOME/.local/share/mysql 2> /dev/null || true
+  export MYSQL_HISTFILE=$HOME/.local/share/mysql/history
   export MYSQL_PS1="\u@\h:\p> "
 
+  mkdir $HOME/.local/share/psql 2> /dev/null || true
+  export PSQL_HISTORY=$HOME/.local/share/psql/history
   export PSQLRC=$HOME/.config/psql/psqlrc
 # }}}
 
