@@ -1,12 +1,8 @@
 includes -----------------------
 ~/.gitconfig
 ~/.inputrc
-~/.tmux.conf
-~/.vimrc
-~/.vim/colors/dark.vim .vim/colors/
-~/projects/vim/supertab/plugin/supertab.vim .vim/plugin/
-~/projects/vim/taglisttoo/plugin/taglisttoo.vim .vim/plugin/
-~/projects/vim/taglisttoo/autoload/* .vim/autoload/
+~/.config/tmux/tmux.conf .config/tmux/tmux.conf
+~/.config/vim/vimrc .config/vim/vimrc
 
 .bash_profile ------------------
 [[ -f ~/.bashrc ]] && . ~/.bashrc
@@ -22,13 +18,13 @@ export HISTCONTROL=ignoreboth
 export HISTIGNORE="&:??:pwd:clear:exit:shutdown*:reboot"
 export HISTSIZE=1000
 
-WHO=`whoami`
+WHO=$(whoami)
 if [ -n "$SUDO_USER" ] ; then
   USER=$SUDO_USER
 fi
 
 if [ "$USER" != "$WHO" -o "$USER" == "root" ] ; then
-  export USERHOME=`cat /etc/passwd | grep "\<$WHO\>" | cut -d ':' -f6`
+  export USERHOME=$(cat /etc/passwd | grep "\<$WHO\>" | cut -d ':' -f6)
   export HISTFILE="$USERHOME/.bash_history.$SUDO_USER"
   export PS1="\e[1;31m\u@\h\e[0m \w\n# "
 else
@@ -39,13 +35,12 @@ alias cp="cp -i"
 alias grep="grep --colour=auto"
 alias ls="ls --color"
 alias mv="mv -i"
-alias vi="vim"
 export EDITOR=vim
 
 MULTIPLEXER=$(which tmux 2> /dev/null)
 if [ -n "$MULTIPLEXER" ] ; then
-  SCREEN=$(echo "$TERM" | grep "^tmux")
-  if [ -n "$MULTIPLEXER" -a -z "$SUDO_USER" -a -n "$SSH_TTY" -a -z "$SCREEN" ] ; then
+  TMUX=$(echo "$TERM" | grep "^tmux")
+  if [ -n "$MULTIPLEXER" -a -z "$SUDO_USER" -a -n "$SSH_TTY" -a -z "$TMUX" ] ; then
     tmux attach || tmux
   fi
 fi

@@ -136,7 +136,7 @@
 
   alias sudosu="sudo -E su -p"
 
-  alias envmin="~/bin/envmin ~/.envmin/envmin.txt"
+  alias envmin="~/bin/envmin ~/.config/envmin/envmin.txt"
 
   alias whatismyip="dig TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed 's|\"||g'"
 

@@ -88,13 +88,11 @@ if [ $# -eq 2 ] ; then
   fi
 fi
 
-cd $(dirname $0)
-CURPATH=`pwd`
-cd - > /dev/null
-mkdir -p $CURPATH/temp/files 2> /dev/null
+ENVMIN_TMP=$(mktemp -d)
+mkdir -p $ENVMIN_TMP/files 2> /dev/null
 
 function cleanup {
-  rm -R $CURPATH/temp
+  rm -R $ENVMIN_TMP
 }
 
 trap cleanup 0
@@ -102,37 +100,37 @@ trap cleanup 0
 function extract {
   p=$(dirname $1)
   if [ "$p" != "." ] ; then
-    mkdir -p $CURPATH/temp/files/$p 2> /dev/null
+    mkdir -p $ENVMIN_TMP/files/$p 2> /dev/null
   fi
   f=$(echo "$1" | sed 's|\([./]\)|\\\1|g')
-  sed -e "0,/^$f ------.*/ d" -e "/^.* ------/,$ d" $FILES > $CURPATH/temp/files/$1
+  sed -e "0,/^$f ------.*/ d" -e "/^.* ------/,$ d" $FILES > $ENVMIN_TMP/files/$1
 }
 
 function header {
-  sed -e "0,/^__BEGIN_HEADER__/ d" $0 > $CURPATH/temp/header
+  sed -e "0,/^__BEGIN_HEADER__/ d" $0 > $ENVMIN_TMP/header
 }
 
 function includes {
   OLD_IFS=$IFS
   IFS=$'\n'
-  for f in `sed -e "0,/^includes ------.*/ d" -e "/^.* ------/,$ d" $FILES` ; do
+  for f in $(sed -e "0,/^includes ------.*/ d" -e "/^.* ------/,$ d" $FILES) ; do
     if [ -n "$f" ] ; then
-      d=`echo $f | sed 's|.* \(.*\)|\1|'`
+      d=$(echo $f | sed 's|.* \(.*\)|\1|')
       if [ $d != $f ] ; then
-        f=`echo $f | sed 's|\(.*\) .*|\1|'`
+        f=$(echo $f | sed 's|\(.*\) .*|\1|')
         p=$d
-        if [ ! `echo $d | grep '/$'` ] ; then
-          p=`echo $p | sed 's|\(.*/\).*|\1|'`
+        if [ ! $(echo $d | grep '/$') ] ; then
+          p=$(echo $p | sed 's|\(.*/\).*|\1|')
           if [ $p == $d ] ; then
             p=""
           fi
         fi
         if [ -n "$p" ] ; then
-          mkdir -p $CURPATH/temp/files/$p 2> /dev/null
+          mkdir -p $ENVMIN_TMP/files/$p 2> /dev/null
         fi
-        cp -r `eval echo $f` $CURPATH/temp/files/$d
+        cp -Lr $(eval echo $f) $ENVMIN_TMP/files/$d
       else
-        cp -r `eval echo $f` $CURPATH/temp/files
+        cp -Lr $(eval echo $f) $ENVMIN_TMP/files
       fi
     fi
   done
@@ -141,17 +139,17 @@ function includes {
 
 header
 includes
-for f in `grep "^.* --------" $FILES | sed 's/^\(.*\)\s-------.*/\1/'` ; do
+for f in $(grep "^.* --------" $FILES | sed 's/^\(.*\)\s-------.*/\1/') ; do
   if [[ $f != 'header' && $f != 'includes' ]] ; then
     extract $f
   fi
 done
 
-tar -C $CURPATH/temp/files -hzcf $CURPATH/temp/envmin.tar.gz \
-  $(ls -A --color=none $CURPATH/temp/files)
+tar -C $ENVMIN_TMP/files -hzcf $ENVMIN_TMP/envmin.tar.gz \
+  $(ls -A --color=none $ENVMIN_TMP/files)
 
-cat $CURPATH/temp/header $CURPATH/temp/envmin.tar.gz > $CURPATH/temp/envmin
-chmod 755 $CURPATH/temp/envmin
+cat $ENVMIN_TMP/header $ENVMIN_TMP/envmin.tar.gz > $ENVMIN_TMP/envmin
+chmod 755 $ENVMIN_TMP/envmin
 
 if [ -n "$HOST" ] ; then
   identity=~/.ssh/id_rsa
@@ -173,10 +171,10 @@ if [ -n "$HOST" ] ; then
   fi
 
   # send envmin contents and extract on the remote host.
-  scp -P $PORT $CURPATH/temp/envmin $HOST:~
+  scp -P $PORT $ENVMIN_TMP/envmin $HOST:~
   ssh -p $PORT $HOST "./envmin"
 else
-  mv -i $CURPATH/temp/envmin .
+  mv -i $ENVMIN_TMP/envmin .
 fi
 
 exit
@@ -185,12 +183,12 @@ __BEGIN_HEADER__
 #!/bin/bash
 
 # determine start of archive
-ARCHIVE_START=`awk '/^__BEGIN_ARCHIVE__/ { print NR + 1; exit 0; }' $0`
+ARCHIVE_START=$(awk '/^__BEGIN_ARCHIVE__/ { print NR + 1; exit 0; }' $0)
 
-TAR_VERSION=`tar --version | head -1`
+TAR_VERSION=$(tar --version | head -1)
 # Take the archive portion of this file and extract it.
 if [[ "$TAR_VERSION" =~ "GNU" ]] ; then
-  tail -n +$ARCHIVE_START $0 | gzip -dc | tar x --owner=$USER --group=`id -gn` -f -
+  tail -n +$ARCHIVE_START $0 | gzip -dc | tar x --owner=$USER --group=$(id -gn) -f -
 else
   tail -n +$ARCHIVE_START $0 | gzip -dc | tar x -f -
 fi
