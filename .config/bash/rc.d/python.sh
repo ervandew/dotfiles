@@ -28,7 +28,7 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
     if [ -d "$venv" ] ; then
       source "$venv/bin/activate"
 
-      if [[ ! "$TERM" =~ ^tmux ]] ; then
+      if [[ ! "$TERM" =~ ^screen ]] ; then
         name=$(basename $VIRTUAL_ENV)
         tmux -L "$name" new-session -s "$name" -A
         deactivate

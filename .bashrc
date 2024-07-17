@@ -90,8 +90,9 @@
   complete -f psql
 
   # load user bash completions
-  if [ -d ~/.bash_completion.d ] ; then
-    for bc in `find ~/.bash_completion.d -type f -o -type l -name '*.sh'` ; do
+  completion_dir=$HOME/.config/bash/completion.d
+  if [ -d $completion_dir ] ; then
+    for bc in $(find $completion_dir -type f -o -type l -name '*.sh') ; do
       . $bc
     done
   fi
@@ -175,8 +176,9 @@
 # }}}
 
 # load user bash scripts
-if [ -d ~/.bashrc.d ] ; then
-  for brc in `find ~/.bashrc.d -name '*.sh' | sort` ; do
+rc_dir=$HOME/.config/bash/rc.d
+if [ -d $rc_dir ] ; then
+  for brc in $(find $rc_dir -name '*.sh' | sort) ; do
     . $brc
   done
 fi
