@@ -325,7 +325,8 @@ return {{
                 end
                 local parent_type = parent ~= nil and parent:type() or ''
                 if parent_type == 'parameters' or
-                   parent_type == 'default_parameter' then
+                   parent_type == 'default_parameter' or
+                   parent_type == 'lambda_parameters' then
                   return true
                 end
               end
