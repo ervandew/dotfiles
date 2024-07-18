@@ -8,6 +8,14 @@ return {{
   end,
   init = function()
 
+    -- csv (disable) {{{
+    vim.api.nvim_create_autocmd('FileType', {
+      pattern = 'csv',
+      callback = function()
+        vim.b.matchup_matchparen_enabled = 0
+      end,
+    }) -- }}}
+
     -- htmljinja {{{
     vim.api.nvim_create_autocmd('FileType', {
       pattern = 'htmljinja',
