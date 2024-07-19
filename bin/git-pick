@@ -185,9 +185,25 @@ function _expand(){
           echo "git-pick: failed to resolve index: $index" 1>&2
           exit 1
         fi
+        # only the target file will be in the file list for renames, so if we
+        # are picking files for a commit pull in the old file name as well.
+        if [ -n "$COMMIT_STATUS" ] ; then
+          old_file=$(
+            echo $COMMIT_STATUS |
+            perl -pe "s|.*\bR\s+(.*?) -> $result\b.*|\1| || exit 1"
+          )
+          if [ $? -eq 0 ] ; then
+            printf "%s\n" "$old_file"
+          fi
+        fi
         printf "%s\n" "$result"
       done
     else
+      # if we are picking files for a commit, then ensure we pick up both files
+      # on a rename (R  file_from -> file_to)
+      if [ "$result" == "commit" ] ; then
+        COMMIT_STATUS=$(git status -s)
+      fi
       printf "%s\n" "$result"
     fi
   done
