@@ -45,7 +45,9 @@ end
 -- out to non-qf windows
 vim.g.qf_disable_statusline = true
 
-vim.opt.statusline = '%<%{%v:lua._status()%} %h%r%=%-10.(%l,%c%V b=%n,w=%{winnr()}%) %P'
+vim.opt.statusline =
+  '%<%{%v:lua._status()%} %h%r%=%-10.' .. -- left
+  '(%{%v:lua._status_search()%} %l,%c%V b=%n,w=%{winnr()}%) %P' -- right
 local severities = {
   [vim.diagnostic.severity.ERROR] = 'DiagnosticStatusError',
   [vim.diagnostic.severity.WARN] = 'DiagnosticStatusWarn',
@@ -102,6 +104,23 @@ function _status() ---@diagnostic disable-line: lowercase-global
   end
 
   return stl .. ' ' .. stl_addl
+end
+
+function _status_search() ---@diagnostic disable-line: lowercase-global
+  local curwinid = vim.fn.str2nr(vim.g.actual_curwin)
+  local winid = vim.fn.win_getid()
+  local stl_search = ''
+  if curwinid == winid then
+    local count = vim.fn.searchcount()
+    if next(count) then
+      stl_search =
+        '%#CurSearchStatus#' .. count.current ..
+        '%#StatusLine# / ' ..
+        '%#SearchStatus#' .. count.total ..
+        '%#StatusLine#'
+    end
+  end
+  return stl_search
 end -- }}}
 
 -- tabline {{{

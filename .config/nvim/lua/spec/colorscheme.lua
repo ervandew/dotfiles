@@ -44,7 +44,9 @@ return {{
     vim.api.nvim_set_hl(0, 'Comment', { link = '@comment' })
     vim.api.nvim_set_hl(0, 'ColorColumn', { bg = '#181818' })
     -- vim.api.nvim_set_hl(0, 'CursorLine', { bg = '#2c2c2c' })
-    vim.api.nvim_set_hl(0, 'CurSearch', { fg = white, bg = '#638465' })
+    vim.api.nvim_set_hl(0, 'CurSearch', { fg = white, bg = '#638465', bold = true })
+    -- using several shades lighter than CurSearch
+    vim.api.nvim_set_hl(0, 'CurSearchStatus', { fg = '#a3c4a5', bg = background })
     vim.api.nvim_set_hl(0, 'DiffAdd', { fg = green, bg = background })
     vim.api.nvim_set_hl(0, 'DiffChange', { fg = yellow_mid, bg = '#232323' })
     vim.api.nvim_set_hl(0, 'DiffDelete', { fg = '#870000', bg = '#2f0000' })
@@ -57,6 +59,8 @@ return {{
     vim.api.nvim_set_hl(0, 'MsgArea', { fg = white })
     vim.api.nvim_set_hl(0, 'PmenuSel', {bg = '#333333' })
     vim.api.nvim_set_hl(0, 'Search', { fg = white, bg = '#607080' })
+    -- using several shades lighter than Search
+    vim.api.nvim_set_hl(0, 'SearchStatus', { fg = '#a0b0c0', bg = background, bold = true })
     vim.api.nvim_set_hl(0, 'SignColumn', { bg = 'none' })
     vim.api.nvim_set_hl(0, 'SpellBad', { fg = '#cf6171', underline = true })
     vim.api.nvim_set_hl(0, 'SpellCap', { fg = '#4186be', underline = true })
