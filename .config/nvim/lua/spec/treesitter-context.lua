@@ -20,6 +20,9 @@ return {{
         else
           require('treesitter-context').go_to_context(index - #contexts)
         end
+
+        -- call CursorHold now to update context highlights
+        vim.cmd('doautocmd CursorHold')
       end
 
       -- if a count already supplied then go to it
@@ -42,7 +45,6 @@ return {{
         local contextbuf = nil
         for winnr = 1, vim.fn.winnr('$') do
           local winid = vim.fn.win_getid(winnr)
-          vim.print('win:', winnr, vim.w[winid]['treesitter_context_line_number'])
           if vim.w[winid]['treesitter_context'] then
             contextbuf = vim.fn.winbufnr(winnr)
             for lnum = vim.fn.line('$', winid), 1, -1 do
@@ -55,14 +57,24 @@ return {{
             break
           end
         end
-        vim.cmd('redraw')
-        local choice = vim.fn.input('context [' .. 1 .. '-' .. index .. ']: ')
-        if choice:match('^%d+$') then
-          local loc = tonumber(choice)
-          if 1 <= loc and loc <= index then
-            _jump(loc)
+
+        -- only one place to go, so go
+        if index == 1 then
+          _jump(1)
+        else
+          vim.cmd('redraw')
+          local ok, choice = pcall(
+            vim.fn.input,
+            'context [' .. 1 .. '-' .. index .. ']: '
+          )
+          if ok and choice:match('^%d+$') then
+            local loc = tonumber(choice)
+            if 1 <= loc and loc <= index then
+              _jump(loc)
+            end
           end
         end
+
         vim.api.nvim_buf_clear_namespace(0, ext_ns, 0, -1)
         if contextbuf then
           vim.api.nvim_buf_clear_namespace(contextbuf, ext_ns, 0, -1)
