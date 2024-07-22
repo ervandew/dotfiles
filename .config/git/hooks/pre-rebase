@@ -1,11 +1,8 @@
 #!/bin/bash
 
 ##
-# pre-rebase hook which runs my 'rebasesafe' alias to prevent silly mistakes
-# when running rebase.
-#
-# Prevents rebasing if any of the commits to be rebased are found in another
-# branch.
+# Hook which prevents rebasing if any of the commits to be rebased are found in
+# another branch.
 ##
 
 if [ "$#" -eq 2 ] ; then
