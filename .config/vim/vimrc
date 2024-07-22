@@ -43,9 +43,13 @@ set wrap             " wrap text
 
 filetype plugin indent on
 syntax on
-colorscheme habamax
-" another good default
-"colorscheme slate
+
+try
+  " requires vim 9.0.133
+  colorscheme habamax
+catch /E185/
+  colorscheme slate
+endtry
 
 " sets the value of <Leader>
 let mapleader=","
