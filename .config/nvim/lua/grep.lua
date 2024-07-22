@@ -305,7 +305,7 @@ M.complete = function(lead, cmdl, pos)
   local paths = vim.fn.glob(lead .. '*', false, true)
   local results = {}
   for _, path in ipairs(paths) do
-    if vim.fn.isdirectory(vim.fn.fnamemodify(path, ':p')) then
+    if vim.fn.isdirectory(vim.fn.fnamemodify(path, ':p')) == 1 then
       path = path .. '/'
     end
     results[#results + 1] = path
