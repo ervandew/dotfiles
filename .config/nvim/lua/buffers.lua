@@ -22,6 +22,7 @@ local function get_buffers()
       result[#result + 1] = {
         bufnr = buffer_id,
         hidden = vim.fn.bufwinid(buffer_id) == -1,
+        modified = vim.bo[buffer_id].modified,
         dir = dir,
         file = vim.fn.fnamemodify(name, ':p:t'),
       }
@@ -138,6 +139,13 @@ local function delete_file()
   local buffer = vim.b.buffers[line]
   local winnr = vim.fn.winnr()
 
+  if vim.bo[buffer.bufnr].modified then
+    vim.api.nvim_echo(
+      {{ 'Buffer has been modified.', 'Error' }}, false, {}
+    )
+    return
+  end
+
   -- if the buffer is currently open in a window, check if it's the last
   -- content window or not, so we can handle it accordingly
   local bufwin = vim.fn.bufwinnr(buffer.bufnr)
@@ -172,7 +180,7 @@ end
 
 local function only()
   for _, buffer in ipairs(vim.b.buffers) do
-    if buffer.hidden then
+    if buffer.hidden and not vim.bo[buffer.bufnr].modified then
       vim.api.nvim_buf_delete(buffer.bufnr, {})
     end
   end
@@ -200,7 +208,8 @@ function content()
     if vim.b[buffer.bufnr].buffers_tab_id == tabid then
       local pad = maxfilelength - #buffer.file + 2
       local line = buffer.hidden and 'hidden' or 'active'
-      line = line .. '  ' .. buffer.file
+      line = line .. (buffer.modified and '+ ' or '  ')
+      line = line .. buffer.file
       if buffer.dir ~= '' then
         while pad > 0 do
           line = line .. ' '
@@ -240,8 +249,8 @@ function content()
   vim.bo.ft = 'buffers'
   vim.cmd('hi link BufferActive Special')
   vim.cmd('hi link BufferHidden Comment')
-  vim.cmd('syntax match BufferActive /^active\\s/')
-  vim.cmd('syntax match BufferHidden /^hidden\\s/')
+  vim.cmd('syntax match BufferActive /^active+\\?\\s/')
+  vim.cmd('syntax match BufferHidden /^hidden+\\?\\s/')
   vim.cmd('syntax match Comment /^".*/')
 
   local opts = { buffer = true, silent = true }
