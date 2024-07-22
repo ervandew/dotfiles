@@ -1,13 +1,14 @@
 local M = {}
 local nodes_by_lang = {
   python = {
-    call = {path = {'arguments', '*'}},
-    dictionary = {path = {'*'}},
-    list = {path = {'*'}},
-    set = {path = {'*'}},
-    tuple = {path = {'*'}},
-    function_definition = {path = {'parameters', '*'}},
-    import_from_statement = {path = {'name'}, pre = '(', post = ')'},
+    call = { path = { 'arguments', '*' } },
+    class_definition = { path = { 'superclasses', '*' } },
+    dictionary = { path = {'*'} },
+    list = { path = {'*'} },
+    set = { path = {'*'} },
+    tuple = { path = {'*'} },
+    function_definition = { path = { 'parameters', '*' } },
+    import_from_statement = { path = {'name'}, pre = '(', post = ')' },
   }
 }
 
