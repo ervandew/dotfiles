@@ -39,7 +39,10 @@ return {
       end
 
       vim.keymap.set('n', '<leader>ff', function()
-        builtin.find_files({ attach_mappings = attach_mappings_file })
+        builtin.find_files({
+          attach_mappings = attach_mappings_file,
+          hidden = true,
+        })
       end)
       vim.keymap.set('n', '<leader>fg', function()
         builtin.live_grep({ attach_mappings = attach_mappings_file })
@@ -50,6 +53,7 @@ return {
         builtin.find_files({
           attach_mappings = attach_mappings_file,
           cwd = vim.fn.expand('%:h'),
+          hidden = true,
         })
       end)
 
@@ -64,6 +68,7 @@ return {
           attach_mappings = attach_mappings_file,
           cwd = vim.fn.fnamemodify(cwd, ':h'),
           default_text = line,
+          hidden = true,
         })
       end
 
@@ -78,6 +83,7 @@ return {
             prompt_position = 'top',
           },
           path_display = { filename_first = { reverse_directories = true } },
+          file_ignore_patterns = { '.git/' },
           mappings = {
             i = {
               ['<tab>'] = actions.move_selection_next,
