@@ -20,7 +20,8 @@ return {
           local picker = action_state.get_current_picker(prompt_bufnr)
           actions.close(prompt_bufnr)
 
-          local selection = unpack(action_state.get_selected_entry())
+          local selected_entry = action_state.get_selected_entry()
+          local selection = selected_entry.filename or unpack(selected_entry)
           local cmd = 'split'
           if vim.fn.expand('%') == '' and
              not vim.o.modified and
@@ -34,6 +35,10 @@ return {
           end
 
           vim.cmd(cmd .. ' ' .. selection)
+
+          if selected_entry.lnum then
+            vim.fn.cursor(selected_entry.lnum, selected_entry.col)
+          end
         end)
         return true
       end
