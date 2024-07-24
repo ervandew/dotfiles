@@ -310,12 +310,21 @@ vim.api.nvim_create_user_command('Mergetool', function()
   require('mergetool').setup()
 end, { nargs = 0 })
 
+require('open').commands()
+
 -- }}}
 
 -- abbreviations {{{
 
-vim.keymap.set('ca', 'bd', 'BufferDelete')
 vim.keymap.set('ca', 'ln', 'lnext')
+
+-- buffers.lua
+vim.keymap.set('ca', 'bd', 'BufferDelete')
+
+-- open.lua
+vim.keymap.set('ca', 'e', 'E')
+vim.keymap.set('ca', 'r', 'R')
+vim.keymap.set('ca', 's', 'S')
 
 -- }}}
 
