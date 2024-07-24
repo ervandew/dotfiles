@@ -186,13 +186,11 @@ unfocused_fg = '#bbb'
 selected_bg = '#aaa'
 selected_fg = '#222'
 
+# see QT_FONT_DPI in bashrc for scaling all qt fonts (includes web inspector,
+# which otherwise can't be controlled from here)
+#c.fonts.default_size = '8pt' # 1080p
+c.fonts.default_size = '10pt' # 4k
 c.fonts.default_family = 'sans-serif'
-
-# 4k monitor
-c.fonts.default_size = '12pt'
-c.zoom.default = '125%'
-# 1080p (no need to zoom)
-# c.fonts.default_size = '8pt'
 
 c.tabs.title.format = '{index}{perc}: {current_title}'
 c.tabs.indicator.width = 0 # disable the indicator
