@@ -172,6 +172,11 @@
   export COLORFGBG="default;default"
   export NCURSES_ASSUMED_COLORS="-1;-1"
 
+  # for gnome/gtk (gnumeric, zathura, etc) apps on a 4k monitor
+  export GDK_DPI_SCALE=1.5
+  # mostly for qutebrowser on a 4k monitor
+  export QT_FONT_DPI=120
+
   export MPLAYER_HOME=$HOME/.config/mplayer
 
   mkdir $HOME/.local/share/mysql 2> /dev/null || true
