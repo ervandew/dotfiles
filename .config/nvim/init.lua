@@ -257,6 +257,13 @@ end)
 vim.keymap.set('n', 'gf', ':Grep --files<cr>', { silent = true })
 vim.keymap.set('n', 'gF', ':Grep! --files<cr>', { silent = true })
 
+-- allow ctrl-v to paste in the command line
+vim.keymap.set('c', '<c-v>', function()
+  -- using feedkeys to ensure any vim ctrl values that may be in the register
+  -- are inserted literally instead of being evaluated (eg. <cr>)
+  vim.fn.feedkeys(vim.fn.getreg('+'))
+end, { expr = true })
+
 require('qf').mappings()
 require('virtualedit').mappings()
 
