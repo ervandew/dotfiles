@@ -60,7 +60,7 @@ main = do
   spawn "xset r rate 250 30"
   spawn "xsetroot -cursor_name left_ptr"
   spawn "hsetroot -solid '#333333'"
-  spawn "xmodmap ~/.Xmodmap"
+  spawn "xmodmap ~/.config/xinit/xmodmap"
   spawn "pkill keynav ; keynav &"
   spawn "pkill xcompmgr ; xcompmgr -c -r0 &"
   spawn "pkill -9 unclutter ; sleep 0.3 ; unclutter --timeout 2 &"
