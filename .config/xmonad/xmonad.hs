@@ -4,6 +4,7 @@ import XMonad.Config.Desktop
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.FadeInactive
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.UrgencyHook
 import XMonad.Layout.Accordion
 import XMonad.Layout.Combo
 import XMonad.Layout.LayoutCombinators
@@ -68,6 +69,7 @@ main = do
     withWindowNavigation(xK_k, xK_h, xK_j, xK_l) $
     -- filter out NSP (named scratchpad) workspace
     addEwmhWorkspaceSort (pure (filterOutWs ["NSP"])) . ewmh $
+    withUrgencyHook NoUrgencyHook $
     desktopConfig {
       borderWidth        = 1,
       modMask            = mod1Mask,
