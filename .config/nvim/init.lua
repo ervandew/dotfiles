@@ -46,15 +46,15 @@ end
 vim.g.qf_disable_statusline = true
 
 vim.opt.statusline =
-  '%<%{%v:lua._status()%} %h%r%=%-10.' .. -- left
-  '(%{%v:lua._status_search()%} %l,%c%V b=%n,w=%{winnr()}%) %P' -- right
+  '%<%{%v:lua._status_left()%} %h%r%=%-10.' .. -- left
+  '(%{%v:lua._status_right()%} %l,%c%V b=%n,w=%{winnr()}/%{win_getid()}%) %P' -- right
 local severities = {
   [vim.diagnostic.severity.ERROR] = 'DiagnosticStatusError',
   [vim.diagnostic.severity.WARN] = 'DiagnosticStatusWarn',
   [vim.diagnostic.severity.INFO] = 'DiagnosticStatusInfo',
   [vim.diagnostic.severity.HINT] = 'DiagnosticStatusHint',
 }
-function _status() ---@diagnostic disable-line: lowercase-global
+function _status_left() ---@diagnostic disable-line: lowercase-global
   local curwinid = vim.fn.str2nr(vim.g.actual_curwin)
   local winid = vim.fn.win_getid()
   local name = vim.fn.bufname()
@@ -106,18 +106,20 @@ function _status() ---@diagnostic disable-line: lowercase-global
   return stl .. ' ' .. stl_addl
 end
 
-function _status_search() ---@diagnostic disable-line: lowercase-global
+function _status_right() ---@diagnostic disable-line: lowercase-global
   local curwinid = vim.fn.str2nr(vim.g.actual_curwin)
   local winid = vim.fn.win_getid()
   local stl_search = ''
   if curwinid == winid then
     local count = vim.fn.searchcount()
     if next(count) then
+      local pattern = vim.fn.substitute(vim.fn.getreg('/'), '%', '%%', 'g')
       stl_search =
+        '/' .. pattern .. '/ [' ..
         '%#CurSearchStatus#' .. count.current ..
-        '%#StatusLine# / ' ..
+        '%#StatusLine#/' ..
         '%#SearchStatus#' .. count.total ..
-        '%#StatusLine#'
+        '%#StatusLine#' .. ']'
     end
   end
   return stl_search
