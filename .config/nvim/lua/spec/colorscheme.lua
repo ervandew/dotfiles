@@ -43,8 +43,10 @@ return {{
     vim.api.nvim_set_hl(0, '@string.special.url.comment', { underline = false })
     vim.api.nvim_set_hl(0, 'Comment', { link = '@comment' })
     vim.api.nvim_set_hl(0, 'ColorColumn', { bg = '#181818' })
-    -- vim.api.nvim_set_hl(0, 'CursorLine', { bg = '#2c2c2c' })
-    vim.api.nvim_set_hl(0, 'CurSearch', { fg = white, bg = '#638465', bold = true })
+    -- creating these two for SearchWrapped autocmd
+    vim.api.nvim_set_hl(0, 'CurSearchMain', { fg = white, bg = '#638465' })
+    vim.api.nvim_set_hl(0, 'CurSearchWrap', { fg = white, bg = '#8f5faf' })
+    vim.api.nvim_set_hl(0, 'CurSearch', { link = 'CurSearchMain' })
     -- using several shades lighter than CurSearch
     vim.api.nvim_set_hl(0, 'CurSearchStatus', { fg = '#a3c4a5', bg = background })
     vim.api.nvim_set_hl(0, 'DiffAdd', { fg = green, bg = background })
