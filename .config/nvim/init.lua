@@ -346,7 +346,7 @@ vim.api.nvim_create_autocmd('BufReadPost', {
 })
 
 -- when editing a file, jump to the last known cursor position.
-vim.api.nvim_create_autocmd('BufReadPost', {
+vim.api.nvim_create_autocmd('BufWinEnter', {
   pattern = '*',
   callback = function()
     if vim.fn.bufname():match('/%.git/') ~= nil then return end
