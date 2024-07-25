@@ -110,8 +110,16 @@ return {{
     vim.api.nvim_set_hl(0, '@lsp.type.event.lua', { link = '@comment' })
 
     -- plugin specific changes
-    vim.api.nvim_set_hl(0, 'TelescopeMatching', { fg = yellow })
-    vim.api.nvim_set_hl(0, 'TelescopeResultsNormal', { fg = gray6 })
+    vim.api.nvim_set_hl(0, 'TelescopeMatching', { fg = purple })
+    vim.api.nvim_set_hl(0, 'TelescopeResultsComment', { fg = gray6 })
+    vim.api.nvim_set_hl(0, 'TelescopeResultsNormal', { fg = '#aaaaaa' })
+    vim.api.nvim_set_hl(0, 'TelescopeSelection', { fg = green })
+    -- added by spec
+    vim.api.nvim_set_hl(0, 'TelescopeResultsPath1', { fg = '#aaaaaa' })
+    vim.api.nvim_set_hl(0, 'TelescopeResultsPath2', { fg = '#888888' })
+    vim.api.nvim_set_hl(0, 'TelescopeResultsPath3', { fg = '#666666' })
+    vim.api.nvim_set_hl(0, 'TelescopeResultsPath4', { fg = '#444444' })
+
     vim.api.nvim_set_hl(0, 'TreesitterContext', { fg = purple, bg = '#453e46' })
     vim.api.nvim_set_hl(0, 'TreesitterContextLineNumber', { link = 'TreesitterContext' })
     vim.api.nvim_set_hl(0, 'TreesitterContextBottom', { underline = true })

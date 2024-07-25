@@ -13,6 +13,8 @@ return {
       local actions = require('telescope.actions')
       local finders = require('telescope.finders')
       local pickers = require('telescope.pickers')
+      local state = require('telescope.state')
+      local utils = require('telescope.utils')
 
       -- change select_default when opening files
       local attach_mappings_file = function(prompt_bufnr)
@@ -79,6 +81,7 @@ return {
 
       require('telescope').setup({ ---@diagnostic disable-line: undefined-field
         defaults = {
+          file_ignore_patterns = { '.git/' },
           sorting_strategy = 'ascending',
           layout_strategy = 'vertical',
           layout_config = {
@@ -87,8 +90,35 @@ return {
             preview_height = .5,
             prompt_position = 'top',
           },
-          path_display = { filename_first = { reverse_directories = true } },
-          file_ignore_patterns = { '.git/' },
+          ---@diagnostic disable-next-line: unused-local
+          path_display = function(opts, path)
+            -- first truncate the path if it doesn't fit in the window width
+            if not opts.__length then
+              local status = state.get_status(vim.api.nvim_get_current_buf())
+              local width = vim.api.nvim_win_get_width(status.layout.results.winid)
+              opts.__length = width - status.picker.selection_caret:len() - 5
+            end
+            if #path > opts.__length then
+              path = '…' .. path:sub(#path - opts.__length)
+            end
+
+            -- highlight path elements like a gradiant so that file names and
+            -- closest parents stand out the most
+            local dirs = vim.split(path, utils.get_separator())
+            local style = {}
+            if #dirs then
+              local offset = 0
+              for index, dir in ipairs(dirs) do
+                local hi_index = #dirs - index + 1
+                local hi = hi_index <= 4 and
+                  'TelescopeResultsPath' .. hi_index or
+                  'TelescopeResultsPath4'
+                style[#style + 1] = { { offset, offset + #dir + 1 }, hi }
+                offset = offset + #dir + 1
+              end
+            end
+            return path, style
+          end,
           mappings = {
             i = {
               ['<tab>'] = actions.move_selection_next,
