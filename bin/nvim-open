@@ -5,7 +5,7 @@
 ##
 
 # convert python stack reference to file:line
-file=$(echo "$@" | perl -pe 's|File "(.*)", line (\d+),.*|\1:\2|')
+file=$(echo "$@" | perl -pe 's|\s*File "(.*)", line (\d+),.*|\1:\2|')
 
 pid=$(
   ps -ef |
