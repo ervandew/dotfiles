@@ -429,6 +429,9 @@ vim.api.nvim_create_autocmd('BufReadCmd', {
       end
       vim.cmd('silent ' .. line)
       vim.cmd('normal zz')
+      -- set last known position so that our BufWinEnter autocmd doesn't
+      -- override our cursor position
+      vim.cmd([[ normal! m" ]])
       vim.cmd('doautocmd BufWinEnter')
       vim.cmd(tempbufnr .. 'bwipeout!')
     end
