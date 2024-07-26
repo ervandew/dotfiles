@@ -1,25 +1,51 @@
 local M = {}
 local nodes_by_lang = {
   python = {
-    call = { path = { 'arguments', '*' } },
-    class_definition = { path = { 'superclasses', '*' } },
-    dictionary = { path = {'*'} },
-    list = { path = {'*'} },
-    set = { path = {'*'} },
-    tuple = { path = {'*'} },
-    function_definition = { path = { 'parameters', '*' } },
-    import_from_statement = { path = {'name'}, pre = '(', post = ')' },
+    call = { path = { 'arguments', '*' }, comma_separated = true },
+    class_definition = {
+      path = { 'superclasses', '*' },
+      comma_separated = true,
+    },
+    dictionary = { path = {'*'}, comma_separated = true },
+    dictionary_comprehension = { path = { '*' } },
+    generator_expression = { path = { '*' } },
+    list = { path = { '*' }, comma_separated = true },
+    list_comprehension = { path = { '*' } },
+    set = { path = { '*' }, comma_separated = true },
+    set_comprehension = { path = { '*' } },
+    tuple = { path = { '*' }, comma_separated = true },
+    function_definition = {
+      path = { 'parameters', '*' },
+      comma_separated = true,
+    },
+    import_from_statement = {
+      path = { 'name' },
+      pre = '(',
+      post = ')',
+      comma_separated = true,
+    },
   }
 }
 
 local function _wrap(lnum, rule, children)
   local cr = vim.api.nvim_replace_termcodes('<cr>', true, false, true)
   local esc = vim.api.nvim_replace_termcodes('<esc>', true, false, true)
+  local num_lines = #children
   -- loop over our results in reverse
   for i = #children, 1, -1 do
+    local line_start = children[i]['line_start']
+    local col_start = children[i]['col_start']
+    local line_end = children[i]['line_end']
+    local col_end = children[i]['col_end']
+
+    -- if we are wrapping a multiline elment, then ensure we add the additional
+    -- lines to what we will reformat at the end.
+    if line_end > line_start then
+      num_lines = num_lines + (line_end - line_start)
+    end
+
     -- for the last child, wrap the end of it
     if i == #children then
-      local end_ = children[i]['col_end']
       local suffix = ''
       if rule.post then
         suffix = cr .. rule.post
@@ -28,32 +54,31 @@ local function _wrap(lnum, rule, children)
       end
 
       -- handle wrapping around a trailing comma, or adding one
-      local post = string.sub(vim.fn.getline(lnum), end_, end_)
+      local post = string.sub(vim.fn.getline(line_end + 1), col_end, col_end)
       if post == ',' then
-        end_ = end_ + 1
-      else
+        col_end = col_end + 1
+      elseif rule.comma_separated == true then
         suffix = ',' .. suffix
       end
 
-      vim.fn.cursor(0, end_)
+      vim.fn.cursor(line_end, col_end)
       vim.cmd.normal('i' .. suffix .. esc)
       vim.fn.cursor(lnum, 0)
     end
 
-    local start = children[i]['col_start']
     local prefix = i == 1 and rule.pre or ''
-    local pre = string.sub(vim.fn.getline(lnum), start - 1, start - 1)
+    local pre = string.sub(vim.fn.getline(lnum), col_start - 1, col_start - 1)
 
     -- wrap before any leading space unless we are adding a prefix
     if pre == ' ' and prefix == '' then
-      start = start - 1
+      col_start = col_start - 1
     end
 
-    vim.fn.cursor(0, start)
+    vim.fn.cursor(0, col_start)
     vim.cmd.normal('i' .. prefix .. cr .. esc)
     vim.fn.cursor(lnum, 0)
   end
-  vim.cmd('silent normal =' .. (#children + 1) .. 'j')
+  vim.cmd('silent normal =' .. (num_lines + 1) .. 'j')
 end
 
 local function _unwrap(lnum, rule, children)
