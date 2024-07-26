@@ -65,6 +65,11 @@ end
 
 M.open = function(action, opts)
   local path = opts.args
+  if path == '' then
+    vim.cmd(action)
+    return
+  end
+
   local rel_dir = vim.fn.fnamemodify(vim.fn.bufname(), ':h')
   local rel_path
   if not is_absolute(path) and rel_dir ~= '.' then
@@ -125,7 +130,7 @@ M.commands = function()
     vim.api.nvim_create_user_command(
       command,
       function(opts) M.open(action, opts) end,
-      { nargs = 1, complete = M.complete }
+      { nargs = '?', complete = M.complete }
     )
   end
 end
