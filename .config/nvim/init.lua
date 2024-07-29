@@ -371,7 +371,9 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
         buffer = bufnr,
         once = true,
         callback = function()
-          vim.schedule(function() vim.cmd(bufnr .. 'bwipeout') end)
+          vim.schedule(function()
+            vim.cmd('silent! ' .. bufnr .. 'bwipeout')
+          end)
         end,
       })
       return
