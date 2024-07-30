@@ -1,0 +1,102 @@
+#!/bin/bash
+
+##
+# Script for opening things via alacritty hints.
+#
+# Any patterns defined in the alacritty hint will need to be handled here often
+# with only a portion of the regex necessary to distinguish one action from
+# another.
+##
+
+# strip any leading spaces from the supplied target
+target=$(echo $1 | perl -pe 's/^\s*//')
+
+# Open a url {{{
+if [[ $target =~ ^https?:// ]] ; then
+  xdg-open "$target"
+fi # }}}
+
+# Open a file in an existing nvim instance. {{{
+function _nvim(){
+  pid=$(
+    ps -ef |
+      grep "$(whoami) .*[n]vim --embed" |
+      grep -v "macros/less.vim" |
+      tr -s ' ' |
+      cut -d' ' -f2 |
+      head -1
+  )
+  server=$(ls -1tr /run/user/$(id -u)/nvim.$pid.0)
+  if [ -n "$server" ]; then
+    nvim --server $server --remote-send "<c-\><c-n>:split $1<cr>"
+  fi
+}
+
+# git status/log file reference
+if [[ $target =~ ^(A|M|R\d*|\?\?) ]] ; then
+  if [[ $target =~ ^(A|M|\?\?) ]] ; then
+    file=$(echo "$target" | perl -pe 's/^(?:A|M|\?\?)\s+(.*)/\1/')
+  elif [[ $target =~ ^R\d* ]] ; then
+    file=$(echo "$target" | perl -pe 's/^R\d*\s+.*?\s+(.*)/\1/')
+  fi
+
+  # these file names are relative, so we need to find the absolute path
+  # - in tmux, we need to query tmux for path (relies on tmux invoked with -L)
+  # - otherwise, we can use $PWD
+  window=$(xdotool getactivewindow)
+  class=$(xprop -id $window | grep WM_CLASS)
+  if [[ $class == *"Alacritty"* ]]; then
+    pid=$(xprop -id $window | grep _NET_WM_PID | grep -oP "\d+")
+    bid=$(ps -ef | grep $pid | grep "bash" | tr -s ' ' | cut -d' ' -f2)
+    tid=$(ps -ef | grep $bid | grep "tmux" | perl -pe 's/.*tmux -L (.*?) .*/\1/')
+    if [ -n "$tid" ] ; then
+      cwd=$(tmux -L $tid display-message -p -F "#{pane_current_path}")
+      file=$cwd/$file
+    else
+      file=$PWD/$file
+    fi
+  fi
+
+  _nvim $file
+
+# python stack trace file reference
+elif [[ $target =~ ^File ]] ; then
+  # convert python stack reference to file:line
+  file=$(echo "$target" | perl -pe 's/File "(.*)", line (\d+),.*/\1:\2/')
+  _nvim $file
+fi # }}}
+
+# Open a ticket reference in the browser {{{
+# This requires pattern and url pairs configured per repository via .gitconfig
+#
+# Eg.
+#   [ticket "project-name"]
+#     pattern = "#\\d+ https://github.com/user/project-name/issues/\\1"
+#
+# Things to note:
+# - backslashes need to be escaped
+# - if the pattern starts with ; or #, then the whole value needs to be quoted
+# - the current working directory is used to determine the git repo name, the
+#   "project-name" referenced above.
+if [[ $target =~ ^(fixes|refs|resolves) ]] ; then
+  repo=$(basename $(git rev-parse --show-toplevel))
+
+  IFS_ORIG=$IFS
+  IFS=$'\r\n'
+  patterns=($(git config --get-all ticket.$repo.pattern))
+  IFS=$IFS_ORIG
+
+  for pair in "${patterns[@]}" ; do
+    pair=($pair)
+    pattern=${pair[0]}
+    url=${pair[1]}
+    match=$(echo "$target" | perl -pe "s|.*${pattern}.*|\1| || exit 1")
+    if [ "$?" -eq 0 ] ; then
+      url=$(echo "$url" | perl -pe "s|\\\1|$match|")
+      xdg-open "$url"
+      break
+    fi
+  done
+fi # }}}
+
+# vim:fdm=marker

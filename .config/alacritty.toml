@@ -57,7 +57,7 @@ bindings = [
   { key = 'y', mode = 'Vi', action = 'ClearSelection' },
   { key = 'Enter', mode = 'Vi', action = 'ToggleViMode' },
   { key = 'Escape', mode = 'Vi', action = 'ToggleViMode' },
-  # Note: ~Alt disables this binding in nvim, and unfortuantely tmux as well,
+  # NOTE: ~Alt disables this binding in nvim, and unfortuantely tmux as well,
   # so a separate binding for ctrl-v can be found in .tmux.conf
   { key = 'v', mods = 'control', mode = '~Alt|~Vi', action = 'Paste' },
 ]
@@ -69,9 +69,14 @@ history = 20000
 program = '/bin/bash'
 args = ['--login']
 
-[hints]
-enabled = [
-  { command = 'xdg-open', binding = { key = 'b', mods = 'alt'}, hyperlinks = true, regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+" },
-  { command = 'nvim-open', binding = { key = 'f', mods = 'alt' }, regex = 'File ".*", line \d+, in .*' },
-  { command = 'git-ticket', binding = { key = 'g', mods = 'alt' }, regex = '((fixes|refs|resolves)\s+#\S+|BOS-\d+)' },
-]
+[[hints.enabled]]
+command = 'alacritty-open'
+binding = { key = 'o', mods = 'alt'}
+hyperlinks = true
+# NOTE: any regex changes may need to be applied to bin/alacritty-open as well
+regex = """(\
+File ".*", line \\d+, in .*|\
+(^|\\s)(A|M|R\\d*|\\?\\?)\\s+.*|\
+((fixes|refs|resolves)\\s+#\\S+|BOS-\\d+)|\
+https?://[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+\
+)"""
