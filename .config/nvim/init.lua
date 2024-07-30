@@ -354,6 +354,11 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
     vim.cmd('silent! normal! g`"zOzz')
   end
 })
+-- ensure the last position is persisted before deleting a buffer
+vim.api.nvim_create_autocmd('BufDelete', {
+  pattern = '*',
+  callback = function() vim.cmd('wshada') end,
+})
 
 -- disable the netrw plugin and raise an error attempting to open a directory
 vim.g.loaded_netrwPlugin = 1
