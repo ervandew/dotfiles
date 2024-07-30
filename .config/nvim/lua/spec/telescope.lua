@@ -4,6 +4,9 @@ return {
     build = 'make',
   },
   {
+    "nvim-telescope/telescope-file-browser.nvim",
+  },
+  {
     'nvim-telescope/telescope.nvim',
     branch = '0.1.x',
     dependencies = { 'nvim-lua/plenary.nvim' },
@@ -11,19 +14,44 @@ return {
       local builtin = require('telescope.builtin')
       local action_state = require("telescope.actions.state")
       local actions = require('telescope.actions')
+      local action_set = require('telescope.actions.set')
       local finders = require('telescope.finders')
       local pickers = require('telescope.pickers')
       local state = require('telescope.state')
       local utils = require('telescope.utils')
+      local Path = require('plenary.path')
+
+      ---@diagnostic disable-next-line: undefined-field
+      local extensions = require('telescope').extensions
 
       -- change select_default when opening files
       local attach_mappings_file = function(prompt_bufnr)
-        actions.select_default:replace(function()
+        local is_file = function()
+          local selected_entry = action_state.get_selected_entry()
+          if selected_entry.filename then
+            return true
+          end
+
+          -- telescope-file-browser
+          if selected_entry.Path then
+            local path = selected_entry.Path
+            return Path.is_path(path) and path:is_file()
+          end
+
+          return true
+        end
+
+        ---@diagnostic disable-next-line: undefined-field
+        action_set.select:replace_map({[is_file] = function()
           local picker = action_state.get_current_picker(prompt_bufnr)
           actions.close(prompt_bufnr)
 
           local selected_entry = action_state.get_selected_entry()
           local selection = selected_entry.filename or unpack(selected_entry)
+          if picker.cwd and not selected_entry.Path then
+            selection = picker.cwd .. '/' .. selection
+          end
+
           local cmd = 'split'
           if vim.fn.expand('%') == '' and
              not vim.o.modified and
@@ -32,16 +60,13 @@ return {
           then
             cmd = 'edit'
           end
-          if picker.cwd then
-            selection = picker.cwd .. '/' .. selection
-          end
 
           vim.cmd(cmd .. ' ' .. selection)
 
           if selected_entry.lnum then
             vim.fn.cursor(selected_entry.lnum, selected_entry.col)
           end
-        end)
+        end})
         return true
       end
 
@@ -61,6 +86,18 @@ return {
           attach_mappings = attach_mappings_file,
           cwd = vim.fn.expand('%:h'),
           hidden = true,
+        })
+      end)
+      vim.keymap.set('n', '<leader>f/', function()
+        extensions.file_browser.file_browser({
+          attach_mappings = attach_mappings_file,
+          display_stat = false,
+          dir_icon = '+',
+          git_status = false,
+          grouped = true,
+          hide_parent_dir = true,
+          hidden = true,
+          prompt_path = true,
         })
       end)
 
@@ -133,6 +170,7 @@ return {
             },
           },
           extensions = {
+            file_browser = {},
             fzf = {
               fuzzy = true,
               override_generic_sorter = true,
@@ -142,6 +180,21 @@ return {
           },
         },
       })
+      ---@diagnostic disable-next-line: undefined-field
+      require('telescope').load_extension('file_browser')
+
+      -- patch file_browser goto_parent_dir to reset the cursor position after
+      -- the prompt prefix is updated
+      local fb_actions = require('telescope._extensions.file_browser.actions')
+      local fb_goto_parent_dir = fb_actions.goto_parent_dir
+      ---@diagnostic disable-next-line: duplicate-set-field
+      fb_actions.goto_parent_dir = function(prompt_bufnr)
+        local current_picker = action_state.get_current_picker(prompt_bufnr)
+        fb_goto_parent_dir(prompt_bufnr, false)
+        local prefix = current_picker.prompt_prefix
+        vim.api.nvim_win_set_cursor(current_picker.prompt_win, { 1, #prefix })
+      end
+
       ---@diagnostic disable-next-line: undefined-field
       require('telescope').load_extension('fzf')
 

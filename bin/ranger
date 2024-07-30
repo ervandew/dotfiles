@@ -1,7 +1,0 @@
-#!/bin/bash
-
-PYGMENTIZE_STYLE=solarized-dark \
-/usr/bin/ranger \
-  --cmd "map m console mkdir%space%d/" \
-  --cmd "map t console touch%space%d/" \
-  "$@"
