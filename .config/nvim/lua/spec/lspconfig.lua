@@ -189,9 +189,9 @@ return {{
 
     vim.diagnostic.config({
       signs = true,
-      underline = true, -- using italic  instead in colorscheme
+      underline = true, -- using italic instead in colorscheme
       virtual_text = false,
-      update_in_insert = false,
+      update_in_insert = true,
     }) -- }}}
 
     -- Mappings {{{
