@@ -78,7 +78,13 @@ local function _wrap(lnum, rule, children)
     vim.cmd.normal('i' .. prefix .. cr .. esc)
     vim.fn.cursor(lnum, 0)
   end
-  vim.cmd('silent normal =' .. (num_lines + 1) .. 'j')
+  -- skip reformatting the first line since it shouldn't be necessary and in
+  -- langs like python, it could over indent it if it is next to the end of an
+  -- indented block above it without a new line separating them.
+  local line = vim.fn.line('.')
+  vim.fn.cursor(line + 1, 0)
+  vim.cmd('silent normal =' .. num_lines .. 'j')
+  vim.fn.cursor(line, 0)
 end
 
 local function _unwrap(lnum, rule, children)
