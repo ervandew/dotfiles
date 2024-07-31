@@ -77,7 +77,18 @@ return {
         })
       end)
       vim.keymap.set('n', '<leader>fg', function()
-        builtin.live_grep({ attach_mappings = attach_mappings_file })
+        builtin.live_grep({
+          attach_mappings = attach_mappings_file,
+          vimgrep_arguments = {
+            'rg',
+            '--color=never',
+            '--no-heading',
+            '--with-filename',
+            '--line-number',
+            '--column',
+            '--hidden',
+          }
+        })
       end)
       vim.keymap.set('n', '<leader>fb', builtin.buffers)
       vim.keymap.set('n', '<leader>fp', builtin.builtin)
