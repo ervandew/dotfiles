@@ -101,10 +101,6 @@ return {{
     end -- }}}
 
     -- htmljinja {{{
-    -- disable { rule
-    autopairs.get_rules('{')[1]:with_pair(cond.not_filetypes({ 'htmljinja' }))
-    -- create {{ rule
-    autopairs.add_rule(Rule('{{', '}}', 'htmljinja'))
 
     -- auto close html tags
     autopairs.add_rule(closetag('>', '</%s>', '.*<%s*(%a+).*', 'htmljinja'))
