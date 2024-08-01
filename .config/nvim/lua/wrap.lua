@@ -105,7 +105,7 @@ local function _unwrap(lnum, rule, children)
       lines = lines + 1
     end
   else
-    if next_line:match('%s*[}%)%]][:,]?%s*\\?$') then
+    if next_line:match('^%s*[}%)%]][:,]?%s*\\?$') then
       next_line_close = true
       lines = lines + 1
     end
