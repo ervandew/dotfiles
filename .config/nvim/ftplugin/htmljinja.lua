@@ -1,3 +1,5 @@
+vim.bo.commentstring = '{#%s#}'
+
 vim.keymap.set('n', '<cr>', function()
   local line = vim.fn.getline('.')
   local col = vim.fn.col('.')

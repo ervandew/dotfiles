@@ -266,6 +266,7 @@ vim.keymap.set('c', '<c-v>', function()
   vim.fn.feedkeys(vim.fn.getreg('+'))
 end, { expr = true })
 
+require('comment').mappings()
 require('qf').mappings()
 require('virtualedit').mappings()
 
