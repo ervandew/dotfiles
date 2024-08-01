@@ -12,7 +12,9 @@ return {{
 
     local background = '#303030'
     local white = '#cccccc'
+    local gray5 = '#555555'
     local gray6 = '#666666'
+    local gray7 = '#777777'
     local gray8 = '#888888'
     local gray9 = '#999999'
 
@@ -111,6 +113,12 @@ return {{
     vim.api.nvim_set_hl(0, 'DiagnosticUnderlineInfo', { fg = info, italic = true, underline = false })
     vim.api.nvim_set_hl(0, 'DiagnosticUnderlineWarn', { fg = warn, italic = true, underline = false })
     vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextError', { link = 'DiagnosticError' })
+    -- }}}
+
+    -- html {{{
+    vim.api.nvim_set_hl(0, 'htmlEndTag', { fg = gray5 })
+    vim.api.nvim_set_hl(0, 'htmlH3', { fg = gray8 })
+    vim.api.nvim_set_hl(0, 'htmlTagName', { fg = gray7 })
     -- }}}
 
     -- taglisttoo {{{
