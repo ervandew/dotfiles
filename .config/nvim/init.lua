@@ -321,10 +321,7 @@ vim.keymap.set('ca', 'ln', 'lnext')
 -- buffers.lua
 vim.keymap.set('ca', 'bd', 'BufferDelete')
 
--- open.lua
-vim.keymap.set('ca', 'e', 'E')
-vim.keymap.set('ca', 'r', 'R')
-vim.keymap.set('ca', 's', 'S')
+require('open').abbrev()
 
 -- }}}
 

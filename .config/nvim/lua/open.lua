@@ -135,4 +135,20 @@ M.commands = function()
   end
 end
 
+M.abbrev = function()
+  local abbrevs = { 'e', 'r', 's' }
+  for _, abbrev in ipairs(abbrevs) do
+    vim.keymap.set('ca', abbrev, function()
+      local type = vim.fn.getcmdtype()
+      local pos = vim.fn.getcmdpos()
+      ---@diagnostic disable-next-line: redundant-parameter
+      local char = vim.fn.nr2char(vim.fn.getchar(1))
+      if type == ':' and pos == 2 and char == ' ' then
+        return abbrev:upper()
+      end
+      return abbrev
+    end, { expr = true })
+  end
+end
+
 return M
