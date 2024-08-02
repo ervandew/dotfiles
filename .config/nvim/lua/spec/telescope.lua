@@ -24,8 +24,8 @@ return {
       ---@diagnostic disable-next-line: undefined-field
       local extensions = require('telescope').extensions
 
-      -- change select_default when opening files
-      local attach_mappings_file = function(prompt_bufnr)
+      local attach_mappings_file = function(prompt_bufnr) -- {{{
+        --change select_default action when selecting a file
         local is_file = function()
           local selected_entry = action_state.get_selected_entry()
           if selected_entry.filename then
@@ -68,67 +68,10 @@ return {
           end
         end})
         return true
-      end
+      end -- }}}
 
-      vim.keymap.set('n', '<leader>ff', function()
-        builtin.find_files({
-          attach_mappings = attach_mappings_file,
-          hidden = true,
-        })
-      end)
-      vim.keymap.set('n', '<leader>fg', function()
-        builtin.live_grep({
-          attach_mappings = attach_mappings_file,
-          vimgrep_arguments = {
-            'rg',
-            '--color=never',
-            '--no-heading',
-            '--with-filename',
-            '--line-number',
-            '--column',
-            '--hidden',
-          }
-        })
-      end)
-      vim.keymap.set('n', '<leader>fb', builtin.buffers)
-      vim.keymap.set('n', '<leader>fp', builtin.builtin)
-      vim.keymap.set('n', '<leader>fr', function()
-        builtin.find_files({
-          attach_mappings = attach_mappings_file,
-          cwd = vim.fn.expand('%:h'),
-          hidden = true,
-        })
-      end)
-      vim.keymap.set('n', '<leader>f/', function()
-        extensions.file_browser.file_browser({
-          attach_mappings = attach_mappings_file,
-          display_stat = false,
-          dir_icon = '+',
-          git_status = false,
-          grouped = true,
-          hide_parent_dir = true,
-          hidden = true,
-          prompt_path = true,
-        })
-      end)
-
-      -- action to change the cwd up a level
-      local cd_up = function(prompt_bufnr)
-        local line = action_state.get_current_line()
-        local cwd = action_state.get_current_picker(prompt_bufnr).cwd
-        if cwd == nil then
-          cwd = vim.fn.getcwd()
-        end
-        builtin.find_files({
-          attach_mappings = attach_mappings_file,
-          cwd = vim.fn.fnamemodify(cwd, ':h'),
-          default_text = line,
-          hidden = true,
-        })
-      end
-
-      require('telescope').setup({ ---@diagnostic disable-line: undefined-field
-        defaults = {
+      require('telescope').setup({ ---@diagnostic disable-line: undefined-field {{{
+        defaults = { -- {{{
           file_ignore_patterns = { '.git/' },
           sorting_strategy = 'ascending',
           layout_strategy = 'vertical',
@@ -137,9 +80,8 @@ return {
             height = .9,
             preview_height = .5,
             prompt_position = 'top',
-          },
-          ---@diagnostic disable-next-line: unused-local
-          path_display = function(opts, path)
+          }, -- }}}
+          path_display = function(opts, path) -- {{{
             -- first truncate the path if it doesn't fit in the window width
             if not opts.__length then
               local status = state.get_status(vim.api.nvim_get_current_buf())
@@ -166,8 +108,8 @@ return {
               end
             end
             return path, style
-          end,
-          mappings = {
+          end, -- }}}
+          mappings = { -- {{{
             i = {
               ['<tab>'] = actions.move_selection_next,
               ['<s-tab>'] = actions.move_selection_previous,
@@ -177,10 +119,23 @@ return {
               ['<space>'] = actions.toggle_selection,
               ['<tab>'] = actions.move_selection_next,
               ['<s-tab>'] = actions.move_selection_previous,
-              ['<bs>'] = cd_up,
+              -- action to change the cwd up a level
+              ['<bs>'] = function(prompt_bufnr)
+                local line = action_state.get_current_line()
+                local cwd = action_state.get_current_picker(prompt_bufnr).cwd
+                if cwd == nil then
+                  cwd = vim.fn.getcwd()
+                end
+                builtin.find_files({
+                  attach_mappings = attach_mappings_file,
+                  cwd = vim.fn.fnamemodify(cwd, ':h'),
+                  default_text = line,
+                  hidden = true,
+                })
+              end,
             },
-          },
-          extensions = {
+          }, -- }}}
+          extensions = { -- {{{
             file_browser = {},
             fzf = {
               fuzzy = true,
@@ -188,9 +143,44 @@ return {
               override_file_sorter = true,
               case_mode = 'respect_case',
             }
-          },
+          }, -- }}}
         },
-      })
+      }) -- }}}
+
+      -- default finders {{{
+      vim.keymap.set('n', '<leader>ff', function()
+        builtin.find_files({
+          attach_mappings = attach_mappings_file,
+          hidden = true,
+        })
+      end)
+      vim.keymap.set('n', '<leader>fg', function()
+        builtin.live_grep({
+          attach_mappings = attach_mappings_file,
+          vimgrep_arguments = {
+            'rg',
+            '--color=never',
+            '--no-heading',
+            '--with-filename',
+            '--line-number',
+            '--column',
+            '--hidden',
+          }
+        })
+      end)
+      vim.keymap.set('n', '<leader>fb', builtin.buffers)
+      vim.keymap.set('n', '<leader>fh', builtin.help_tags)
+      vim.keymap.set('n', '<leader>fp', builtin.builtin)
+      vim.keymap.set('n', '<leader>fr', function()
+        builtin.find_files({
+          attach_mappings = attach_mappings_file,
+          cwd = vim.fn.expand('%:h'),
+          hidden = true,
+        })
+      end)
+      -- }}}
+
+      -- extension: file_browser {{{
       ---@diagnostic disable-next-line: undefined-field
       require('telescope').load_extension('file_browser')
 
@@ -206,8 +196,24 @@ return {
         vim.api.nvim_win_set_cursor(current_picker.prompt_win, { 1, #prefix })
       end
 
+      vim.keymap.set('n', '<leader>f/', function()
+        extensions.file_browser.file_browser({
+          attach_mappings = attach_mappings_file,
+          display_stat = false,
+          dir_icon = '+',
+          git_status = false,
+          grouped = true,
+          hide_parent_dir = true,
+          hidden = true,
+          prompt_path = true,
+        })
+      end)
+      -- }}}
+
+      -- extension: fzf {{{
       ---@diagnostic disable-next-line: undefined-field
       require('telescope').load_extension('fzf')
+      -- }}}
 
       -- window picker {{{
       vim.keymap.set('n', '<leader>fw', function()
