@@ -1,6 +1,6 @@
 local M = {}
 local nodes_by_lang = {
-  python = {
+  python = { -- {{{
     call = { path = { 'arguments', '*' }, comma_separated = true },
     class_definition = {
       path = { 'superclasses', '*' },
@@ -24,7 +24,7 @@ local nodes_by_lang = {
       post = ')',
       comma_separated = true,
     },
-  }
+  } -- }}}
 }
 
 local function _wrap(lnum, rule, children)
@@ -226,3 +226,5 @@ M.eval = function()
 end
 
 return M
+
+-- vim:fdm=marker
