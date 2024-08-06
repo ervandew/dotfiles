@@ -128,9 +128,17 @@ return {{
 
     -- telescope {{{
     vim.api.nvim_set_hl(0, 'TelescopeMatching', { fg = purple })
+    vim.api.nvim_set_hl(0, 'TelescopePreviewLine', { bg = background })
     vim.api.nvim_set_hl(0, 'TelescopeResultsComment', { fg = gray6 })
     vim.api.nvim_set_hl(0, 'TelescopeResultsNormal', { fg = '#aaaaaa' })
     vim.api.nvim_set_hl(0, 'TelescopeSelection', { fg = green })
+
+    -- git_status picker
+    vim.api.nvim_set_hl(0, 'TelescopeResultsDiffAdd', { fg = green, bold = true })
+    vim.api.nvim_set_hl(0, 'TelescopeResultsDiffChange', { fg = green, bold = true })
+    vim.api.nvim_set_hl(0, 'TelescopeResultsDiffDelete', { fg = red, bold = true })
+    vim.api.nvim_set_hl(0, 'TelescopeResultsDiffUntracked', { fg = gray5 })
+
     -- added by spec
     vim.api.nvim_set_hl(0, 'TelescopeResultsPath1', { fg = '#aaaaaa' })
     vim.api.nvim_set_hl(0, 'TelescopeResultsPath2', { fg = '#888888' })
