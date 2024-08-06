@@ -5,7 +5,7 @@ size = 9.5
 family = 'DejaVu Sans Mono'
 
 [colors.primary]
-background = '#1a1a1a'
+background = '#171717'
 foreground = '#acacac'
 
 [colors.normal]

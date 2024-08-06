@@ -10,7 +10,7 @@ return {{
     })
     vim.cmd.colorscheme('lackluster-hack')
 
-    local background = '#303030'
+    local background = '#292929'
     local white = '#cccccc'
     local gray5 = '#555555'
     local gray6 = '#666666'
@@ -43,10 +43,10 @@ return {{
     vim.api.nvim_set_hl(0, '@number', { fg = '#624646' })
     vim.api.nvim_set_hl(0, '@string.special.url.comment', { underline = false })
     vim.api.nvim_set_hl(0, 'Comment', { link = '@comment' })
-    vim.api.nvim_set_hl(0, 'ColorColumn', { bg = '#181818' })
+    vim.api.nvim_set_hl(0, 'ColorColumn', { bg = '#191919' })
     -- providing ctermfg prevents underline on DiffChange lines:
     -- bug: https://github.com/neovim/neovim/issues/9800.
-    vim.api.nvim_set_hl(0, 'CursorLine', { ctermfg = 'black', bg = '#2c2c2c' })
+    vim.api.nvim_set_hl(0, 'CursorLine', { ctermfg = 'black', bg = '#202020' })
     -- creating these two for SearchWrapped autocmd
     vim.api.nvim_set_hl(0, 'CurSearchMain', { fg = white, bg = '#638465' })
     vim.api.nvim_set_hl(0, 'CurSearchWrap', { fg = white, bg = '#8f5faf' })
