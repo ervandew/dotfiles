@@ -252,7 +252,7 @@ end
 
 M.find_file = function(path, cmd)
   -- A helper function that other scripts can use to locate a file by path
-  return grep({}, {'--files', '-g', '**/' .. path}, cmd, true)
+  return grep({ bang = true }, {'--files', '-g', '**/' .. path}, cmd, true)
 end
 
 M.complete = function(lead, cmdl, pos)
