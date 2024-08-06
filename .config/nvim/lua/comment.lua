@@ -285,6 +285,8 @@ local function textobject()
 end
 
 local function mappings()
+  vim.keymap.del('n', 'gcc')
+
   vim.keymap.set({ 'x' }, 'gc', function()
     return require('comment').operator(nil, false)
   end, { expr = true, desc = 'Toggle comment' })
