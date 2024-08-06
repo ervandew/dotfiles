@@ -285,10 +285,6 @@ end)
 
 -- commands {{{
 
-vim.api.nvim_create_user_command('BufferDelete', function(opts)
-  require('buffers').delete(opts)
-end, { bang = true, nargs = 0 })
-
 vim.api.nvim_create_user_command(
   'Grep',
   function(opts) require('grep').find(opts) end,
@@ -318,9 +314,6 @@ require('open').commands()
 -- abbreviations {{{
 
 vim.keymap.set('ca', 'ln', 'lnext')
-
--- buffers.lua
-vim.keymap.set('ca', 'bd', 'BufferDelete')
 
 require('open').abbrev()
 
@@ -461,7 +454,6 @@ vim.api.nvim_create_autocmd('SearchWrapped', {
   end
 })
 
-require('buffers').tab_tracking()
 require('diff').autocmd()
 require('indentdetect').autocmd()
 require('maximize').autocmd()

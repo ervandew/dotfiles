@@ -190,16 +190,6 @@ return {
         })
       end) -- }}}
 
-      vim.keymap.set('n', '<leader>fb', function() -- buffers {{{
-        builtin.buffers({
-          attach_mappings = function(prompt_bufnr, map)
-            attach_mappings_file(prompt_bufnr)
-            map({ 'i', 'n' }, '<c-d>', actions.delete_buffer)
-            return true
-          end
-        })
-      end) -- }}}
-
       vim.keymap.set('n', '<leader>fw', function() -- window picker {{{
         local bufnames = {}
         local name_to_winnr = {}
@@ -284,6 +274,239 @@ return {
 
         builtin.git_status(git_status_opts)
       end) -- }}}
+
+      -- buffers {{{
+      local tab_prev = nil
+      local tab_count = nil
+      local buffers_tab_id_gen = 0
+      local get_buffers = function()
+        local result = {}
+        local buffer_ids = vim.api.nvim_list_bufs()
+        local cwd = vim.fn.getcwd()
+        for _, buffer_id in ipairs(buffer_ids) do
+          local name = vim.fn.bufname(buffer_id)
+          if name == '' then
+            name = '[No Name]'
+          end
+          if name ~= '[buffers]' then
+            local dir = vim.fn.fnamemodify(name, ':p:h')
+            if string.find(dir, cwd, 1, true) == 1 then
+              dir = string.sub(dir, #cwd + 2)
+            end
+            result[#result + 1] = {
+              bufnr = buffer_id,
+              hidden = vim.fn.bufwinid(buffer_id) == -1,
+              modified = vim.bo[buffer_id].modified,
+              dir = dir,
+              file = vim.fn.fnamemodify(name, ':p:t'),
+            }
+          end
+        end
+        return result
+      end
+      local function open_next_hidden_tab_buffer(current)
+        local allbuffers = get_buffers()
+
+        -- build list of buffers open in other tabs to exclude
+        local tabbuffers = {}
+        for tabnr = 1, vim.fn.tabpagenr('$') do
+          if tabnr ~= vim.fn.tabpagenr() then
+            for _, bnum in ipairs(vim.fn.tabpagebuflist(tabnr)) do
+              tabbuffers[#tabbuffers + 1] = bnum
+            end
+          end
+        end
+
+        -- build list of buffers not open in any window, and last seen on the
+        -- current tab.
+        local hiddenbuffers = {}
+        for _, buffer in ipairs(allbuffers) do
+          local bufnr = buffer.bufnr
+          if bufnr ~= current and
+             not vim.list_contains(tabbuffers, bufnr) and
+             vim.fn.bufwinnr(bufnr) == -1
+          then
+            local buffers_tab_id = vim.b[bufnr].buffers_tab_id
+            if buffers_tab_id == vim.t.buffers_tab_id then
+              if bufnr < current then
+                local updated = { bufnr }
+                vim.list_extend(updated, hiddenbuffers)
+                hiddenbuffers = updated
+              else
+                hiddenbuffers[#hiddenbuffers] = bufnr
+              end
+            end
+          end
+        end
+
+        -- we found a hidden buffer, so open it
+        if #hiddenbuffers > 0 then
+          vim.cmd('buffer ' .. hiddenbuffers[1])
+          vim.cmd('doautocmd BufEnter')
+          vim.cmd('doautocmd BufWinEnter')
+          vim.cmd('doautocmd BufReadPost')
+
+          return hiddenbuffers[1]
+        end
+        return 0
+      end
+      local buffers_opts = {
+        entry_maker = function(entry)
+          -- exclude buffers open in, or last opened in, other tabs
+          local tabid = vim.t.buffers_tab_id -- see "tab tracking" below
+          if vim.b[entry.bufnr].buffers_tab_id ~= tabid then
+            return
+          end
+          local make_entry = require('telescope.make_entry')
+          return make_entry.gen_from_buffer({ bufnr_width = 1 })(entry)
+        end,
+      }
+      buffers_opts.attach_mappings = function(prompt_bufnr, map)
+        attach_mappings_file(prompt_bufnr)
+        map({ 'i', 'n' }, '<c-d>', function()
+          local entry = action_state.get_selected_entry()
+          local bufnr = entry.bufnr
+
+          if vim.bo[bufnr].modified then
+            -- FIXME: is there a way to notify the user?
+            return
+          end
+
+          -- if the buffer is currently open in a window, check if it's the last
+          -- content window or not, so we can handle it accordingly
+          local bufwin = vim.fn.bufwinnr(bufnr)
+          local loadnext = false
+          if bufwin ~= -1 then
+            vim.cmd(bufwin .. 'winc w')
+            -- check if there is a window above
+            vim.cmd('winc k')
+            -- check if there is a window below
+            if vim.fn.winnr() == bufwin then
+              vim.cmd('winc j')
+            end
+            if vim.fn.winnr() == bufwin then
+              vim.cmd('above new')
+              loadnext = true
+            end
+          end
+
+          vim.api.nvim_buf_delete(bufnr, {})
+
+          if loadnext then
+            local delete_bufnr = vim.fn.bufnr()
+            open_next_hidden_tab_buffer(bufnr)
+            -- delete the old no name buffer
+            vim.api.nvim_buf_delete(delete_bufnr, {})
+          end
+          builtin.buffers(buffers_opts)
+        end)
+
+        map({ 'i', 'n' }, '<c-o>', function()
+          for _, buffer in ipairs(get_buffers()) do
+            if buffer.hidden and not vim.bo[buffer.bufnr].modified then
+              vim.api.nvim_buf_delete(buffer.bufnr, {})
+            end
+            builtin.buffers(buffers_opts)
+          end
+        end)
+        return true
+      end
+
+      vim.keymap.set('n', '<leader>fb', function()
+        builtin.buffers(buffers_opts)
+      end)
+
+      for tabnr = 1, vim.fn.tabpagenr('$') do
+        local tab_id = vim.t[tabnr].buffers_tab_id
+        if not tab_id then
+          buffers_tab_id_gen = buffers_tab_id_gen + 1
+          local buffers_tab_id = buffers_tab_id_gen
+          vim.t[tabnr].buffers_tab_id = buffers_tab_id
+          for _, bufnr in ipairs(vim.fn.tabpagebuflist(tabnr)) do
+            local btab_id = vim.b[bufnr].buffers_tab_id
+            if not btab_id then
+              vim.b[bufnr].buffers_tab_id = buffers_tab_id
+            end
+          end
+        end
+      end
+
+      local augroup vim.api.nvim_create_augroup('buffers_tab_tracking', {})
+      vim.api.nvim_create_autocmd({ 'BufWinEnter', 'BufWinLeave' }, {
+        group = augroup,
+        pattern = '*',
+        callback = function()
+          -- track the last tab a buffer was loaded in
+          local bufnr = vim.fn.bufnr('%')
+
+          if not vim.api.nvim_buf_is_loaded(bufnr) and vim.b.buffers_tab_id then
+            vim.b.buffers_tab_id = nil
+          end
+
+          -- check if the buffer is loaded in another tab
+          local other_tab = nil
+          for tabnr = 1, vim.fn.tabpagenr('$') do
+            if tabnr ~= vim.fn.tabpagenr() then
+              local buflist = vim.fn.tabpagebuflist(tabnr)
+              if vim.list_contains(buflist, bufnr) then
+                other_tab = tabnr
+                break
+              end
+            end
+          end
+
+          if not vim.b.buffers_tab_id and not other_tab then
+            vim.b.buffers_tab_id = vim.t.buffers_tab_id
+          end
+        end
+      })
+      vim.api.nvim_create_autocmd('TabEnter', {
+        group = augroup,
+        pattern = '*',
+        callback = function()
+          if tab_count and tab_count > vim.fn.tabpagenr('$') then
+            -- delete any buffers associated with the closed tab
+            for _, buffer in ipairs(get_buffers()) do
+              local buffers_tab_id = vim.b[buffer.bufnr].buffers_tab_id
+              if buffers_tab_id == tab_prev and buffer.hidden then
+                vim.api.nvim_buf_delete(buffer.bufnr, {})
+              end
+            end
+          end
+        end
+      })
+      vim.api.nvim_create_autocmd('TabLeave', {
+        group = augroup,
+        pattern = '*',
+        callback = function()
+          tab_prev = vim.t.buffers_tab_id
+          tab_count = vim.fn.tabpagenr('$')
+        end
+      })
+
+      vim.keymap.set('ca', 'bd', 'BufferDelete')
+      vim.api.nvim_create_user_command('BufferDelete', function(opts)
+        local bufnr = vim.api.nvim_get_current_buf()
+        local windows = 0
+        for winnr = 1, vim.fn.winnr('$') do
+          local winid = vim.fn.win_getid(winnr)
+          -- exclude any windows with a fixed height or width, as these are most
+          -- likely some sort of tool window (tag list, etc)
+          if not (vim.w[winid].winfixheight or vim.w[winid].winfixwidth) then
+            windows = windows + 1
+          end
+        end
+
+        if windows == 1 then
+          vim.cmd('new')
+          -- try loading a hidden buffer from the current tab
+          open_next_hidden_tab_buffer(bufnr)
+        end
+
+        vim.api.nvim_buf_delete(bufnr, { force = opts.bang })
+        vim.cmd('redraw') -- force tabline to update
+      end, { bang = true, nargs = 0 })
+    -- }}}
 
       -- extension: file_browser {{{
       ---@diagnostic disable-next-line: undefined-field
