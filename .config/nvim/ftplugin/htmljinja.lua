@@ -49,9 +49,12 @@ vim.keymap.set('n', '<cr>', function()
         ['.py'] = '\\<def\\s+' .. word .. '\\>',
       }
 
-    -- method ref
+    -- macro or method ref
     elseif line:match('%.' .. word .. '%s*%(') ~= nil then
-      patterns = { ['.py'] = '\\<def\\s+' .. word .. '\\>' }
+      patterns = {
+        ['.html'] = '\\<macro\\s+' .. word .. '\\>',
+        ['.py'] = '\\<def\\s+' .. word .. '\\>',
+      }
 
     -- class reference
     elseif word:match('^[A-Z]+[a-z]+') ~= nil then
