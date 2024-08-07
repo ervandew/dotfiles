@@ -101,6 +101,10 @@ return {{
     vim.api.nvim_set_hl(0, 'SearchStatus', { fg = '#a0b0c0', bg = background, bold = true })
     -- }}}
 
+    -- css {{{
+    vim.api.nvim_set_hl(0, '@tag.attribute.css', { fg = gray7 })
+    -- }}}
+
     -- lsp {{{
     vim.api.nvim_set_hl(0, '@lsp.type.event.lua', { link = '@comment' })
     vim.api.nvim_set_hl(0, 'DiagnosticHint', { fg = hint })
