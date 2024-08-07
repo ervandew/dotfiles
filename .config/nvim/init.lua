@@ -274,10 +274,6 @@ vim.keymap.set('n', '<space><space>', function()
   require('maximize').toggle()
 end)
 
-vim.keymap.set('n', '<leader>b', function()
-  require('buffers').toggle()
-end)
-
 vim.keymap.set('n', '<leader>ds', function()
   require('diff').last_saved()
 end)
