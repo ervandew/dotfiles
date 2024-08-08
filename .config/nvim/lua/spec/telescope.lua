@@ -487,6 +487,12 @@ return {
       vim.keymap.set('ca', 'bd', 'BufferDelete')
       vim.api.nvim_create_user_command('BufferDelete', function(opts)
         local bufnr = vim.api.nvim_get_current_buf()
+        if vim.bo[bufnr].modified and not opts.bang then
+          local msg = 'Buffer is modified. Write the buffer or add ! to delete'
+          vim.api.nvim_echo({{ msg, 'Error' }}, false, {})
+          return
+        end
+
         local windows = 0
         for winnr = 1, vim.fn.winnr('$') do
           local winid = vim.fn.win_getid(winnr)
