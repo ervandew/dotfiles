@@ -116,6 +116,7 @@ return {
           end, -- }}}
           mappings = { -- {{{
             i = {
+              ['<c-v>'] = function() vim.fn.feedkeys(vim.fn.getreg('+')) end,
               ['<tab>'] = actions.move_selection_next,
               ['<s-tab>'] = actions.move_selection_previous,
               ['<c-j>'] = actions.preview_scrolling_down,
