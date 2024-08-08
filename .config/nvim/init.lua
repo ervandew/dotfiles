@@ -59,11 +59,13 @@ function _status_left() ---@diagnostic disable-line: lowercase-global
   local winid = vim.fn.win_getid()
   local name = vim.fn.bufname()
   if name == '' then
-    if vim.w.quickfix_title then
-      if vim.fn.getwininfo(winid)[1].loclist == 1 then
-        name = '[Location List] ' .. vim.w.quickfix_title
+    local wininfo = vim.fn.getwininfo(winid)[1]
+    if wininfo.quickfix == 1 then
+      local qf_title = vim.w.quickfix_title or ''
+      if wininfo.loclist == 1 then
+        name = '[Location List] ' .. qf_title
       else
-        name = '[Quickfix] ' .. vim.w.quickfix_title
+        name = '[Quickfix] ' .. qf_title
       end
     else
       name = '[No Name]'
