@@ -30,10 +30,15 @@ return {{
     local block_wrap = function(opts) ---@diagnostic disable-line: unused-local
       local trailing = string.sub(opts.line, opts.col, -1)
       if trailing:match('^%s*$') then
-        local next_line = vim.fn.getline(vim.fn.line('.') + 1)
-        -- if the next line ends in a comma, then we are probably wrapping a
-        -- block to create list, tuple, or dict
-        if next_line:match(',$') then
+        local lnum = vim.fn.line('.')
+        local indent_cur = vim.fn.indent(lnum)
+        local indent_next = vim.fn.indent(lnum + 1)
+        vim.print({'indent:', indent_cur, 'next:', indent_next})
+        local next_line = vim.fn.getline(lnum + 1)
+        -- if the next line is at the same or more of an indent, and ends in a
+        -- comma, then we are probably wrapping a block to create list, tuple,
+        -- or dict
+        if indent_next >= indent_cur and next_line:match(',$') then
           return false
         end
       end
