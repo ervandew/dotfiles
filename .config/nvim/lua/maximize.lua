@@ -102,6 +102,19 @@ M.autocmd = function()
         end
         return
       end
+
+      -- check if we are entering the last and only window, and if it's a fixed
+      -- height window, we'll open a new empty window to prevent fixed height
+      -- window from shrinking nvim down to that size
+      if opts.event == 'WinEnter' then
+        vim.schedule(function()
+          local winid = vim.fn.win_getid()
+          if vim.fn.winnr('$') == 1 and vim.wo[winid].winfixheight then
+            vim.cmd('above new')
+          end
+        end)
+      end
+
       vim.schedule(update)
     end
   })
