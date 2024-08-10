@@ -18,6 +18,7 @@ return {{
     local gray8 = '#888888'
     local gray9 = '#999999'
 
+    local blue = '#708090'
     local green = '#789978'
     local purple = '#875f87'
     local red = '#964848'
@@ -61,7 +62,7 @@ return {{
     vim.api.nvim_set_hl(0, 'ModeMsg', { fg = gray9 })
     vim.api.nvim_set_hl(0, 'MoreMsg', { link = 'ModeMsg' })
     vim.api.nvim_set_hl(0, 'MsgArea', { fg = white })
-    vim.api.nvim_set_hl(0, 'PmenuSel', {bg = '#333333' })
+    vim.api.nvim_set_hl(0, 'PmenuSel', { bg = '#333333' })
     vim.api.nvim_set_hl(0, 'Search', { fg = white, bg = '#607080' })
     vim.api.nvim_set_hl(0, 'SignColumn', { bg = 'none' })
     vim.api.nvim_set_hl(0, 'SpellBad', { fg = '#cf6171', underline = true })
@@ -143,7 +144,11 @@ return {{
     vim.api.nvim_set_hl(0, 'TelescopeResultsDiffDelete', { fg = red, bold = true })
     vim.api.nvim_set_hl(0, 'TelescopeResultsDiffUntracked', { fg = gray5 })
 
-    -- added by spec
+    -- buffers (aded by spec)
+    vim.api.nvim_set_hl(0, 'TelescopeBufferActive', { fg = blue })
+    vim.api.nvim_set_hl(0, 'TelescopeBufferModified', { fg = purple })
+
+    -- path highlighting (added by spec)
     vim.api.nvim_set_hl(0, 'TelescopeResultsPath1', { fg = '#aaaaaa' })
     vim.api.nvim_set_hl(0, 'TelescopeResultsPath2', { fg = '#888888' })
     vim.api.nvim_set_hl(0, 'TelescopeResultsPath3', { fg = '#666666' })

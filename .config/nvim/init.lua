@@ -330,6 +330,7 @@ vim.api.nvim_create_autocmd('BufReadPost', {
       vim.cmd('bwipeout #')
       vim.cmd('edit ' .. path)
       vim.cmd('filetype detect')
+      vim.cmd('doautocmd BufWinEnter')
     end
   end
 })

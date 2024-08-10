@@ -91,7 +91,9 @@ return {
             if not opts.__length then
               local status = state.get_status(vim.api.nvim_get_current_buf())
               local width = vim.api.nvim_win_get_width(status.layout.results.winid)
-              opts.__length = width - status.picker.selection_caret:len() - 5
+              -- buffers use additional 3 chars for modified/hidden status + space
+              local offset = status.picker.prompt_title == 'Buffers' and 8 or 5
+              opts.__length = width - status.picker.selection_caret:len() - offset
             end
             if #path > opts.__length then
               path = '…' .. path:sub(#path - opts.__length)
@@ -235,6 +237,12 @@ return {
         }):find()
       end, { silent = true }) -- }}}
 
+      vim.keymap.set('n', '<leader>gb', function() -- git_branch {{{
+        builtin.git_branches({
+          show_remote_tracking_branches = false,
+        })
+      end) -- }}}
+
       vim.keymap.set('n', '<leader>gs', function() -- git_status {{{
         local make_entry = require('telescope.make_entry')
         local git_status_opts = {
@@ -351,6 +359,16 @@ return {
         end
         return 0
       end
+
+      local make_entry = require('telescope.make_entry')
+      local buf_displayer = require('telescope.pickers.entry_display').create({
+        separator = '',
+        items = {
+          { width = 1 },
+          { width = 2 },
+          { remaining = true },
+        },
+      })
       local buffers_opts = {
         entry_maker = function(entry)
           -- exclude buffers open in, or last opened in, other tabs
@@ -358,8 +376,39 @@ return {
           if vim.b[entry.bufnr].buffers_tab_id ~= tabid then
             return
           end
-          local make_entry = require('telescope.make_entry')
-          return make_entry.gen_from_buffer({ bufnr_width = 1 })(entry)
+
+          local cwd = vim.loop.cwd()
+          local filename = entry.info.name ~= '' and entry.info.name or nil
+          local bufname = filename and Path:new(filename):normalize(cwd) or '[No Name]'
+          local hidden = entry.info.hidden == 1
+          local modified = entry.info.changed == 1
+          local make_display = function(e)
+            local name, path_style = utils.transform_path({}, e.filename)
+            return buf_displayer({
+              {
+                modified and '+' or ' ',
+                'TelescopeBufferModified'
+              },
+              {
+                hidden and 'h ' or 'a ',
+                hidden and 'TelescopeResultsComment' or 'TelescopeBufferActive'
+              },
+              {
+                name,
+                function() return path_style end,
+              },
+            })
+          end
+
+          return make_entry.set_default_entry_mt({
+            value = bufname,
+            ordinal = entry.bufnr .. ' : ' .. bufname,
+            display = make_display,
+            bufnr = entry.bufnr,
+            path = filename,
+            filename = bufname,
+          }, {})
+
         end,
       }
       buffers_opts.attach_mappings = function(prompt_bufnr, map)
@@ -407,8 +456,8 @@ return {
             if buffer.hidden and not vim.bo[buffer.bufnr].modified then
               vim.api.nvim_buf_delete(buffer.bufnr, {})
             end
-            builtin.buffers(buffers_opts)
           end
+          builtin.buffers(buffers_opts)
         end)
         return true
       end
