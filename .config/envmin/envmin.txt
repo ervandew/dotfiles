@@ -39,8 +39,9 @@ export EDITOR=vim
 
 MULTIPLEXER=$(which tmux 2> /dev/null)
 if [ -n "$MULTIPLEXER" ] ; then
-  TMUX=$(echo "$TERM" | grep "^tmux")
-  if [ -n "$MULTIPLEXER" -a -z "$SUDO_USER" -a -n "$SSH_TTY" -a -z "$TMUX" ] ; then
-    tmux attach || tmux
+  IN_TMUX=$(echo "$TERM" | grep "^tmux")
+  if [ -n "$MULTIPLEXER" -a -z "$SUDO_USER" -a -n "$SSH_TTY" -a -z "$IN_TMUX" ] ; then
+    name=$(hostname)
+    tmux -L "$name" new-session -s "$name" -A
   fi
 fi
