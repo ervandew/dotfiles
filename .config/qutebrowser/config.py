@@ -115,11 +115,17 @@ c.hints.selectors['all'].append('.chatListItem_mainMedia')
 ### unbind some commands
 # tabs
 config.unbind('d', mode='normal')
-# quickmarks
+# bookmarks/quickmarks
 config.unbind('m', mode='normal')
+config.unbind('M', mode='normal')
 config.unbind('b', mode='normal')
 config.unbind('B', mode='normal')
+config.unbind('gb', mode='normal')
+config.unbind('gB', mode='normal')
+config.unbind('Sb', mode='normal')
+config.unbind('Sq', mode='normal')
 config.unbind('wb', mode='normal')
+config.unbind('wB', mode='normal')
 
 # workaround for aparent bug where rogue tab keypresses are received and
 # causing qutebrowser to scroll to the top of the page when switching
