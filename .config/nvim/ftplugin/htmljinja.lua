@@ -69,12 +69,12 @@ vim.keymap.set('n', '<cr>', function()
       vim.cmd('silent Grep! ' .. pattern .. ' **/*' .. ext)
       results = vim.fn.getqflist()
       num = #results
-      if num then
+      if num > 0 then
         break
       end
     end
 
-    if not num then
+    if num == 0 then
       vim.api.nvim_echo({{ 'No result found', 'WarningMsg' }}, true, {})
     elseif num == 1 then
       vim.cmd('cclose')
