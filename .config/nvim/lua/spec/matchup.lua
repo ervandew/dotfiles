@@ -5,6 +5,15 @@ return {{
     vim.g.matchup_matchparen_hi_surround_always = true
     -- disabled, usse nvim-treesitter-context instead
     vim.g.matchup_matchparen_offscreen = {}
+
+    -- effectively switch from using a CursorMoved autocmd to CursorHold
+    -- since CursorMoved can result in cpu spikes, bit of lag, etc, even with
+    -- the matchparen deferred setting enabled.
+    vim.cmd('autocmd! matchup_matchparen CursorMoved,CursorMovedI')
+    vim.cmd(
+      'autocmd matchup_matchparen CursorHold * ' ..
+      'doautocmd matchup_matchparen TextChanged'
+    )
   end,
   init = function()
 

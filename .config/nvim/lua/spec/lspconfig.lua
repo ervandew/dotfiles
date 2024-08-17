@@ -133,13 +133,13 @@ return {{
           vim.fn.setloclist(winnr, filtered, 'r')
           vim.fn.setloclist(winnr, {}, 'r', { title = 'Diagnostics' })
           -- fire autocmd to display diagnostic on the current line
-          vim.cmd('doautocmd CursorMoved')
+          vim.cmd('doautocmd CursorHold')
         end
       end,
     }) -- }}}
 
     --  autocmd to echo qf/loc list entry info for current line {{{
-    vim.api.nvim_create_autocmd('CursorMoved', {
+    vim.api.nvim_create_autocmd('CursorHold', {
       pattern = '*',
       callback = function()
         if vim.fn.mode() ~= 'n' or vim.fn.expand('%') == '' then
