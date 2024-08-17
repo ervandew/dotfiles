@@ -136,15 +136,15 @@ M.commands = function()
 end
 
 M.abbrev = function()
-  local abbrevs = { 'e', 'r', 's' }
+  local abbrevs = { 'e', 'edit', 'r', 'read', 's', 'split' }
   for _, abbrev in ipairs(abbrevs) do
     vim.keymap.set('ca', abbrev, function()
       local type = vim.fn.getcmdtype()
       local pos = vim.fn.getcmdpos()
       ---@diagnostic disable-next-line: redundant-parameter
       local char = vim.fn.nr2char(vim.fn.getchar(1))
-      if type == ':' and pos == 2 and char == ' ' then
-        return abbrev:upper()
+      if type == ':' and pos == #abbrev + 1 and char == ' ' then
+        return abbrev:sub(1, 1):upper()
       end
       return abbrev
     end, { expr = true })
