@@ -113,8 +113,8 @@ function _status_right() ---@diagnostic disable-line: lowercase-global
   local winid = vim.fn.win_getid()
   local stl_search = ''
   if curwinid == winid then
-    local count = vim.fn.searchcount()
-    if next(count) then
+    local ok, count = pcall(vim.fn.searchcount)
+    if ok and next(count) then
       local pattern = vim.fn.substitute(vim.fn.getreg('/'), '%', '%%', 'g')
       stl_search =
         '/' .. pattern .. '/ [' ..
