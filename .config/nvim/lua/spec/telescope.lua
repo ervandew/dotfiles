@@ -90,7 +90,7 @@ return {
             -- first truncate the path if it doesn't fit in the window width
             if not opts.__length then
               local status = state.get_status(vim.api.nvim_get_current_buf())
-              local width = vim.api.nvim_win_get_width(status.layout.results.winid)
+              local width = vim.api.nvim_win_get_width(status.results_win)
               -- buffers use additional 3 chars for modified/hidden status + space
               local offset = status.picker.prompt_title == 'Buffers' and 8 or 5
               opts.__length = width - status.picker.selection_caret:len() - offset
