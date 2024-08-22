@@ -293,6 +293,37 @@ vim.api.nvim_create_user_command(
   }
 )
 
+-- print or jump to an absolute offset in the file
+vim.api.nvim_create_user_command('Offset', function(opts)
+  local eol = vim.o.ff == 'dos' and 2 or 1
+  if opts.args == '' then
+    local offset = vim.fn.col('.')
+    local line = vim.fn.line('.')
+    while line ~= 1 do
+      line = line - 1
+      offset = offset + #vim.fn.getline(line) + eol
+    end
+    vim.print('Offset: ' .. offset - 1)
+  else
+    local target = tonumber(opts.args)
+    local offset = 0
+    local line = 1
+    local col = 1
+    local last = vim.fn.line('$')
+    while offset < target and line <= last do
+      offset = offset + #vim.fn.getline(line) + eol
+      line = line + 1
+    end
+
+    line = line - 1
+    if offset > target then
+      local diff = offset - target
+      col = #vim.fn.getline(line) - diff + 2
+    end
+    vim.fn.cursor(line, col + 1)
+  end
+end, { nargs = '?' })
+
 vim.api.nvim_create_user_command('Tab', function(opts)
   require('tab').open(opts)
 end, { nargs = 1, complete = 'dir' })
