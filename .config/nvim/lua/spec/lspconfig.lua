@@ -146,6 +146,7 @@ return {{
           return
         end
 
+        local winid = vim.fn.win_getid()
         local line = vim.fn.line('.')
         local col = vim.fn.col('.')
         local locnum = 0
@@ -183,7 +184,25 @@ return {{
         if #message > vim.v.echospace then
           message = string.sub(message, 1, vim.v.echospace - 3) .. '...'
         end
-        vim.api.nvim_echo({{ message }}, false, {})
+
+        if message ~= '' or (
+          vim.g.lsp_diagnostic_echo and (
+            vim.g.lsp_diagnostic_echo.winid ~= winid or
+            vim.g.lsp_diagnostic_echo.line ~= line or
+            vim.g.lsp_diagnostic_echo.col ~= col
+          )
+        ) then
+          vim.api.nvim_echo({{ message }}, false, {})
+        end
+
+        if message ~= '' then
+          -- track the position when we last echoed a message so we don't clear
+          -- any current echo unless there is a chance it came from here
+          -- FIXME: any way to get the current text visible in the cmdline?
+          vim.g.lsp_diagnostic_echo = { winid = winid, line = line, col = col }
+        else
+          vim.g.lsp_diagnostic_echo = nil
+        end
       end
     }) -- }}}
 
