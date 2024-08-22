@@ -136,86 +136,96 @@ return {{
       end
     end
 
-    vim.api.nvim_create_autocmd({ 'CursorHold', 'BufWinEnter', 'WinEnter' }, {
-      callback = function(opts)
-        if opts.event ~= 'CursorHold' then
-          for winnr = 1, vim.fn.winnr('$') do
-            local winbufnr = vim.fn.winbufnr(winnr)
-            vim.fn.sign_unplace(sign_group, { buffer = winbufnr })
-            vim.api.nvim_buf_clear_namespace(winbufnr, hl_ns, 0, -1)
-          end
-        end
-
-        local bufnr = vim.api.nvim_get_current_buf()
-        local winid = vim.api.nvim_get_current_win()
-
-        vim.b[bufnr].treesitter_contexts = {}
-        vim.fn.sign_unplace(sign_group, { buffer = bufnr })
-        vim.api.nvim_buf_clear_namespace(bufnr, hl_ns, 0, -1)
-
-        if vim.wo[winid].previewwindow or
-           vim.bo[bufnr].filetype == '' or
-           vim.bo[bufnr].buftype ~= '' or
-           vim.fn.getcmdtype() ~= ''
-        then
-          return
-        end
-
-        local lnum = vim.fn.line('.') - 1
-        local c = vim.api.nvim_win_get_cursor(winid)
-        local row, col = c[1] - 1, c[2]
-        local range = {row, col, row, col + 1}
-
-        local ok_tree, root_tree = pcall(vim.treesitter.get_parser, bufnr)
-        if not ok_tree or not root_tree then
-          return
-        end
-
-        local langtree = root_tree
-        local tree = root_tree:tree_for_range(range, {ignore_injections = true})
-        if not tree then
-          for _, childtree in pairs(root_tree:children()) do
-            if childtree:contains(range) then
-              langtree = childtree
-              tree = childtree:tree_for_range(range, {ignore_injections = true})
-              break
+    vim.api.nvim_create_autocmd(
+      -- NOTE: WinScrolled included so that we clear our custom highlight,
+      -- preventing it from potentially bleeding into the floating window for
+      -- non-visible context lines
+      { 'CursorHold', 'BufWinEnter', 'WinEnter', 'WinScrolled' },
+      {
+        callback = function(opts)
+          if opts.event ~= 'CursorHold' then
+            for winnr = 1, vim.fn.winnr('$') do
+              local winbufnr = vim.fn.winbufnr(winnr)
+              vim.fn.sign_unplace(sign_group, { buffer = winbufnr })
+              vim.api.nvim_buf_clear_namespace(winbufnr, hl_ns, 0, -1)
             end
           end
-        end
 
-        if not tree then
-          return
-        end
+          local bufnr = vim.api.nvim_get_current_buf()
+          local winid = vim.api.nvim_get_current_win()
 
-        local named = tree:root():named_descendant_for_range(unpack(range))
-        local parents = {}
-        while named do
-          parents[#parents + 1] = named
-          named = named:parent()
-        end
+          vim.b[bufnr].treesitter_contexts = {}
+          vim.fn.sign_unplace(sign_group, { buffer = bufnr })
+          vim.api.nvim_buf_clear_namespace(bufnr, hl_ns, 0, -1)
 
-        local ok_query, query = pcall(
-          vim.treesitter.query.get,
-          langtree:lang(),
-          'context'
-        )
-        if not ok_query or not query then
-          return
-        end
+          if vim.wo[winid].previewwindow or
+             vim.bo[bufnr].filetype == '' or
+             vim.bo[bufnr].buftype ~= '' or
+             vim.fn.getcmdtype() ~= ''
+          then
+            return
+          end
 
-        local top_row = vim.fn.line('w0', winid) - 1
-        local contexts = {}
-        for i = #parents, 1, -1 do
-          local parent = parents[i]
-          local parent_start_row = parent:range()
+          local lnum = vim.fn.line('.') - 1
+          local c = vim.api.nvim_win_get_cursor(winid)
+          local row, col = c[1] - 1, c[2]
+          local range = {row, col, row, col + 1}
 
-          -- Only process the parent if it is in view.
-          if parent_start_row > top_row then
-            highlight_parent(bufnr, lnum, query, parent, contexts)
+          local ok_tree, root_tree = pcall(vim.treesitter.get_parser, bufnr)
+          if not ok_tree or not root_tree then
+            return
+          end
+
+          local langtree = root_tree
+          local tree = root_tree:tree_for_range(range, {ignore_injections = true})
+          if not tree then
+            for _, childtree in pairs(root_tree:children()) do
+              if childtree:contains(range) then
+                langtree = childtree
+                tree = childtree:tree_for_range(range, {ignore_injections = true})
+                break
+              end
+            end
+          end
+
+          if not tree then
+            return
+          end
+
+          local named = tree:root():named_descendant_for_range(unpack(range))
+          local parents = {}
+          while named do
+            parents[#parents + 1] = named
+            named = named:parent()
+          end
+
+          local ok_query, query = pcall(
+            vim.treesitter.query.get,
+            langtree:lang(),
+            'context'
+          )
+          if not ok_query or not query then
+            return
+          end
+
+          -- account for possible E315 error (nvim bug?)
+          local ok, top_row = pcall(vim.fn.line, 'w0', winid)
+          if ok then
+            top_row = top_row - 1
+            local contexts = {}
+            for i = #parents, 1, -1 do
+              local parent = parents[i]
+              local parent_start_row = parent:range()
+
+              -- Only process the parent if it is in view.
+              if parent_start_row > top_row then
+                highlight_parent(bufnr, lnum, query, parent, contexts)
+              end
+            end
+            vim.b[bufnr].treesitter_contexts = contexts
           end
         end
-        vim.b[bufnr].treesitter_contexts = contexts
-      end
-    })
+      }
+    )
   end
 }}
