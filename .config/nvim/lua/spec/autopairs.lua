@@ -105,7 +105,21 @@ return {{
         :replace_endpair(close)
     end -- }}}
 
+    -- function to disable a rule by its key for the supplied filetype
+    local not_filetype = function(rule_key, ft)
+      local rule = autopairs.get_rules(rule_key)[1]
+      if rule.not_filetypes == nil then
+        rule.not_filetypes = {}
+      end
+      rule.not_filetypes[#rule.not_filetypes + 1] = ft
+    end
+
     -- htmljinja {{{
+    -- disable { rule
+    not_filetype('{', 'htmljinja')
+
+    autopairs.add_rule(Rule('{{', '}}', 'htmljinja'))
+    autopairs.add_rule(Rule('{%', '%}', 'htmljinja'))
 
     -- auto close html tags
     autopairs.add_rule(closetag('>', '</%s>', '.*<%s*(%a+).*', 'htmljinja'))
@@ -123,9 +137,7 @@ return {{
     -- lua {{{
     -- disable default {, replace with version that won't trigger in a comment
     -- (for folding)
-    autopairs.get_rules('{')[1]
-      :with_move(cond.not_filetypes({ 'lua' }))
-      :with_pair(cond.not_filetypes({ 'lua' }))
+    not_filetype('{', 'lua')
     autopairs.add_rule(bracket('{', '}', 'lua')
       :with_pair(block_wrap)
       :with_pair(not_after_regex('%s*%-%-'))
@@ -159,9 +171,7 @@ return {{
     -- vim {{{
     -- disable default ", replace with version that won't trigger at the start
     -- of a comment
-    autopairs.get_rules('"')[1]
-      :with_move(cond.not_filetypes({ 'vim' }))
-      :with_pair(cond.not_filetypes({ 'vim' }))
+    not_filetype('"', 'vim')
     autopairs.add_rule(quote('"', '"', { 'vim' })
       :with_pair(block_wrap)
       :with_pair(not_after_regex('^%s*'))
@@ -170,7 +180,7 @@ return {{
     )
     -- disable default {, replace with version that won't trigger in a comment
     -- (for folding)
-    autopairs.get_rules('{')[1]:with_pair(cond.not_filetypes({ 'vim' }))
+    not_filetype('{', 'vim')
     autopairs.add_rule(bracket('{', '}', 'vim')
       :with_pair(not_after_regex('^%s*"'))
     )
