@@ -59,7 +59,16 @@ return {{
       :with_move(cond.is_bracket_line_move())
     -- }}}
 
-    -- not_after_regex {{{
+    -- not_filetype (disables a rule by its key, for the supplied filetype) {{{
+    local not_filetype = function(rule_key, ft)
+      local rule = autopairs.get_rules(rule_key)[1]
+      if rule.not_filetypes == nil then
+        rule.not_filetypes = {}
+      end
+      rule.not_filetypes[#rule.not_filetypes + 1] = ft
+    end -- }}}
+
+    -- not_after_regex (disable if the opening is after the supplied regex) {{{
     -- autopairs version doesn't use the whole line, but having the whole line
     -- to match against is much more flexible
     local not_after_regex = function(regex)
@@ -104,15 +113,6 @@ return {{
         :end_wise(matched)
         :replace_endpair(close)
     end -- }}}
-
-    -- function to disable a rule by its key for the supplied filetype
-    local not_filetype = function(rule_key, ft)
-      local rule = autopairs.get_rules(rule_key)[1]
-      if rule.not_filetypes == nil then
-        rule.not_filetypes = {}
-      end
-      rule.not_filetypes[#rule.not_filetypes + 1] = ft
-    end
 
     -- htmljinja {{{
     -- disable { rule
