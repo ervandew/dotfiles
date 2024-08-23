@@ -288,15 +288,30 @@ return {
       local tab_prev = nil
       local tab_count = nil
       local buffers_tab_id_gen = 0
+      local get_buffer_name = function(buffer_id)
+        local name = vim.fn.bufname(buffer_id)
+        if name == '' then
+          name = '[No Name]'
+          local winid = vim.fn.bufwinid(buffer_id)
+          vim.print({'winid:', winid})
+          if winid ~= -1 then
+            local wininfo = vim.fn.getwininfo(winid)[1]
+            vim.print({'wininfo:', wininfo})
+            if wininfo.loclist == 1 then
+              name = '[Location List]'
+            elseif wininfo.quickfix == 1 then
+              name = '[Quickfix]'
+            end
+          end
+        end
+        return name
+      end
       local get_buffers = function()
         local result = {}
         local buffer_ids = vim.api.nvim_list_bufs()
         local cwd = vim.fn.getcwd()
         for _, buffer_id in ipairs(buffer_ids) do
-          local name = vim.fn.bufname(buffer_id)
-          if name == '' then
-            name = '[No Name]'
-          end
+          local name = get_buffer_name(buffer_id)
           if name ~= '[buffers]' then
             local dir = vim.fn.fnamemodify(name, ':p:h')
             if string.find(dir, cwd, 1, true) == 1 then
@@ -377,9 +392,8 @@ return {
             return
           end
 
-          local cwd = vim.loop.cwd()
           local filename = entry.info.name ~= '' and entry.info.name or nil
-          local bufname = filename and Path:new(filename):normalize(cwd) or '[No Name]'
+          local bufname = get_buffer_name(entry.bufnr)
           local hidden = entry.info.hidden == 1
           local modified = entry.info.changed == 1
           local make_display = function(e)
