@@ -193,7 +193,7 @@ return {{
           local keywords = { 'if', 'for', 'while', 'try', 'function' }
           for _, keyword in ipairs(keywords) do
             if opts.line:match('^%s*' .. keyword .. '%W') ~= nil then
-              return true
+              return eol(opts)
             end
           end
           return false
