@@ -216,6 +216,50 @@ return {{
     })
     -- }}}
 
+    vim.keymap.set('i', '<c-l>', function() -- mapping to skip inserted chars {{{
+      -- while in insert mode, jump to first space after the cursor or the end
+      -- of line (a naive way to jump past inserted end pairs. proper support
+      -- would require tracking what's been inserted, which autopairs doesn't
+      -- seem to do)
+      --
+      local col = vim.fn.col('.')
+      -- note: breaks repeat :/
+      local pos = vim.fn.searchpos('\\s\\|$', 'z', vim.fn.line('.'))
+
+      if pos[2] > col then
+        -- if we skipped over any indentkeys, then re-indent the line
+        local indentkeys = vim.split(vim.o.indentkeys, ',')
+        indentkeys = vim.tbl_filter(function(k)
+          if k:find('!') == 1 then
+            return false
+          end
+          if k:find('0') == 1 then
+            return false
+          end
+          if k == 'o' or k == 'O' then
+            return false
+          end
+          return true
+        end, indentkeys)
+        indentkeys = vim.tbl_map(function(k)
+          if k:find('=') == 1 then
+            k = k:sub(2)
+          end
+          return k
+        end, indentkeys)
+
+        local skipped = vim.fn.getline('.'):sub(col, pos[2])
+        for _, key in ipairs(indentkeys) do
+          if skipped:find(key) then
+            vim.cmd('silent normal ==')
+            if vim.fn.virtcol('.') > #vim.fn.getline('.') + 1 then
+              vim.fn.cursor(0, #vim.fn.getline('.') + 1)
+            end
+            break
+          end
+        end
+      end
+    end) -- }}}
   end
 }}
 
