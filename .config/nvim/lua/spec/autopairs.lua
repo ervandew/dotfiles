@@ -86,6 +86,15 @@ return {{
     --   string or table of the file type to target
     local closetag = function(...)
       local params = {...}
+      -- find the start tag to grab the name to put into the end pair
+      local close = function(opts)
+        local tag = string.gsub(opts.line, params[3], '%1')
+        if params[5] then
+          tag = params[5](tag)
+        end
+        return string.gsub(opts.rule.end_pair, '%%s', tag)
+      end
+
       local matched = function(opts)
         -- only execute at the end of line
         local suffix = opts.line:sub(opts.col + 1)
@@ -98,15 +107,18 @@ return {{
         if tag == opts.line then
           return false
         end
-      end
 
-      -- find the start tag to grab the name to put into the end pair
-      local close = function(opts)
-        local tag = string.gsub(opts.line, params[3], '%1')
-        if params[5] then
-          tag = params[5](tag)
+        -- only close if there is no existing close on the next line, at the
+        -- same indent level
+        local lnum = vim.fn.line('.')
+        local lnum_next = lnum + 1
+        local indent_next = vim.fn.indent(lnum_next)
+        local indent = vim.fn.indent(lnum)
+        local closed = close(opts)
+        if indent == indent_next and
+           vim.trim(vim.fn.getline(lnum_next)) == closed then
+          return false
         end
-        return string.gsub(opts.rule.end_pair, '%%s', tag)
       end
 
       return Rule(params[1], params[2], params[4])
