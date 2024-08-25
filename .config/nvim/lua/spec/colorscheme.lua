@@ -106,11 +106,6 @@ return {{
     vim.api.nvim_set_hl(0, '@tag.attribute.css', { fg = gray7 })
     -- }}}
 
-    -- flash {{{
-    vim.api.nvim_set_hl(0, 'FlashBackdrop', { bg = '#1a1a1a' })
-    vim.api.nvim_set_hl(0, 'FlashPromptIcon', { fg = purple, bold = true })
-    -- }}}
-
     -- lsp {{{
     vim.api.nvim_set_hl(0, '@lsp.type.event.lua', { link = '@comment' })
     vim.api.nvim_set_hl(0, 'DiagnosticHint', { fg = hint })
