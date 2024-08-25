@@ -4,7 +4,7 @@ return {
     build = 'make',
   },
   {
-    "nvim-telescope/telescope-file-browser.nvim",
+    'nvim-telescope/telescope-file-browser.nvim',
   },
   {
     'nvim-telescope/telescope.nvim',
@@ -12,7 +12,7 @@ return {
     dependencies = { 'nvim-lua/plenary.nvim' },
     config = function()
       local builtin = require('telescope.builtin')
-      local action_state = require("telescope.actions.state")
+      local action_state = require('telescope.actions.state')
       local actions = require('telescope.actions')
       local action_set = require('telescope.actions.set')
       local finders = require('telescope.finders')
