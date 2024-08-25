@@ -33,7 +33,6 @@ return {{
         local lnum = vim.fn.line('.')
         local indent_cur = vim.fn.indent(lnum)
         local indent_next = vim.fn.indent(lnum + 1)
-        vim.print({'indent:', indent_cur, 'next:', indent_next})
         local next_line = vim.fn.getline(lnum + 1)
         -- if the next line is at the same or more of an indent, and ends in a
         -- comma, then we are probably wrapping a block to create list, tuple,
@@ -83,28 +82,48 @@ return {{
     --   closing string (>, %}, ...)
     --   template for the closing tag where %s is replaced with the tag name
     --   pattern used to find the tag name from the current line
-    --   string or table of the file type to target
+    --   table of options (all are optional):
+    --   - filetypes: string or table of the file type to target
+    --   - translate: function to translate the tag found into the tag
+    --     to use
     local closetag = function(...)
       local params = {...}
+      local closetag_opts = params[4] or {}
       -- find the start tag to grab the name to put into the end pair
       local close = function(opts)
+        if opts.closetag then
+          return opts.closetag
+        end
+
         local tag = string.gsub(opts.line, params[3], '%1')
-        if params[5] then
-          tag = params[5](tag)
+        if closetag_opts.translate then
+          tag = closetag_opts.translate(tag)
         end
         return string.gsub(opts.rule.end_pair, '%%s', tag)
       end
 
       local matched = function(opts)
-        -- only execute at the end of line
-        local suffix = opts.line:sub(opts.col + 1)
-        if suffix:match('^%s*$') == nil then
-          return false
-        end
-
         -- only execute if we found the tag name
         local tag = string.gsub(opts.line, params[3], '%1')
         if tag == opts.line then
+          return false
+        end
+
+        -- check if the tag is ignored
+        if closetag_opts.ignore and
+           vim.list_contains(closetag_opts.ignore, tag)
+        then
+          return false
+        end
+
+        -- check any optional addtional condition
+        if closetag_opts.cond and closetag_opts.cond(opts) == false then
+          return false
+        end
+
+        -- only execute at the end of line
+        local suffix = opts.line:sub(opts.col + 1)
+        if suffix:match('^%s*$') == nil then
           return false
         end
 
@@ -115,35 +134,167 @@ return {{
         local indent_next = vim.fn.indent(lnum_next)
         local indent = vim.fn.indent(lnum)
         local closed = close(opts)
+
         if indent == indent_next and
            vim.trim(vim.fn.getline(lnum_next)) == closed then
           return false
         end
+
+        opts.closetag = closed
       end
 
-      return Rule(params[1], params[2], params[4])
+      return Rule(params[1], params[2], closetag_opts.filetypes)
         :end_wise(matched)
         :replace_endpair(close)
+    end -- }}}
+
+    -- sgmlclosetag (auto complete while typing a close tag) {{{
+    local sgmlclosetag = function()
+      local ignore = { 'br', 'input' }
+      local extract_tags = function(line)
+        local tags = {}
+        while string.match(line, '<%w+') do
+          local tag = vim.fn.substitute(
+            line,
+            '.\\{-}<\\([a-zA-Z0-9:_.-]\\+\\).*',
+            '\\1',
+            ''
+          )
+          if not string.match(line, '<' .. tag .. '[^>]*/>') and
+             not vim.list_contains(ignore, tag)
+          then
+            tags[#tags + 1] = tag
+          end
+          line = vim.fn.substitute(
+            line,
+            '.\\{-}<' .. tag .. '\\(.*\\)',
+            '\\1',
+            ''
+          )
+        end
+        return tags
+      end
+
+      local function get_tag(lnum)
+        ---@diagnostic disable-next-line: redundant-parameter
+        local pairpos = vim.fn.searchpairpos('<\\w', '', '</\\w', 'bnW')
+        if pairpos[1] ~= 0 then
+          -- test if tag found is self closing
+          local self_close_pattern =
+            '\\%' .. pairpos[1] .. 'l\\%' .. pairpos[2] .. 'c\\_[^>]*/>'
+          if vim.fn.search(self_close_pattern, 'bcnW') ~= 0 then
+            local pos = vim.fn.getpos('.')
+            vim.fn.cursor(pairpos[1], pairpos[2])
+            local _, result = pcall(get_tag, lnum)
+            vim.fn.setpos('.', pos)
+            return result
+          end
+
+          local line = vim.fn.getline(pairpos[1])
+          local pos = vim.fn.getpos('.')
+          vim.fn.cursor(pairpos[1], pairpos[2])
+          local ok, tags = pcall(extract_tags, line)
+          if ok then
+            -- place the cursor at the end of the line
+            vim.fn.cursor(vim.fn.line('.'), vim.fn.col('$'))
+            -- loop over the tags in reverse order
+            for i = #tags, 1, -1 do
+              local tag = tags[i]
+              -- find first non self closing tag searching backwards
+              vim.fn.search(
+                '<' .. tag .. '\\>\\([^>]\\{-}[^/]\\)\\?>',
+                'b',
+                vim.fn.line('.')
+              )
+              -- see if the tag has a matching close tag
+              local start_tag = '<' .. tag .. '\\>'
+              local end_tag = '</' .. tag .. '\\>'
+              ---@diagnostic disable-next-line: redundant-parameter
+              local tagpairpos = vim.fn.searchpairpos(start_tag, '', end_tag, 'nW')
+              if tagpairpos[1] == 0 or tagpairpos[1] > lnum then
+                return tag
+              end
+            end
+            vim.fn.cursor(vim.fn.line('.'), 1)
+            return get_tag(lnum)
+          end
+          vim.fn.setpos('.', pos)
+        end
+      end
+
+      local function close(opts)
+        if opts.sgmlclosetag then
+          local tag = opts.sgmlclosetag
+          local right = vim.api.nvim_replace_termcodes('<right>', true, false, true)
+          vim.fn.feedkeys(string.rep(right, #tag + 1), 'tn')
+          return tag .. '>'
+        end
+        return get_tag(vim.fn.line('.'))
+      end
+
+      local function matched(opts)
+        local tag = close(opts)
+        if not tag then
+          return false
+        end
+        opts.sgmlclosetag = tag
+      end
+
+      return Rule('</', '>')
+        :with_pair(matched)
+        :replace_endpair(close)
+    end -- }}}
+
+    -- sgmlendtag (rules to autocomplete end tags) {{{
+    -- autoclose a tag when hitting enter after the close of the start tag
+    local sgml_autoclose = closetag('>', '</%s>', '.*<%s*(%a+).*', {
+      ignore = { 'br', 'input' },
+      cond = function(opts)
+        -- ignore if the tag is already closed
+        if string.match(opts.line, '/>%s*') then
+          return false
+        end
+      end
+    })
+    autopairs.add_rule(sgml_autoclose)
+
+    local sgml_close = sgmlclosetag()
+    autopairs.add_rule(sgml_close)
+
+    local sgmlendtag = function(ft)
+      if sgml_autoclose.filetypes == nil then
+        sgml_autoclose.filetypes = {}
+      end
+      sgml_autoclose.filetypes[#sgml_autoclose.filetypes + 1] = ft
+
+      if sgml_close.filetypes == nil then
+        sgml_close.filetypes = {}
+      end
+      sgml_close.filetypes[#sgml_close.filetypes + 1] = ft
     end -- }}}
 
     -- htmljinja {{{
     -- disable { rule
     not_filetype('{', 'htmljinja')
 
+    -- add htmljinja to sgmlendtag filetypes
+    sgmlendtag('htmljinja')
+
     autopairs.add_rule(Rule('{{', '}}', 'htmljinja'))
     autopairs.add_rule(Rule('{%', '%}', 'htmljinja'))
 
-    -- auto close html tags
-    autopairs.add_rule(closetag('>', '</%s>', '.*<%s*(%a+).*', 'htmljinja'))
     -- auto close jinja tags
     autopairs.add_rule(closetag(
       '%}',
       '{% end%s %}',
       '.*{%%%-?%s*(%a*).*%-?%%}',
-      'htmljinja',
-      function(tag) return (tag == 'elif' or tag == 'else') and 'if' or tag end
+      {
+        filetypes = 'htmljinja',
+        translate = function(tag)
+          return (tag == 'elif' or tag == 'else') and 'if' or tag
+        end,
+      }
     ))
-
     -- }}}
 
     -- lua {{{
