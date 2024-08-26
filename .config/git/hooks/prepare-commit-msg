@@ -49,12 +49,12 @@ if [ "$3" == HEAD ] ; then
   fi
 
 # Non-amend, look for ticket number prefix on the branch name, and if found,
-# add a 'refs #<ticket-number>' to the commit message.
+# add a 'fixes #<ticket-number>' to the commit message.
 else
   branch=$(git rev-parse --abbrev-ref HEAD)
   ticket=$(echo $branch | perl -pe 's|(^([A-Z]{3}-)?\d+)[-_].*|\1|')
   if [ "$branch" != "$ticket" ] ; then
-    message="refs #${ticket}"
+    message="fixes #${ticket}"
     # use alternate format for jira issues
     if [[ $ticket =~ [A-Z]{3} ]] ; then
       message="${ticket}"
