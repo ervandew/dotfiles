@@ -130,8 +130,18 @@ return {{
 
         local winnr = vim.fn.bufwinnr(args.buf)
         if winnr ~= -1 then
-          vim.fn.setloclist(winnr, filtered, 'r')
-          vim.fn.setloclist(winnr, {}, 'r', { title = 'Diagnostics' })
+          -- prevent error message if this is firing after the buffer was
+          -- deleted
+          local ok, _ = pcall(vim.fn.setloclist, winnr, filtered, 'r')
+          if not ok then
+            return
+          end
+          ok, _ = pcall(
+            vim.fn.setloclist, winnr, {}, 'r', { title = 'Diagnostics' }
+          )
+          if not ok then
+            return
+          end
           -- fire autocmd to display diagnostic on the current line
           vim.cmd('doautocmd CursorHold')
         end
