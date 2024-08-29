@@ -19,7 +19,6 @@ return {
       local pickers = require('telescope.pickers')
       local state = require('telescope.state')
       local utils = require('telescope.utils')
-      local Path = require('plenary.path')
 
       ---@diagnostic disable-next-line: undefined-field
       local extensions = require('telescope').extensions
@@ -28,22 +27,16 @@ return {
         --change select_default action when selecting a file
         local is_file = function()
           local entry = action_state.get_selected_entry()
-          if entry.filename then
+          if entry.filename and vim.fn.filereadable(entry.filename) == 1 then
             return true
           end
 
           -- git_status
-          if entry.value and vim.fn.filereadable(entry.value) then
+          if entry.value and vim.fn.filereadable(entry.value) == 1 then
             return true
           end
 
-          -- telescope-file-browser
-          if entry.Path then
-            local path = entry.Path
-            return Path.is_path(path) and path:is_file()
-          end
-
-          return true
+          return false
         end
 
         ---@diagnostic disable-next-line: undefined-field
