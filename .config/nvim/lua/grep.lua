@@ -110,8 +110,9 @@ local grep = function(opts, args, action, suppress_messages)
 
     arg = vim.fn.escape(arg, '"')
     if arg:match('^%-') == nil then
-      -- escape vim expansion chars
-      arg = vim.fn.escape(arg, '#%')
+      -- escape vim expansion chars (prevent them from being expanded) and
+      -- pipe (nvim's grep truncates the pattern at the pipe if not escaped)
+      arg = vim.fn.escape(arg, '#%|')
       arg = '"' .. arg .. '"'
     end
     cmd = cmd .. ' ' .. arg
