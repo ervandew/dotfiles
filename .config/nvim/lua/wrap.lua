@@ -87,10 +87,10 @@ local function _wrap(lnum, rule, children)
   vim.fn.cursor(line, 0)
 end
 
-local function _unwrap(lnum, rule, children)
+local function _unwrap(lnum, rule, root, children)
   local last_lnum = lnum
   for _, child in ipairs(children) do
-    local line_end = child['line_end']
+    local line_end = child.line_end
     if line_end > last_lnum then
       last_lnum = line_end
     end
@@ -105,7 +105,7 @@ local function _unwrap(lnum, rule, children)
       lines = lines + 1
     end
   else
-    if next_line:match('^%s*[}%)%]][:,]?%s*\\?$') then
+    if root and root.line_end == last_lnum + 1 then
       next_line_close = true
       lines = lines + 1
     end
@@ -159,7 +159,7 @@ local function _unwrap(lnum, rule, children)
   end
 end
 
-local function _walk(lnum, node, rule)
+local function _walk(lnum, node, rule, root)
   local children = {}
   local path = rule['path']
   local wrap = true
@@ -167,12 +167,23 @@ local function _walk(lnum, node, rule)
     if child:named() then
       local key = child_field or child:type()
       if key == path[1] or path[1] == '*' then
+        if not root then
+          local root_node = key == path[1] and child or node
+          local root_line_start, root_col_start = root_node:start()
+          local root_line_end, root_col_end = root_node:end_()
+          root = {
+            line_start = root_line_start + 1,
+            line_end = root_line_end + 1,
+            col_start = root_col_start + 1,
+            col_end = root_col_end + 1,
+          }
+        end
         if #path > 1 then
           _walk(lnum, child, vim.tbl_extend(
             'force',
             rule,
             {path = vim.list_slice(path, 2, #path)}
-          ))
+          ), root)
           break
         end
         local line_start, col_start = child:start()
@@ -195,7 +206,7 @@ local function _walk(lnum, node, rule)
     if wrap then
       _wrap(lnum, rule, children)
     else
-      _unwrap(lnum, rule, children)
+      _unwrap(lnum, rule, root, children)
     end
   end
 end
