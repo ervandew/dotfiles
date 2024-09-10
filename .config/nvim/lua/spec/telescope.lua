@@ -24,7 +24,7 @@ return {
       local extensions = require('telescope').extensions
 
       local attach_mappings_file = function(prompt_bufnr) -- {{{
-        --change select_default action when selecting a file
+        -- change select_default action when selecting a file
         local is_file = function()
           local entry = action_state.get_selected_entry()
           if entry.filename and vim.fn.filereadable(entry.filename) == 1 then
@@ -48,6 +48,16 @@ return {
           local selection = entry.filename or entry.value or unpack(entry)
           if picker.cwd and not entry.Path and not entry.path then
             selection = picker.cwd .. '/' .. selection
+          end
+
+          -- convert to a relative path if it's within our cwd
+          local cwd = vim.fn.getcwd()
+          if string.sub(cwd, -1) ~= '/' then
+            cwd = cwd .. '/'
+          end
+          local index = string.find(selection, cwd, 1, true)
+          if index == 1 then
+            selection = string.sub(selection, #cwd + 1)
           end
 
           local cmd = 'split'
