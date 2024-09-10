@@ -304,10 +304,8 @@ return {
         if name == '' then
           name = '[No Name]'
           local winid = vim.fn.bufwinid(buffer_id)
-          vim.print({'winid:', winid})
           if winid ~= -1 then
             local wininfo = vim.fn.getwininfo(winid)[1]
-            vim.print({'wininfo:', wininfo})
             if wininfo.loclist == 1 then
               name = '[Location List]'
             elseif wininfo.quickfix == 1 then
@@ -339,7 +337,7 @@ return {
         end
         return result
       end
-      local function open_next_hidden_tab_buffer(current)
+      local function next_hidden_tab_buffer(current)
         local allbuffers = get_buffers()
 
         -- build list of buffers open in other tabs to exclude
@@ -355,6 +353,7 @@ return {
         -- build list of buffers not open in any window, and last seen on the
         -- current tab.
         local hiddenbuffers = {}
+        local hiddenbuffers_noname = {}
         for _, buffer in ipairs(allbuffers) do
           local bufnr = buffer.bufnr
           if bufnr ~= current and
@@ -363,10 +362,18 @@ return {
           then
             local buffers_tab_id = vim.b[bufnr].buffers_tab_id
             if buffers_tab_id == vim.t.buffers_tab_id then
+              local noname = vim.fn.bufname(bufnr) == ''
               if bufnr < current then
                 local updated = { bufnr }
-                vim.list_extend(updated, hiddenbuffers)
-                hiddenbuffers = updated
+                if noname then
+                  vim.list_extend(updated, hiddenbuffers_noname)
+                  hiddenbuffers_noname = updated
+                else
+                  vim.list_extend(updated, hiddenbuffers)
+                  hiddenbuffers = updated
+                end
+              elseif noname then
+                hiddenbuffers_noname[#hiddenbuffers_noname] = bufnr
               else
                 hiddenbuffers[#hiddenbuffers] = bufnr
               end
@@ -374,16 +381,23 @@ return {
           end
         end
 
-        -- we found a hidden buffer, so open it
+        local next_bufnr
         if #hiddenbuffers > 0 then
-          vim.cmd('buffer ' .. hiddenbuffers[1])
+          next_bufnr = hiddenbuffers[1]
+        elseif #hiddenbuffers_noname > 0 then
+          next_bufnr = hiddenbuffers_noname[1]
+        end
+        return next_bufnr
+      end
+
+      local function open_next_hidden_tab_buffer(current, next_bufnr)
+        next_bufnr = next_bufnr or next_hidden_tab_buffer(current)
+        if next_bufnr then
+          vim.cmd('buffer ' .. next_bufnr)
           vim.cmd('doautocmd BufEnter')
           vim.cmd('doautocmd BufWinEnter')
           vim.cmd('doautocmd BufReadPost')
-
-          return hiddenbuffers[1]
         end
-        return 0
       end
 
       local make_entry = require('telescope.make_entry')
@@ -579,9 +593,11 @@ return {
         end
 
         if windows == 1 then
-          vim.cmd('new')
           -- try loading a hidden buffer from the current tab
-          open_next_hidden_tab_buffer(bufnr)
+          local next_bufnr = next_hidden_tab_buffer(bufnr)
+          if next_bufnr then
+            open_next_hidden_tab_buffer(nil, next_bufnr)
+          end
         end
 
         vim.api.nvim_buf_delete(bufnr, { force = opts.bang })
