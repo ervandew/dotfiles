@@ -60,16 +60,24 @@ return {
             selection = string.sub(selection, #cwd + 1)
           end
 
-          local cmd = 'split'
-          if vim.fn.expand('%') == '' and
-             not vim.o.modified and
-             vim.fn.line('$') == 1 and
-             vim.fn.getline(1) == ''
-          then
-            cmd = 'edit'
-          end
+          -- check if the file is already open
+          local winnr = vim.fn.bufwinnr(vim.fn.bufnr('^' .. selection .. '$'))
+          if winnr ~= -1 then
+            vim.cmd(winnr .. 'winc w')
+            vim.cmd([[ normal! m' ]]) -- update jump list
 
-          vim.cmd(cmd .. ' ' .. selection)
+          -- open the file
+          else
+            local cmd = 'split'
+            if vim.fn.expand('%') == '' and
+               not vim.o.modified and
+               vim.fn.line('$') == 1 and
+               vim.fn.getline(1) == ''
+            then
+              cmd = 'edit'
+            end
+            vim.cmd(cmd .. ' ' .. selection)
+          end
 
           if entry.lnum and entry.col then
             vim.fn.cursor(entry.lnum, entry.col)
