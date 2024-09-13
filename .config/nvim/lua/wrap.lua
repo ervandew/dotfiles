@@ -1,6 +1,7 @@
 local M = {}
 local nodes_by_lang = {
   python = { -- {{{
+    argument_list = { path = { '*' }, comma_separated = true },
     call = { path = { 'arguments', '*' }, comma_separated = true },
     class_definition = {
       path = { 'superclasses', '*' },
