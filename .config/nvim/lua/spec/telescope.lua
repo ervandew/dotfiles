@@ -297,7 +297,7 @@ return {
 
       -- buffers {{{
       local tab_prev = nil
-      local tab_count = nil
+      local tab_count = 1
       local buffers_tab_id_gen = 0
       local get_buffer_name = function(buffer_id)
         local name = vim.fn.bufname(buffer_id)
@@ -320,8 +320,8 @@ return {
         local buffer_ids = vim.api.nvim_list_bufs()
         local cwd = vim.fn.getcwd()
         for _, buffer_id in ipairs(buffer_ids) do
-          local name = get_buffer_name(buffer_id)
-          if name ~= '[buffers]' then
+          if vim.api.nvim_buf_is_loaded(buffer_id) then
+            local name = get_buffer_name(buffer_id)
             local dir = vim.fn.fnamemodify(name, ':p:h')
             if string.find(dir, cwd, 1, true) == 1 then
               dir = string.sub(dir, #cwd + 2)
@@ -361,7 +361,7 @@ return {
              vim.fn.bufwinnr(bufnr) == -1
           then
             local buffers_tab_id = vim.b[bufnr].buffers_tab_id
-            if buffers_tab_id == vim.t.buffers_tab_id then
+            if tab_count == 1 or buffers_tab_id == vim.t.buffers_tab_id then
               local noname = vim.fn.bufname(bufnr) == ''
               if bufnr < current then
                 local updated = { bufnr }
@@ -373,7 +373,9 @@ return {
                   hiddenbuffers = updated
                 end
               elseif noname then
-                hiddenbuffers_noname[#hiddenbuffers_noname] = bufnr
+                if vim.bo[bufnr].ft ~= 'qf' then -- ignore qf/loc lists
+                  hiddenbuffers_noname[#hiddenbuffers_noname] = bufnr
+                end
               else
                 hiddenbuffers[#hiddenbuffers] = bufnr
               end
@@ -410,10 +412,11 @@ return {
         },
       })
       local buffers_opts = {
+        show_all_buffers = false, -- hide unloaded buffers
         entry_maker = function(entry)
           -- exclude buffers open in, or last opened in, other tabs
           local tabid = vim.t.buffers_tab_id -- see "tab tracking" below
-          if vim.b[entry.bufnr].buffers_tab_id ~= tabid then
+          if tab_count > 1 and vim.b[entry.bufnr].buffers_tab_id ~= tabid then
             return
           end
 
@@ -479,7 +482,7 @@ return {
             end
           end
 
-          vim.api.nvim_buf_delete(bufnr, {})
+          vim.api.nvim_buf_delete(bufnr, { unload = true })
 
           if loadnext then
             local delete_bufnr = vim.fn.bufnr()
@@ -493,7 +496,7 @@ return {
         map({ 'i', 'n' }, '<c-o>', function()
           for _, buffer in ipairs(get_buffers()) do
             if buffer.hidden and not vim.bo[buffer.bufnr].modified then
-              vim.api.nvim_buf_delete(buffer.bufnr, {})
+              vim.api.nvim_buf_delete(buffer.bufnr, { unload = true })
             end
           end
           builtin.buffers(buffers_opts)
@@ -553,7 +556,7 @@ return {
         group = augroup,
         pattern = '*',
         callback = function()
-          if tab_count and tab_count > vim.fn.tabpagenr('$') then
+          if tab_count > vim.fn.tabpagenr('$') then
             -- delete any buffers associated with the closed tab
             for _, buffer in ipairs(get_buffers()) do
               local buffers_tab_id = vim.b[buffer.bufnr].buffers_tab_id
@@ -600,7 +603,10 @@ return {
           end
         end
 
-        vim.api.nvim_buf_delete(bufnr, { force = opts.bang })
+        -- NOTE: just unload the buffer so we don't delete buffers referenced
+        -- by the quickfix list, which causes a "Buffer <n> not found" error
+        -- attempting to jump to the entry.
+        vim.api.nvim_buf_delete(bufnr, { force = opts.bang, unload = true })
         vim.cmd('redraw') -- force tabline to update
       end, { bang = true, nargs = 0 })
     -- }}}
