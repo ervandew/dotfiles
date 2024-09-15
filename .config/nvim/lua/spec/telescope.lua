@@ -374,10 +374,10 @@ return {
                 end
               elseif noname then
                 if vim.bo[bufnr].ft ~= 'qf' then -- ignore qf/loc lists
-                  hiddenbuffers_noname[#hiddenbuffers_noname] = bufnr
+                  hiddenbuffers_noname[#hiddenbuffers_noname + 1] = bufnr
                 end
               else
-                hiddenbuffers[#hiddenbuffers] = bufnr
+                hiddenbuffers[#hiddenbuffers + 1] = bufnr
               end
             end
           end
@@ -588,9 +588,14 @@ return {
         local windows = 0
         for winnr = 1, vim.fn.winnr('$') do
           local winid = vim.fn.win_getid(winnr)
-          -- exclude any windows with a fixed height or width, as these are most
-          -- likely some sort of tool window (tag list, etc)
-          if not (vim.w[winid].winfixheight or vim.w[winid].winfixwidth) then
+          -- exclude any floating windows or windows with a fixed height or
+          -- width, as these are most likely some sort of tool window (tag
+          -- list, etc)
+          if not (
+            vim.w[winid].winfixheight or
+            vim.w[winid].winfixwidth or
+            vim.api.nvim_win_get_config(winid).zindex
+          ) then
             windows = windows + 1
           end
         end
@@ -600,6 +605,8 @@ return {
           local next_bufnr = next_hidden_tab_buffer(bufnr)
           if next_bufnr then
             open_next_hidden_tab_buffer(nil, next_bufnr)
+          else
+            vim.cmd('new')
           end
         end
 
