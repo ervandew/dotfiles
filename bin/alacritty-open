@@ -59,6 +59,12 @@ if [[ $target =~ ^(A|M|R\d*|\?\?) ]] ; then
 
   _nvim $file
 
+# ipython stack trace file reference
+elif [[ $target =~ ^File.*:[0-9]+, ]] ; then
+  # convert python stack reference to file:line
+  file=$(echo "$target" | perl -pe 's/File (.*):(\d+),.*/\1:\2/')
+  _nvim $file
+
 # python stack trace file reference
 elif [[ $target =~ ^File ]] ; then
   # convert python stack reference to file:line
