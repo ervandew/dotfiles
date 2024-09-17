@@ -7,6 +7,10 @@ return {
     'nvim-telescope/telescope-file-browser.nvim',
   },
   {
+    'nvim-telescope/telescope-live-grep-args.nvim',
+    version = "^1.1.0",
+  },
+  {
     'nvim-telescope/telescope.nvim',
     branch = '0.1.x',
     dependencies = { 'nvim-lua/plenary.nvim' },
@@ -186,21 +190,6 @@ return {
           attach_mappings = attach_mappings_file,
           cwd = vim.fn.expand('%:h'),
           hidden = true,
-        })
-      end) -- }}}
-
-      vim.keymap.set('n', '<leader>fg', function() -- live_grep {{{
-        builtin.live_grep({
-          attach_mappings = attach_mappings_file,
-          vimgrep_arguments = {
-            'rg',
-            '--color=never',
-            '--no-heading',
-            '--with-filename',
-            '--line-number',
-            '--column',
-            '--hidden',
-          }
         })
       end) -- }}}
 
@@ -652,6 +641,34 @@ return {
       ---@diagnostic disable-next-line: undefined-field
       require('telescope').load_extension('fzf')
       -- }}}
+
+      -- extension: live-grep-args {{{
+      ---@diagnostic disable-next-line: undefined-field
+      require('telescope').load_extension('live_grep_args')
+      vim.keymap.set('n', '<leader>fg', function()
+        local lga_actions = require('telescope-live-grep-args.actions')
+        ---@diagnostic disable-next-line: undefined-field
+        require('telescope').extensions.live_grep_args.live_grep_args({
+          attach_mappings = attach_mappings_file,
+          mappings = {
+            i = {
+              -- Examples of common args to add to the pattern:
+              --   limit file types:  -t py
+              --   limit to dir glob: -g **/path/**
+              ['<c-k>'] = lga_actions.quote_prompt()
+            }
+          },
+          vimgrep_arguments = {
+            'rg',
+            '--color=never',
+            '--no-heading',
+            '--with-filename',
+            '--line-number',
+            '--column',
+            '--hidden',
+          }
+        })
+      end) -- }}}
     end
   },
 }
