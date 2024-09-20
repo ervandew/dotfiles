@@ -1,4 +1,4 @@
----Straigh copy of neovim's _coomment.lua, with the following changes:
+---Straight copy of neovim's _coomment.lua, with the following changes:
 --- Mod: replaced all 'vim._comment' references with 'comment'
 --- Mod: updated get_comment_parts() to trim the left comment string to remove
 ---      the extra space between the comment operator and the string
@@ -198,7 +198,6 @@ local function toggle_lines(line_start, line_end, ref_position, align)
   local lines = vim.api.nvim_buf_get_lines(0, line_start - 1, line_end, false)
   local indent, is_comment = get_lines_info(lines, parts)
 
-  vim.print({'align:', align})
   local f = is_comment and
     make_uncomment_function(parts) or
     make_comment_function(parts, align and indent or '')
