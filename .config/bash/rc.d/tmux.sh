@@ -19,7 +19,10 @@ function tmux_window_title() {
     fi
 
     # remove leading env vars
-    title=$(echo $title | perl -pe 's|^[A-Z]+=\S+||g')
+    title=$(echo $title | perl -pe 's|^[A-Z_]+=\S+||g')
+
+    # remove leading space
+    title=$(echo $title | perl -pe 's|^\s+||g')
 
     # skip
     # - shell builtins/keywords (probably rc scripts, etc)
