@@ -32,8 +32,13 @@ function _nvim(){
   fi
 }
 
+# git diff file reference
+if [[ $target =~ ^([-+]{3} [ab]/) ]] ; then
+  file=$(echo "$target" | perl -pe 's/^[-+]{3} [ab]\///')
+  _nvim $file
+
 # git status/log file reference
-if [[ $target =~ ^(A|M|R\d*|\?\?) ]] ; then
+elif [[ $target =~ ^(A|M|R\d*|\?\?) ]] ; then
   if [[ $target =~ ^(A|M|\?\?) ]] ; then
     file=$(echo "$target" | perl -pe 's/^(?:A|M|\?\?)\s+(.*)/\1/')
   elif [[ $target =~ ^R\d* ]] ; then
