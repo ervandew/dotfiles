@@ -577,13 +577,14 @@ return {
         local windows = 0
         for winnr = 1, vim.fn.winnr('$') do
           local winid = vim.fn.win_getid(winnr)
-          -- exclude any floating windows or windows with a fixed height or
-          -- width, as these are most likely some sort of tool window (tag
-          -- list, etc)
+          -- exclude any floating windows, quickfix windows, or windows with a
+          -- fixed height or width, as these are most likely some sort of tool
+          -- window (tag list, etc)
           if not (
             vim.w[winid].winfixheight or
             vim.w[winid].winfixwidth or
-            vim.api.nvim_win_get_config(winid).zindex
+            vim.api.nvim_win_get_config(winid).zindex or
+            vim.fn.getwininfo(winid)[1].quickfix == 1
           ) then
             windows = windows + 1
           end
