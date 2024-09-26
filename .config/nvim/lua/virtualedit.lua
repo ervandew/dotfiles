@@ -7,7 +7,10 @@ local function insert(key)
   if #vim.fn.getline('.') == 0 and vim.fn.line('$') ~= 1 then
     return vim.fn.line('.') == vim.fn.line('$') and 'ddo' or 'ddO'
   end
-  return (vim.fn.virtcol('.') > vim.fn.col('$') and '$' or '') .. key
+  if vim.fn.virtcol('.') > vim.fn.col('$') then
+    return '$a'
+  end
+  return key
 end
 
 local function paste()
