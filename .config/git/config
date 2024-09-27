@@ -25,6 +25,7 @@
   a = pick -t file -r add
   r = pick -t file -r clean -f
   ci = !git -c status.relativePaths=false pick -t file commit -e
+  desc = describe
   unstage = pick -t file reset HEAD
   untrack = pick -t file --cached
   forget = pick -t file rm --cached
