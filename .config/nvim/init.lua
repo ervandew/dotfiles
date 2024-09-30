@@ -441,6 +441,16 @@ vim.api.nvim_create_autocmd('BufReadCmd', {
   pattern = '*:*',
   callback = function(args)
     local path, line = unpack(vim.fn.split(args.match, ':'))
+    -- make the path relative if it's in our cwd
+    local cwd = vim.fn.getcwd()
+    if string.sub(cwd, -1) ~= '/' then
+      cwd = cwd .. '/'
+    end
+    local index = string.find(path, cwd, 1, true)
+    if index == 1 then
+      path = string.sub(path, #cwd + 1)
+    end
+
     if vim.fn.filereadable(path) == 1 then
       local tempbufnr = vim.fn.bufnr()
       if vim.fn.bufexists(path) == 0 then
@@ -460,6 +470,7 @@ vim.api.nvim_create_autocmd('BufReadCmd', {
       -- set last known position so that our BufWinEnter autocmd doesn't
       -- override our cursor position
       vim.cmd([[ normal! m" ]])
+      vim.cmd('doautocmd BufReadPost')
       vim.cmd('doautocmd BufWinEnter')
       vim.cmd('doautocmd WinEnter')
       vim.cmd(tempbufnr .. 'bwipeout!')
