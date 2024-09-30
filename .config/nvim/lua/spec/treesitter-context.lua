@@ -59,7 +59,9 @@ return {{
         end
 
         -- only one place to go, so go
-        if index == 1 then
+        if index == 0 then
+          vim.api.nvim_echo({{ 'No contexts found.', 'Error' }}, false, {})
+        elseif index == 1 then
           _jump(1)
         else
           vim.cmd('redraw')
