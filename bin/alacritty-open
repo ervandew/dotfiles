@@ -89,7 +89,7 @@ fi # }}}
 # - if the pattern starts with ; or #, then the whole value needs to be quoted
 # - the current working directory is used to determine the git repo name, the
 #   "project-name" referenced above.
-if [[ ${target,,} =~ ^(fixes|refs|resolves) ]] ; then
+if [[ ${target,,} =~ ^(fixes|refs|resolves|bos-) ]] ; then
   repo=$(basename $(git rev-parse --show-toplevel))
 
   IFS_ORIG=$IFS
