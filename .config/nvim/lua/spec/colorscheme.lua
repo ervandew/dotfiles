@@ -12,6 +12,7 @@ return {{
 
     local background = '#292929'
     local white = '#cccccc'
+    local gray4 = '#444444'
     local gray5 = '#555555'
     local gray6 = '#666666'
     local gray7 = '#777777'
@@ -56,6 +57,7 @@ return {{
     vim.api.nvim_set_hl(0, 'DiffChange', { fg = yellow_mid, bg = '#232323' })
     vim.api.nvim_set_hl(0, 'DiffDelete', { fg = '#870000', bg = '#2f0000' })
     vim.api.nvim_set_hl(0, 'DiffText', { fg = yellow, bg = '#404040' })
+    vim.api.nvim_set_hl(0, 'EndOfBuffer', { fg = gray4 })
     vim.api.nvim_set_hl(0, 'Error', { fg = error, bg = 'none' })
     vim.api.nvim_set_hl(0, 'Folded', { fg = '#5c5c5c', bg = 'none' })
     vim.api.nvim_set_hl(0, 'MatchParen', { fg = '#cf9ebe', bg = background })
@@ -79,6 +81,7 @@ return {{
     vim.api.nvim_set_hl(0, 'Visual', { bg = '#353535' })
     vim.api.nvim_set_hl(0, 'VisualCursor', { bg = '#d787d7' })
     vim.api.nvim_set_hl(0, 'WarningMsg', { fg = warn })
+    vim.api.nvim_set_hl(0, 'Whitespace', { fg = gray4 })
 
     -- file type specific changes
     vim.api.nvim_set_hl(0, '@constant.git_rebase', { link = '@number' })
