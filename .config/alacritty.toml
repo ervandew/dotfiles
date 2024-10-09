@@ -97,6 +97,6 @@ File ".*", line \\d+, in .*|\
 File .*:\\d+, in .*|\
 (-{3} a|[+]{3} b)/.*|\
 (^|\\s)(A|M|R\\d*|\\?\\?)\\s+.*|\
-((fixes|refs|resolves)\\s+#\\S+|BOS-\\d+)|\
+((?i:fixes|refs|resolves)\\s+#\\S+|BOS-\\d+)|\
 https?://[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+\
 )"""
