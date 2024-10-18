@@ -347,7 +347,8 @@ return {
           local bufnr = buffer.bufnr
           if bufnr ~= current and
              not vim.list_contains(tabbuffers, bufnr) and
-             vim.fn.bufwinnr(bufnr) == -1
+             vim.fn.bufwinnr(bufnr) == -1 and
+             vim.bo[bufnr].ft ~= 'qf'
           then
             local buffers_tab_id = vim.b[bufnr].buffers_tab_id
             if tab_count == 1 or buffers_tab_id == vim.t.buffers_tab_id then
@@ -362,9 +363,7 @@ return {
                   hiddenbuffers = updated
                 end
               elseif noname then
-                if vim.bo[bufnr].ft ~= 'qf' then -- ignore qf/loc lists
-                  hiddenbuffers_noname[#hiddenbuffers_noname + 1] = bufnr
-                end
+                hiddenbuffers_noname[#hiddenbuffers_noname + 1] = bufnr
               else
                 hiddenbuffers[#hiddenbuffers + 1] = bufnr
               end
