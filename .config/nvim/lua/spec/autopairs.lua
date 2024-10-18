@@ -331,6 +331,18 @@ return {{
     })
     -- }}}
 
+    -- python {{{
+    -- disable default triple quote rules so we can customize them
+    not_filetype('"""', 'python')
+    not_filetype("'''", 'python')
+    autopairs.add_rule(quote("'''", "'''", 'python')
+      :with_pair(cond.not_before_regex('%w'))
+    )
+    autopairs.add_rule(quote('"""', '"""', 'python')
+      :with_pair(cond.not_before_regex('%w'))
+    )
+    -- }}}
+
     -- vim {{{
     -- disable default ", replace with version that won't trigger at the start
     -- of a comment
