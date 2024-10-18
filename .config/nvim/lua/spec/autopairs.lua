@@ -280,8 +280,8 @@ return {{
     -- add htmljinja to sgmlendtag filetypes
     sgmlendtag('htmljinja')
 
-    autopairs.add_rule(Rule('{{', '}}', 'htmljinja'))
-    autopairs.add_rule(Rule('{%', '%}', 'htmljinja'))
+    autopairs.add_rule(Rule('{{', ' }}', 'htmljinja'))
+    autopairs.add_rule(Rule('{%', ' %}', 'htmljinja'))
 
     -- auto close jinja tags
     autopairs.add_rule(closetag(
