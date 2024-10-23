@@ -1,5 +1,4 @@
 # Configuration file for ipython.
-import os
 import sys
 
 #------------------------------------------------------------------------------
@@ -409,8 +408,8 @@ def _exception_colors():
 
 IPython.core.excolors.exception_colors = _exception_colors
 IPython.core.ultratb.exception_colors = _exception_colors
-IPython.core.ultratb.VerboseTB._tb_highlight = 'bg:#333333'
-IPython.core.ultratb.VerboseTB._tb_highlight_style = 'friendly_grayscale'
+IPython.core.ultratb.VerboseTB.tb_highlight = 'bg:#333333'
+IPython.core.ultratb.VerboseTB.tb_highlight_style = 'friendly_grayscale'
 
 ## Enable mouse support in the prompt
 #c.TerminalInteractiveShell.mouse_support = False
