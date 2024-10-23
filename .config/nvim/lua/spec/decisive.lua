@@ -5,6 +5,8 @@ return {
       vim.api.nvim_create_autocmd('BufWinEnter', {
         pattern = '*.csv',
         callback = function()
+          -- virtualedit breaks yanking, and possibly other features
+          vim.wo.virtualedit = 'none'
           vim.wo.wrap = false
 
           local decisive = require('decisive')
