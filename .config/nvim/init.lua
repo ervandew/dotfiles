@@ -234,7 +234,8 @@ end)
 vim.keymap.set(
   'n',
   '*',
-  '"syiw<esc>: let @/ = "\\\\<" . @s . "\\\\>"<cr>:set hls<cr>',
+  '"syiw<esc>:let @/ = "\\\\<" . @s . "\\\\>"<cr>' ..
+  ':set hls | call histadd("search", getreg("/"))<cr>',
   { silent = true }
 )
 
