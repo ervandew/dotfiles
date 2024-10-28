@@ -183,7 +183,40 @@ return {
           attach_mappings = attach_mappings_file,
           hidden = true,
         })
-      end) -- }}}
+      end)
+      -- when using :S command of my open.lua, allow ctrl-f to switch to fuzzy
+      -- file finder, with the :S command arg as the initial search text
+      vim.keymap.set('c', '<c-f>', function()
+        local cmd = vim.fn.getcmdline()
+        local result = string.find(cmd, '^S%s')
+        vim.print({'cmd:', cmd, 'result:', result})
+        if result then
+          local default_text = string.gsub(cmd, '^S%s+', '')
+          vim.print({'text:', default_text})
+          -- cancel command mode
+          vim.api.nvim_feedkeys(
+            vim.api.nvim_replace_termcodes('<c-c>', true, false, true),
+            'n',
+            false
+          )
+          -- open telescope after feedkeys above runs
+          vim.schedule(function()
+            builtin.find_files({
+              attach_mappings = attach_mappings_file,
+              default_text = default_text,
+              hidden = true,
+            })
+          end)
+        else
+          -- fallback to default behavior (open command history window)
+          vim.api.nvim_feedkeys(
+            vim.api.nvim_replace_termcodes('<c-f>', true, false, true),
+            'n',
+            false
+          )
+        end
+      end)
+      -- }}}
 
       vim.keymap.set('n', '<leader>fr', function() -- find_files (relative) {{{
         builtin.find_files({
