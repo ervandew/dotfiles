@@ -646,10 +646,34 @@ return {
       ---@diagnostic disable-next-line: undefined-field
       require('telescope').load_extension('live_grep_args')
       vim.keymap.set('n', '<leader>fg', function()
+        -- check if the cursor is on a search match, and if so, pre-populate
+        -- telescope with that pattern
+        local default_text = ''
+        local pattern = vim.fn.getreg('/')
+        local line = vim.fn.getline('.')
+        local col = vim.fn.col('.')
+        local matches = {}
+        local start = 0
+        while true do
+          local match = vim.fn.matchstrpos(line, pattern, start)
+          if match[3] == -1 then
+            break
+          end
+          matches[#matches + 1] = {match[2], match[3]}
+          start = match[3]
+        end
+        for _, match in ipairs(matches) do
+          if col > match[1] and col <= match[2] then
+            default_text = pattern
+            break
+          end
+        end
+
         local lga_actions = require('telescope-live-grep-args.actions')
         ---@diagnostic disable-next-line: undefined-field
         require('telescope').extensions.live_grep_args.live_grep_args({
           attach_mappings = attach_mappings_file,
+          default_text = default_text,
           mappings = {
             i = {
               -- Examples of common args to add to the pattern:
