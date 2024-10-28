@@ -12,6 +12,8 @@ return {{
 
     local background = '#292929'
     local white = '#cccccc'
+    local gray2 = '#222222'
+    local gray3 = '#333333'
     local gray4 = '#444444'
     local gray5 = '#555555'
     local gray6 = '#666666'
@@ -64,7 +66,8 @@ return {{
     vim.api.nvim_set_hl(0, 'ModeMsg', { fg = gray9 })
     vim.api.nvim_set_hl(0, 'MoreMsg', { link = 'ModeMsg' })
     vim.api.nvim_set_hl(0, 'MsgArea', { fg = white })
-    vim.api.nvim_set_hl(0, 'PmenuSel', { bg = '#333333' })
+    vim.api.nvim_set_hl(0, 'Pmenu', { fg = '#7a7a7a', bg = gray2 })
+    vim.api.nvim_set_hl(0, 'PmenuSel', { bg = gray3 })
     vim.api.nvim_set_hl(0, 'Search', { fg = white, bg = '#607080' })
     vim.api.nvim_set_hl(0, 'SignColumn', { bg = 'none' })
     vim.api.nvim_set_hl(0, 'SpellBad', { fg = '#cf6171', underline = true })
