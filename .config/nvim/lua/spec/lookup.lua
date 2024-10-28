@@ -7,7 +7,9 @@ return {{
     vim.api.nvim_create_autocmd('FileType', {
       pattern = { 'help', 'vim' },
       callback = function()
-        vim.keymap.set('n', '<cr>', ':Lookup<cr>', { buffer = true, silent = true })
+        if vim.fn.bufname() ~= '' then
+          vim.keymap.set('n', '<cr>', ':Lookup<cr>', { buffer = true, silent = true })
+        end
       end
     })
   end
