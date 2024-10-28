@@ -8,6 +8,7 @@
 ---      use with operatorfunc when align is set.
 --- Add: added mappings function to setup the comment mappings, and just expose
 ---      that and operator functions.
+--- Del: remove textobject function that I don't use.
 
 ---@nodoc
 ---@class comment.Parts
@@ -255,32 +256,6 @@ end
 -- added for use with operatorfunc for align mappings
 local function operator_align(mode)
   return operator(mode, true)
-end
-
---- Select contiguous commented lines at cursor
-local function textobject()
-  local lnum_cur = vim.fn.line('.')
-  local parts = get_comment_parts({ lnum_cur, vim.fn.col('.') })
-  local comment_check = make_comment_check(parts)
-
-  if not comment_check(vim.fn.getline(lnum_cur)) then
-    return
-  end
-
-  -- Compute commented range
-  local lnum_from = lnum_cur
-  while (lnum_from >= 2) and comment_check(vim.fn.getline(lnum_from - 1)) do
-    lnum_from = lnum_from - 1
-  end
-
-  local lnum_to = lnum_cur
-  local n_lines = vim.api.nvim_buf_line_count(0)
-  while (lnum_to <= n_lines - 1) and comment_check(vim.fn.getline(lnum_to + 1)) do
-    lnum_to = lnum_to + 1
-  end
-
-  -- Select range linewise for operator to act upon
-  vim.cmd('normal! ' .. lnum_from .. 'GV' .. lnum_to .. 'G')
 end
 
 local function mappings()
