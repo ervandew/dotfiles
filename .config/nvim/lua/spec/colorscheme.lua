@@ -162,7 +162,7 @@ return {{
     -- }}}
 
     -- treesitter-context {{{
-    vim.api.nvim_set_hl(0, 'TreesitterContext', { fg = purple, bg = '#453e46' })
+    vim.api.nvim_set_hl(0, 'TreesitterContext', { fg = purple, bg = '#201921' })
     vim.api.nvim_set_hl(0, 'TreesitterContextLineNumber', { link = 'TreesitterContext' })
     vim.api.nvim_set_hl(0, 'TreesitterContextBottom', { underline = true })
     -- added by spec
