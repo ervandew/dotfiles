@@ -90,6 +90,15 @@ return {
         return true
       end -- }}}
 
+      local current_prompt_text = function() -- {{{
+        for __, bufnr in ipairs(vim.fn.tabpagebuflist()) do
+          if vim.bo[bufnr].filetype == 'TelescopePrompt' then
+            return action_state.get_current_picker(bufnr):_get_prompt()
+          end
+        end
+        return ''
+      end -- }}}
+
       require('telescope').setup({ ---@diagnostic disable-line: undefined-field {{{
         defaults = { -- {{{
           file_ignore_patterns = { '.git/' },
@@ -182,6 +191,7 @@ return {
         builtin.find_files({
           attach_mappings = attach_mappings_file,
           hidden = true,
+          default_text = current_prompt_text(),
         })
       end)
       -- when using :S command of my open.lua, allow ctrl-f to switch to fuzzy
@@ -189,10 +199,8 @@ return {
       vim.keymap.set('c', '<c-f>', function()
         local cmd = vim.fn.getcmdline()
         local result = string.find(cmd, '^S%s')
-        vim.print({'cmd:', cmd, 'result:', result})
         if result then
           local default_text = string.gsub(cmd, '^S%s+', '')
-          vim.print({'text:', default_text})
           -- cancel command mode
           vim.api.nvim_feedkeys(
             vim.api.nvim_replace_termcodes('<c-c>', true, false, true),
@@ -222,6 +230,7 @@ return {
         builtin.find_files({
           attach_mappings = attach_mappings_file,
           cwd = vim.fn.expand('%:h'),
+          default_text = current_prompt_text(),
           hidden = true,
         })
       end) -- }}}
@@ -700,6 +709,10 @@ return {
             default_text = pattern
             break
           end
+        end
+
+        if default_text == '' then
+          default_text = current_prompt_text()
         end
 
         local lga_actions = require('telescope-live-grep-args.actions')
