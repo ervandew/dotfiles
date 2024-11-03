@@ -51,6 +51,7 @@ return {{
     -- providing ctermfg prevents underline on DiffChange lines:
     -- bug: https://github.com/neovim/neovim/issues/9800.
     vim.api.nvim_set_hl(0, 'CursorLine', { ctermfg = 'black', bg = '#202020' })
+    vim.api.nvim_set_hl(0, 'CursorLineNr', { fg = 'white', bg = '#202020' })
     -- creating these two for SearchWrapped autocmd
     vim.api.nvim_set_hl(0, 'CurSearchMain', { fg = white, bg = '#638465' })
     vim.api.nvim_set_hl(0, 'CurSearchWrap', { fg = white, bg = '#8f5faf' })
