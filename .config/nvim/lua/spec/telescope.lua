@@ -91,7 +91,7 @@ return {
       end -- }}}
 
       local current_prompt_text = function() -- {{{
-        for __, bufnr in ipairs(vim.fn.tabpagebuflist()) do
+        for _, bufnr in ipairs(vim.fn.tabpagebuflist()) do
           if vim.bo[bufnr].filetype == 'TelescopePrompt' then
             return action_state.get_current_picker(bufnr):_get_prompt()
           end
@@ -240,20 +240,26 @@ return {
         local name_to_winnr = {}
         local common_path = nil
         for winnr = 1,vim.fn.winnr('$') do
-          local name = vim.fn.bufname(vim.fn.winbufnr(winnr))
-          local path = vim.fn.fnamemodify(name, ':h')
-          if not common_path then
-            common_path = path
-          else
-            while common_path ~= path and common_path ~= '/' and common_path ~= '.' do
-              if #path > #common_path then
-                path = vim.fn.fnamemodify(path, ':h')
-              else
-                common_path = vim.fn.fnamemodify(common_path, ':h')
+          local winid = vim.fn.win_getid(winnr)
+          if not vim.api.nvim_win_get_config(winid).zindex then
+            local name = vim.fn.bufname(vim.fn.winbufnr(winnr))
+            local path = vim.fn.fnamemodify(name, ':h')
+            if not common_path then
+              common_path = path
+            else
+              while common_path ~= path and
+                    common_path ~= '/' and
+                    common_path ~= '.'
+              do
+                if #path > #common_path then
+                  path = vim.fn.fnamemodify(path, ':h')
+                else
+                  common_path = vim.fn.fnamemodify(common_path, ':h')
+                end
               end
             end
+            bufnames[winnr] = name
           end
-          bufnames[winnr] = name
         end
 
         local names = {}
