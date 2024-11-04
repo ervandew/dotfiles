@@ -23,6 +23,7 @@ return {
       local pickers = require('telescope.pickers')
       local state = require('telescope.state')
       local utils = require('telescope.utils')
+      local esc = vim.api.nvim_replace_termcodes('<esc>', true, false, true)
 
       ---@diagnostic disable-next-line: undefined-field
       local extensions = require('telescope').extensions
@@ -189,7 +190,13 @@ return {
 
       vim.keymap.set('n', '<leader>ff', function() -- find_files {{{
         builtin.find_files({
-          attach_mappings = attach_mappings_file,
+          attach_mappings = function(prompt_bufnr, map)
+            attach_mappings_file(prompt_bufnr)
+            map('i', '<c-f>', function() -- switch to live_grep
+              vim.api.nvim_feedkeys(esc .. vim.g.mapleader .. 'fg', 'm', false)
+            end)
+            return true
+          end,
           hidden = true,
           default_text = current_prompt_text(),
         })
@@ -724,7 +731,13 @@ return {
         local lga_actions = require('telescope-live-grep-args.actions')
         ---@diagnostic disable-next-line: undefined-field
         require('telescope').extensions.live_grep_args.live_grep_args({
-          attach_mappings = attach_mappings_file,
+          attach_mappings = function(prompt_bufnr, map)
+            attach_mappings_file(prompt_bufnr)
+            map('i', '<c-f>', function() -- switch to find_files
+              vim.api.nvim_feedkeys(esc .. vim.g.mapleader .. 'ff', 'm', false)
+            end)
+            return true
+          end,
           default_text = default_text,
           mappings = {
             i = {
