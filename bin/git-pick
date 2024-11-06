@@ -221,9 +221,21 @@ if [ -t 0 ] ; then
   compare=$(echo $expanded | sed 's|\n| |g')
 
   if $REQUIRE_ARGS ; then
-    if [[ "$compare" == "$@" ]] ; then
-      echo no args supplied to expand.
-      exit
+    if [[ -z "$has_file_arg" && "$compare" == "$@" ]] ; then
+      # check if any of the args are a file reference, and if so, count that
+      # towards required args
+      has_file_arg=""
+      for arg in "$@" ; do
+        if [[ -a $arg ]] ; then
+          has_file_arg=1
+          break
+        fi
+      done
+
+      if [[ -z "$has_file_arg" ]] ; then
+        echo no args supplied to expand.
+        exit
+      fi
     fi
   fi
 
