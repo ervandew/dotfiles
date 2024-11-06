@@ -86,6 +86,7 @@ command = 'alacritty-open'
 binding = { key = 'o', mods = 'alt'}
 hyperlinks = true
 # NOTE: any regex changes may need to be applied to bin/alacritty-open as well
+# - absolute file:line reference
 # - python stack trace
 # - ipython stack trace
 # - git diff file reference
@@ -93,6 +94,7 @@ hyperlinks = true
 # - git log ticket reference
 # - url reference
 regex = """(\
+(^|\\s)/\\S*\\.\\w+:\\d+|\
 File ".*", line \\d+, in .*|\
 File .*:\\d+, in .*|\
 (-{3} a|[+]{3} b)/.*|\

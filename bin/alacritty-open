@@ -32,8 +32,13 @@ function _nvim(){
   fi
 }
 
+# absolute file:line reference
+if [[ $target =~ ^/[^[:space:]]*\.[a-z]+:[0-9]+ ]] ; then
+  file=$(echo "$target" | perl -pe 's/(^\/.*:\d+).*/\1/')
+  _nvim $file
+
 # git diff file reference
-if [[ $target =~ ^([-+]{3} [ab]/) ]] ; then
+elif [[ $target =~ ^([-+]{3} [ab]/) ]] ; then
   file=$(echo "$target" | perl -pe 's/^[-+]{3} [ab]\///')
   _nvim $file
 
@@ -41,7 +46,7 @@ if [[ $target =~ ^([-+]{3} [ab]/) ]] ; then
 elif [[ $target =~ ^(A|M|R\d*|\?\?) ]] ; then
   if [[ $target =~ ^(A|M|\?\?) ]] ; then
     file=$(echo "$target" | perl -pe 's/^(?:A|M|\?\?)\s+(.*)/\1/')
-  elif [[ $target =~ ^R\d* ]] ; then
+  elif [[ $target =~ ^R[0-9]* ]] ; then
     file=$(echo "$target" | perl -pe 's/^R\d*\s+.*?\s+(.*)/\1/')
   fi
 
