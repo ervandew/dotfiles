@@ -6,7 +6,7 @@ return {{
     })
 
     local ext_ns = vim.api.nvim_create_namespace('treesitter-context-spec-ext')
-    vim.keymap.set('n', '<leader>u', function()
+    vim.keymap.set('n', '<leader>u', function() -- {{{
       local count = vim.v.count1
       local contexts = vim.b.treesitter_contexts
       local _jump = function(index)
@@ -82,7 +82,60 @@ return {{
           vim.api.nvim_buf_clear_namespace(contextbuf, ext_ns, 0, -1)
         end
       end
-    end, { silent = true })
+    end, { silent = true }) -- }}}
+
+    vim.keymap.set('n', '<leader>y', function() -- {{{
+      local bufnr = vim.api.nvim_get_current_buf()
+      local winid = vim.api.nvim_get_current_win()
+      local c = vim.api.nvim_win_get_cursor(winid)
+      local row, col = c[1] - 1, c[2]
+      local range = {row, col, row, col + 1}
+
+      local ok_tree, root_tree = pcall(vim.treesitter.get_parser, bufnr)
+      if not ok_tree or not root_tree then
+        return
+      end
+
+      local tree = root_tree:tree_for_range(range, {ignore_injections = true})
+      if not tree then
+        return
+      end
+
+      local parts = {}
+      local accept = { 'class_definition', 'function_definition' }
+      local named = tree:root():named_descendant_for_range(unpack(range))
+      while named do
+        if vim.list_contains(accept, named:type()) then
+          for child in named:iter_children() do
+            if child:type() == 'identifier' then
+              parts[#parts + 1] = vim.treesitter.get_node_text(child, bufnr, {})
+              break
+            end
+          end
+        end
+        named = named:parent()
+      end
+      if #parts > 0 then
+        local result = ''
+        for i = #parts, 1, -1 do
+          if result ~= '' then
+            result = result .. '.'
+          end
+          result = result .. parts[i]
+        end
+        if string.find(vim.o.clipboard, 'plus') then
+          vim.fn.setreg('+', result)
+        end
+        if string.find(vim.o.clipboard, 'unnamed') or
+           string.find(vim.o.clipboard, 'autoselect')
+        then
+          vim.fn.setreg('*', result)
+        end
+        vim.print('copied: ' .. result)
+      else
+        vim.print('No relevant context info found.')
+      end
+    end, { silent = true }) -- }}}
 
     -- replace CursorMoved with CursorHold to avoid overhead of moving
     -- around a file (also add WinResized for quicker update when resizing a
@@ -98,7 +151,7 @@ return {{
       callback = tc_callback,
     })
 
-    -- add highlighting of visible parent contexts
+    -- add highlighting of visible parent contexts {{{
     local sign_group = 'treesitter_context_visible'
     local sign_name = 'treesitter_context_visible_line'
     ---@diagnostic disable-next-line: missing-fields
@@ -228,6 +281,8 @@ return {{
           end
         end
       }
-    )
+    ) -- }}}
   end
 }}
+
+-- vim:fdm=marker
