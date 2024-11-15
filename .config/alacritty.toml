@@ -77,7 +77,7 @@ bindings = [
 [scrolling]
 history = 20000
 
-[shell]
+[terminal.shell]
 program = '/bin/bash'
 args = ['--login']
 
