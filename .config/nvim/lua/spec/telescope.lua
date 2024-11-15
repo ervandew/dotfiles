@@ -16,6 +16,7 @@ return {
     dependencies = { 'nvim-lua/plenary.nvim' },
     config = function()
       local builtin = require('telescope.builtin')
+      local conf = require('telescope.config').values
       local action_state = require('telescope.actions.state')
       local actions = require('telescope.actions')
       local action_set = require('telescope.actions.set')
@@ -242,7 +243,132 @@ return {
         })
       end) -- }}}
 
-      vim.keymap.set('n', '<leader>fw', function() -- window picker {{{
+      vim.keymap.set('n', '<leader>ft', function() -- treesitter {{{
+        local ts_results = function(parser) -- {{{
+          local node_name = function(results, node, start_lnum, end_lnum)
+            local name = vim.treesitter.get_node_text(node, 0, {})
+            for i = #results, 1, -1 do
+              local adj = results[i]
+              if adj.start_lnum <= start_lnum and
+                 adj.end_lnum >= end_lnum
+              then
+                name = adj.name .. '.' .. name
+                break
+              end
+            end
+            return name
+          end
+
+          local results = {}
+          local path = vim.fn.expand('%:p')
+          local root = parser:parse(true)[1]:root()
+          local query = vim.treesitter.query.get(
+            vim.o.filetype,
+            'telescope-treesitter'
+          )
+          if not query then
+            vim.print('No query file found for: ' .. vim.o.ft)
+            return
+          end
+
+          ---@diagnostic disable-next-line: missing-parameter
+          for _, node, _, _ in query:iter_captures(root, 0) do
+            -- we query for names, so grab the parent to get the range of the
+            -- block
+            local parent = node:parent()
+            if parent then
+              local start_lnum, start_col = parent:start()
+              local end_lnum, end_col = parent:end_()
+              local name = node_name(results, node, start_lnum, end_lnum)
+              results[#results + 1] = {
+                path = path,
+                name = name,
+                start_lnum = start_lnum + 1,
+                start_col = start_col + 1,
+                end_lnum = end_lnum + 1,
+                end_col = end_col + 1,
+              }
+            end
+          end
+          return results
+        end -- }}}
+
+        local regex_results = function() -- {{{
+          local patterns_file = vim.fn.findfile(
+            'queries/' .. vim.o.ft .. '/telescope-treesitter.re',
+            vim.o.rtp
+          )
+          if patterns_file == '' then
+            vim.print('No patterns file found for: ' .. vim.o.ft)
+            return
+          end
+
+          local results = {}
+          local path = vim.fn.expand('%:p')
+          local patterns = vim.fn.readfile(patterns_file)
+          for _, pattern in ipairs(patterns) do
+            if string.sub(pattern, 1, 1) ~= ';' then
+              local type = string.match(pattern, '(.*):.*')
+              pattern = string.match(pattern, '.*:(.*)')
+              pattern = vim.fn.escape(pattern, '"')
+              local cmd =
+                'cat ' .. path .. ' | ' ..
+                'perl -ne "s|' .. pattern .. '|$.:\\1| && print"'
+              for _, result in ipairs(vim.fn.systemlist(cmd)) do
+                local lnum = tonumber(string.match(result, '(%d+):'))
+                local name = string.match(result, '%d+:(.*)')
+                results[#results + 1] = {
+                  path = path,
+                  name = type .. ':' .. name,
+                  start_lnum = lnum,
+                  start_col = 1,
+                }
+              end
+            end
+          end
+          return results
+        end -- }}}
+
+        local results
+        local ok, parser = pcall(vim.treesitter.get_parser, 0, vim.o.ft)
+        if not ok then
+          results = regex_results()
+          if not results then
+            return
+          end
+        else
+          results = ts_results(parser)
+        end
+
+        local opts = {}
+        pickers.new(opts, {
+          prompt_title = 'Treesitter Picker',
+          finder = finders.new_table({
+            results = results,
+            entry_maker = function(entry)
+              return {
+                path = entry.path,
+                display = entry.name,
+                ordinal = entry.name,
+                lnum = entry.start_lnum,
+                col = entry.start_col,
+              }
+            end,
+          }),
+          attach_mappings = function(prompt_bufnr)
+            actions.select_default:replace(function()
+              actions.close(prompt_bufnr)
+              local selection = action_state.get_selected_entry()
+              vim.fn.cursor(selection.lnum, selection.col + 1)
+            end)
+            return true
+          end,
+          previewer = conf.grep_previewer(opts),
+          sorter = conf.generic_sorter(opts),
+        }):find()
+      end, { silent = true }) -- }}}
+
+      vim.keymap.set('n', '<leader>fw', function() -- window {{{
         local bufnames = {}
         local name_to_winnr = {}
         local common_path = nil
@@ -289,6 +415,7 @@ return {
             end)
             return true
           end,
+          sorter = conf.generic_sorter(opts),
         }):find()
       end, { silent = true }) -- }}}
 
@@ -763,6 +890,7 @@ return {
           }
         })
       end) -- }}}
+
     end
   },
 }
