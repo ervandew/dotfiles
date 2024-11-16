@@ -326,12 +326,15 @@ return {
           return results
         end -- }}}
 
+        local sep
         local results
         local lang = vim.treesitter.language.get_lang(vim.o.ft)
         local ok, parser = pcall(vim.treesitter.get_parser, 0, lang)
         if ok then
+          sep = '.'
           results = ts_results(lang, parser)
         else
+          sep = ':'
           results = regex_results()
         end
 
@@ -345,9 +348,27 @@ return {
           finder = finders.new_table({
             results = results,
             entry_maker = function(entry)
+              -- highlight elements like a gradiant so the most significant
+              -- part stands out
+              local parts = vim.split(entry.name, sep, { plain = true })
+              local style = {}
+              if #parts then
+                local offset = 0
+                for index, part in ipairs(parts) do
+                  local hi_index = #parts - index + 1
+                  local hi = hi_index <= 4 and
+                    'TelescopeResultsPath' .. hi_index or
+                    'TelescopeResultsPath4'
+                  style[#style + 1] = { { offset, offset + #part + 1 }, hi }
+                  offset = offset + #part + 1
+                end
+              end
+
               return {
                 path = entry.path,
-                display = entry.name,
+                display = function()
+                  return entry.name, style
+                end,
                 ordinal = entry.name,
                 lnum = entry.start_lnum,
                 col = entry.start_col,
