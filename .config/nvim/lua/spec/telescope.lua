@@ -244,7 +244,7 @@ return {
       end) -- }}}
 
       vim.keymap.set('n', '<leader>ft', function() -- treesitter {{{
-        local ts_results = function(parser) -- {{{
+        local ts_results = function(lang, parser) -- {{{
           local node_name = function(results, node, start_lnum, end_lnum)
             local name = vim.treesitter.get_node_text(node, 0, {})
             for i = #results, 1, -1 do
@@ -262,12 +262,9 @@ return {
           local results = {}
           local path = vim.fn.expand('%:p')
           local root = parser:parse(true)[1]:root()
-          local query = vim.treesitter.query.get(
-            vim.o.filetype,
-            'telescope-treesitter'
-          )
+          local query = vim.treesitter.query.get(lang, 'telescope-treesitter')
           if not query then
-            vim.print('No query file found for: ' .. vim.o.ft)
+            vim.print('No query file found for: ' .. lang)
             return
           end
 
@@ -330,14 +327,16 @@ return {
         end -- }}}
 
         local results
-        local ok, parser = pcall(vim.treesitter.get_parser, 0, vim.o.ft)
-        if not ok then
-          results = regex_results()
-          if not results then
-            return
-          end
+        local lang = vim.treesitter.language.get_lang(vim.o.ft)
+        local ok, parser = pcall(vim.treesitter.get_parser, 0, lang)
+        if ok then
+          results = ts_results(lang, parser)
         else
-          results = ts_results(parser)
+          results = regex_results()
+        end
+
+        if not results then
+          return
         end
 
         local opts = {}
