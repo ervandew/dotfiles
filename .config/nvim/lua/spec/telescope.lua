@@ -333,7 +333,7 @@ return {
         if ok then
           sep = '.'
           results = ts_results(lang, parser)
-        else
+        elseif vim.o.ft ~= '' then
           sep = ':'
           results = regex_results()
         end
