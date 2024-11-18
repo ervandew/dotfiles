@@ -954,7 +954,6 @@ return {
               '',
               ''
             )
-            vim.print({'prefix:', })
             local line_prefix = string.gsub(line, '^(%s*).*', '%1')
             if not prefix or #line_prefix < #prefix then
               prefix = line_prefix
@@ -990,8 +989,7 @@ return {
               actions.close(prompt_bufnr)
               local selection = action_state.get_selected_entry()
               local bufname = archive_name .. ':' .. selection.path
-              vim.cmd('new ' .. vim.fn.escape(bufname, ' '))
-              vim.cmd('r! ' ..
+              vim.cmd('new | r! ' ..
                 'atool' ..
                 '  --cat' ..
                 '  "' .. archive .. '"' ..
@@ -999,6 +997,9 @@ return {
               -- delete empty first line and file name on second that atool
               -- prints
               vim.cmd('1,2d')
+              vim.cmd('file ' .. vim.fn.escape(bufname, ' '))
+              vim.cmd('filetype detect')
+              vim.cmd('doautocmd BufWinEnter')
               vim.bo.buftype = 'nofile'
             end)
             return true
