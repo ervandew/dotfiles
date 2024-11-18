@@ -911,6 +911,125 @@ return {
         })
       end) -- }}}
 
+      vim.api.nvim_create_user_command('A', function(cmd_opts) -- archive {{{
+        local archive = cmd_opts.args
+
+        vim.fn.system('which atool')
+        if vim.v.shell_error ~= 0 then
+          vim.print('atool not found in your path')
+          return
+        end
+
+        local lines = vim.fn.systemlist(
+          'atool --list "' .. archive .. '"'
+        )
+        if vim.v.shell_error ~= 0 then
+          for _, line in ipairs(lines) do
+            vim.print(line)
+          end
+          return
+        end
+
+        local results = {}
+        local prefix
+        for _, line in ipairs(lines) do
+          -- match lines that have a time, but exclude lone directory entries
+          if string.match(line, '%d:%d') and
+             not string.match(line, '/$')
+          then
+            -- try to detect if the entry starts with file permissions, and
+            -- if so remove them
+            if string.match(line, '^-') then
+              line = vim.fn.substitute(
+                line,
+                '.\\{-}\\S\\(\\s\\+\\d.*\\)',
+                '\\1',
+                ''
+              )
+            end
+
+            local path = vim.fn.substitute(
+              line,
+              '.\\{-}\\s\\+\\d\\+:\\d\\+\\s\\+',
+              '',
+              ''
+            )
+            vim.print({'prefix:', })
+            local line_prefix = string.gsub(line, '^(%s*).*', '%1')
+            if not prefix or #line_prefix < #prefix then
+              prefix = line_prefix
+            end
+            results[#results + 1] = { path = path, display = line }
+          end
+        end
+
+        -- remove unnecessary leading spaces if any
+        if prefix then
+          for _, result in ipairs(results) do
+            result.display = string.gsub(result.display, prefix, '')
+          end
+        end
+
+        local term_previewer = require('telescope.previewers.term_previewer')
+        local opts = {}
+        local archive_name = vim.fn.fnamemodify(archive, ':t')
+        pickers.new(opts, {
+          prompt_title = 'Archive: ' .. archive_name,
+          finder = finders.new_table({
+            results = results,
+            entry_maker = function(entry)
+              return {
+                display = entry.display,
+                ordinal = entry.path,
+                path = entry.path
+              }
+            end,
+          }),
+          attach_mappings = function(prompt_bufnr)
+            actions.select_default:replace(function()
+              actions.close(prompt_bufnr)
+              local selection = action_state.get_selected_entry()
+              local bufname = archive_name .. ':' .. selection.path
+              vim.cmd('new ' .. vim.fn.escape(bufname, ' '))
+              vim.cmd('r! ' ..
+                'atool' ..
+                '  --cat' ..
+                '  "' .. archive .. '"' ..
+                '  "' .. selection.path .. '"')
+              -- delete empty first line and file name on second that atool
+              -- prints
+              vim.cmd('1,2d')
+              vim.bo.buftype = 'nofile'
+            end)
+            return true
+          end,
+          previewer = term_previewer.new_termopen_previewer({
+            title = 'File Preview',
+            get_command = function(entry)
+              local ext = vim.fn.fnamemodify(entry.path, ':e')
+              local acat =
+                'atool' ..
+                '  --cat' ..
+                '  "' .. archive .. '"' ..
+                '  "' .. entry.path .. '"'
+              local cmd = acat
+              if ext ~= '' then
+                cmd = cmd .. ' | ' ..
+                  'bat' ..
+                  '  -l ' .. ext ..
+                  '  --style plain ' ..
+                  '  --color always ' ..
+                  '  --theme base16 ' ..
+                  '  --pager always' ..
+                  ' || ' .. cmd -- fall back to just cat if bat fails
+              end
+              return cmd
+            end,
+          }),
+          sorter = conf.generic_sorter(opts),
+        }):find()
+      end, { nargs = 1, complete = 'file' }) -- }}}
+
     end
   },
 }
