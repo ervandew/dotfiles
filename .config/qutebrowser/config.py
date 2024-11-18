@@ -126,6 +126,9 @@ config.unbind('Sb', mode='normal')
 config.unbind('Sq', mode='normal')
 config.unbind('wb', mode='normal')
 config.unbind('wB', mode='normal')
+# increment/decrement
+config.unbind('<ctrl-a>', mode='normal')
+config.unbind('<ctrl-x>', mode='normal')
 
 # workaround for aparent bug where rogue tab keypresses are received and
 # causing qutebrowser to scroll to the top of the page when switching
@@ -145,6 +148,11 @@ config.bind('gH', 'tab-move -')
 config.bind('gL', 'tab-move +')
 for i in range(10):
   config.bind('<ctrl-%s>' % i, 'tab-focus %s' % i)
+# tmux like bindings, for when muscle memory takes over
+config.bind('<ctrl-a>p', 'tab-prev')
+config.bind('<ctrl-a>n', 'tab-next')
+config.bind('<ctrl-a><ctrl-p>', 'tab-prev')
+config.bind('<ctrl-a><ctrl-n>', 'tab-next')
 
 # scrolling
 # the default G/gg and <ctrl-u/d> mappings use :scroll-to-perc and :scroll-page
