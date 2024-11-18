@@ -443,6 +443,10 @@ vim.api.nvim_create_autocmd('BufReadCmd', {
   pattern = '*:*',
   callback = function(args)
     local path, line = unpack(vim.fn.split(args.match, ':'))
+    if not string.match(line, '^%d+$') then
+      return
+    end
+
     -- make the path relative if it's in our cwd
     local cwd = vim.fn.getcwd()
     if string.sub(cwd, -1) ~= '/' then
