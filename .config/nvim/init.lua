@@ -272,6 +272,7 @@ end, { expr = true })
 
 require('comment').mappings()
 require('qf').mappings()
+require('tabcomplete').mappings()
 require('virtualedit').mappings()
 
 vim.keymap.set('n', '<space><space>', function()
