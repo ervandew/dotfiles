@@ -6,7 +6,7 @@
 ---      comment operator should be aligned with the existing code or inserted
 ---      at the very start of the line (no indent). Add 'operator_align()' for
 ---      use with operatorfunc when align is set.
---- Add: added mappings function to setup the comment mappings, and just expose
+--- Add: added init function to setup the comment mappings, and just expose
 ---      that and operator functions.
 --- Del: remove textobject function that I don't use.
 
@@ -258,7 +258,7 @@ local function operator_align(mode)
   return operator(mode, true)
 end
 
-local function mappings()
+local function init()
   vim.keymap.del('n', 'gcc')
 
   vim.keymap.set({ 'x' }, 'gc', function()
@@ -280,5 +280,5 @@ end
 return {
   operator = operator,
   operator_align = operator_align,
-  mappings = mappings,
+  init = init,
 }

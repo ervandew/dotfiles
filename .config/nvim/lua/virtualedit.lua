@@ -38,7 +38,7 @@ local function paste()
   return disable .. count .. register .. 'p' .. restore
 end
 
-M.mappings = function()
+M.init = function()
   -- virtualedit mappings to start insert no farther than the end of the actual
   -- line
   vim.keymap.set('n', 'a', function() return insert('a') end, { expr = true })

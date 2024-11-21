@@ -91,7 +91,19 @@ local function enable()
   update()
 end
 
-M.autocmd = function()
+M.toggle = function()
+  if not ignore(vim.fn.win_getid()) then
+    if vim.t.maximized then
+      disable()
+    else
+      enable()
+    end
+  end
+end
+
+M.init = function()
+  vim.keymap.set('n', '<space><space>', M.toggle)
+
   local augroup = vim.api.nvim_create_augroup('maximize', {})
   vim.api.nvim_create_autocmd({ 'WinEnter', 'VimResized' }, {
     group = augroup,
@@ -152,16 +164,6 @@ M.autocmd = function()
     group = stgroup,
     callback = function() vim.schedule(update) end
   })
-end
-
-M.toggle = function()
-  if not ignore(vim.fn.win_getid()) then
-    if vim.t.maximized then
-      disable()
-    else
-      enable()
-    end
-  end
 end
 
 return M

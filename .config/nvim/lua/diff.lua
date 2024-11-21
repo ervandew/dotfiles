@@ -163,7 +163,8 @@ M.last_saved = function()
   end
 end
 
-M.autocmd = function()
+M.init = function()
+  vim.keymap.set('n', '<leader>ds', M.last_saved)
   vim.api.nvim_create_autocmd('OptionSet', {
     pattern = 'diff',
     callback = commands,

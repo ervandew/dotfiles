@@ -137,7 +137,7 @@ local function detect()
   end
 end
 
-M.autocmd = function()
+M.init = function()
   vim.api.nvim_create_autocmd('BufWinEnter', { pattern = '*', callback = detect })
 end
 

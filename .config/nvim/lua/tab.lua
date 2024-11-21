@@ -40,4 +40,11 @@ M.open = function(opts)
   })
 end
 
+M.init = function()
+  vim.api.nvim_create_user_command('Tab', M.open , {
+    nargs = 1,
+    complete = 'dir',
+  })
+end
+
 return M

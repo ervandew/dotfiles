@@ -314,4 +314,12 @@ M.complete = function(lead, cmdl, pos)
   return results
 end
 
+M.init = function()
+  vim.api.nvim_create_user_command('Grep', M.find, {
+    bang = true,
+    nargs = '*',
+    complete = M.complete,
+  })
+end
+
 return M

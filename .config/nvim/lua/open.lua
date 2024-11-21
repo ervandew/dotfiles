@@ -124,7 +124,7 @@ M.open = function(action, opts)
   vim.cmd(action .. ' ' .. path)
 end
 
-M.commands = function()
+M.init = function()
   local commands = { E = 'edit', R = 'read', S = 'split' }
   for command, action in pairs(commands) do
     vim.api.nvim_create_user_command(
@@ -133,9 +133,7 @@ M.commands = function()
       { nargs = '?', complete = M.complete }
     )
   end
-end
 
-M.abbrev = function()
   local abbrevs = { 'e', 'edit', 'r', 'read', 's', 'split' }
   for _, abbrev in ipairs(abbrevs) do
     vim.keymap.set('ca', abbrev, function()

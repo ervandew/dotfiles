@@ -110,7 +110,7 @@ local function split(close)
   end
 end
 
-M.mappings = function()
+M.init = function()
   -- toggle quickfix/location lists
   vim.keymap.set('n', '<leader>ct', function() toggle('c') end)
   vim.keymap.set('n', '<leader>lt', function() toggle('l') end)

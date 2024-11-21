@@ -237,6 +237,10 @@ M.eval = function()
   vim.fn.cursor(lnum, cnum)
 end
 
+M.init = function()
+  vim.api.nvim_create_user_command('Wrap', M.eval, { nargs = 0 })
+end
+
 return M
 
 -- vim:fdm=marker

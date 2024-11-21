@@ -270,31 +270,9 @@ vim.keymap.set({ 'c', 'i' }, '<c-v>', function()
   vim.fn.feedkeys(vim.fn.getreg('+'))
 end, { expr = true })
 
-require('comment').mappings()
-require('qf').mappings()
-require('tabcomplete').mappings()
-require('virtualedit').mappings()
-
-vim.keymap.set('n', '<space><space>', function()
-  require('maximize').toggle()
-end)
-
-vim.keymap.set('n', '<leader>ds', function()
-  require('diff').last_saved()
-end)
 -- }}}
 
 -- commands {{{
-
-vim.api.nvim_create_user_command(
-  'Grep',
-  function(opts) require('grep').find(opts) end,
-  {
-    bang = true,
-    nargs = '*',
-    complete = function(...) return require('grep').complete(...) end,
-  }
-)
 
 -- print or jump to an absolute offset in the file
 vim.api.nvim_create_user_command('Offset', function(opts)
@@ -327,27 +305,11 @@ vim.api.nvim_create_user_command('Offset', function(opts)
   end
 end, { nargs = '?' })
 
-vim.api.nvim_create_user_command('Tab', function(opts)
-  require('tab').open(opts)
-end, { nargs = 1, complete = 'dir' })
-
-vim.api.nvim_create_user_command('Wrap', function()
-  require('wrap').eval()
-end, { nargs = 0 })
-
-vim.api.nvim_create_user_command('Mergetool', function()
-  require('mergetool').setup()
-end, { nargs = 0 })
-
-require('open').commands()
-
 -- }}}
 
 -- abbreviations {{{
 
 vim.keymap.set('ca', 'ln', 'lnext')
-
-require('open').abbrev()
 
 -- }}}
 
@@ -503,12 +465,22 @@ vim.api.nvim_create_autocmd('SearchWrapped', {
   end
 })
 
-require('diff').autocmd()
-require('indentdetect').autocmd()
-require('maximize').autocmd()
 -- }}}
 
--- plugins (via lazy.nvim) {{{
+-- plugins {{{
+
+require('comment').init()
+require('diff').init()
+require('grep').init()
+require('indentdetect').init()
+require('maximize').init()
+require('mergetool').init()
+require('open').init()
+require('qf').init()
+require('tab').init()
+require('tabcomplete').init()
+require('virtualedit').init()
+require('wrap').init()
 
 local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
 if not vim.uv.fs_stat(lazypath) then

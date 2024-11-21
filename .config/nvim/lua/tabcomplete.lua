@@ -32,7 +32,7 @@ local key = function(dir)
   return termcodes('<c-p>')
 end
 
-M.mappings = function()
+M.init = function()
   vim.keymap.set('i', '<tab>', function() return key('n') end, { expr = true })
   vim.keymap.set('i', '<s-tab>', function() return key('p') end, { expr = true })
 end

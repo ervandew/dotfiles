@@ -61,4 +61,8 @@ M.setup = function()
   vim.cmd('bot split ' .. merge)
 end
 
+M.init = function()
+  vim.api.nvim_create_user_command('Mergetool', M.setup, { nargs = 0 })
+end
+
 return M
