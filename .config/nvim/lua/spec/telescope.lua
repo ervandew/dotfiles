@@ -149,6 +149,11 @@ return {
               ['<s-tab>'] = actions.move_selection_previous,
               ['<c-j>'] = actions.preview_scrolling_down,
               ['<c-k>'] = actions.preview_scrolling_up,
+              ['<a-bs>'] = function()
+                vim.fn.feedkeys(
+                  vim.api.nvim_replace_termcodes('<c-w>', true, false, true)
+                )
+              end,
             },
             n = {
               ['<c-c>'] = actions.close,
@@ -259,7 +264,9 @@ return {
             return name
           end
 
+          local current
           local results = {}
+          local lnum = vim.fn.line('.') - 1
           local path = vim.fn.expand('%:p')
           local root = parser:parse(true)[1]:root()
           local query = vim.treesitter.query.get(lang, 'telescope-treesitter')
@@ -277,6 +284,24 @@ return {
               local start_lnum, start_col = parent:start()
               local end_lnum, end_col = parent:end_()
               local name = node_name(results, node, start_lnum, end_lnum)
+
+              -- set the current name if we are within this block, but remove
+              -- the last part if we are in the child of another node (prevent
+              -- our initial results from being just the current node, and
+              -- hopefully provide a list of nodes in the outer context)
+              if start_lnum <= lnum and lnum <= end_lnum then
+                current = name
+                if #results ~= 0 and string.match(name, '%.') then
+                  local parent_name = string.match(name, '(.*)%.')
+                  local prev_name = results[#results].name
+                  if prev_name == parent_name or
+                     string.match(prev_name, parent_name .. '%.')
+                  then
+                    current = parent_name .. '.'
+                  end
+                end
+              end
+
               results[#results + 1] = {
                 path = path,
                 name = name,
@@ -287,7 +312,7 @@ return {
               }
             end
           end
-          return results
+          return { current = current, results = results }
         end -- }}}
 
         local regex_results = function() -- {{{
@@ -323,7 +348,7 @@ return {
               end
             end
           end
-          return results
+          return { results = results }
         end -- }}}
 
         local sep
@@ -344,9 +369,10 @@ return {
 
         local opts = {}
         pickers.new(opts, {
+          default_text = results.current,
           prompt_title = 'Treesitter Picker',
           finder = finders.new_table({
-            results = results,
+            results = results.results,
             entry_maker = function(entry)
               -- highlight elements like a gradiant so the most significant
               -- part stands out
