@@ -280,6 +280,13 @@ return {
             -- we query for names, so grab the parent to get the range of the
             -- block
             local parent = node:parent()
+
+            -- edge case for markdown where we need to go up 2 levels to get to
+            -- the section node
+            if lang == 'markdown' and parent then
+              parent = parent:parent()
+            end
+
             if parent then
               local start_lnum, start_col = parent:start()
               local end_lnum, end_col = parent:end_()

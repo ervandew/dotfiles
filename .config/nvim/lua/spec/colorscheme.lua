@@ -43,7 +43,6 @@ return {{
     vim.api.nvim_set_hl(0, '@function.builtin', { fg = gray6 })
     vim.api.nvim_set_hl(0, '@function.method', { fg = white })
     vim.api.nvim_set_hl(0, '@keyword', { fg = gray8 })
-    vim.api.nvim_set_hl(0, '@markup.heading', { fg = white })
     vim.api.nvim_set_hl(0, '@number', { fg = '#624646' })
     vim.api.nvim_set_hl(0, '@string.special.url.comment', { underline = false })
     vim.api.nvim_set_hl(0, 'Comment', { link = '@comment' })
@@ -131,6 +130,18 @@ return {{
     vim.api.nvim_set_hl(0, 'htmlEndTag', { fg = gray5 })
     vim.api.nvim_set_hl(0, 'htmlH3', { fg = gray8 })
     vim.api.nvim_set_hl(0, 'htmlTagName', { fg = gray7 })
+    -- }}}
+
+    -- markdown {{{
+    vim.api.nvim_set_hl(0, '@markup.heading', { fg = gray6, bold = true })
+    vim.api.nvim_set_hl(0, '@markup.italic', { fg = gray8, italic = true })
+    vim.api.nvim_set_hl(0, '@markup.link.label.markdown_inline', { fg = gray7 })
+    vim.api.nvim_set_hl(0, '@markup.link.url.markdown_inline', { fg = gray4 })
+    vim.api.nvim_set_hl(0, '@markup.list', { fg = gray6, bold = true })
+    vim.api.nvim_set_hl(0, '@markup.quote', { fg = gray7 })
+    vim.api.nvim_set_hl(0, '@markup.raw.block.markdown', { fg = gray6 })
+    vim.api.nvim_set_hl(0, '@markup.raw.markdown_inline', { fg = gray6 })
+    vim.api.nvim_set_hl(0, '@markup.strong', { fg = gray8, bold = true })
     -- }}}
 
     -- taglisttoo {{{
