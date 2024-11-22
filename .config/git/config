@@ -134,7 +134,6 @@
 
 [core]
   editor = nvim
-  excludesfile = ~/.gitignore
   pager = /usr/bin/less -+$LESS -FRX
   hookspath = ~/.config/git/hooks
 
