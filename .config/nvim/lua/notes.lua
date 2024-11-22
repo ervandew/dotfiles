@@ -40,7 +40,7 @@ local open = function(opts)
     vim.cmd(cmd .. ' ' .. notes)
   end
 
-  if opts.args then
+  if opts.args ~= '' then
     ---@diagnostic disable-next-line: param-type-mismatch
     local ok, result = pcall(vim.cmd, '/' .. opts.args .. '\\c')
     if not ok then
@@ -60,6 +60,8 @@ M.init = function()
     pattern = 'notes.md',
     callback = function()
       vim.wo.foldlevel = 0
+      vim.bo.tabstop = 2
+      vim.bo.shiftwidth = 2
     end,
   })
 end
