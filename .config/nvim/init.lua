@@ -147,11 +147,6 @@ function _tab() ---@diagnostic disable-line: lowercase-global
     end
 
     local tab_name = vim.fn.gettabvar(tabnr, 'tab_name')
-    if vim.fn.bufname(buflist[1]):match('^term://.*:ranger.*') then
-      name = ''
-      tab_name = ''
-    end
-
     if tab_name ~= '' then
       if tabnr == curr_tab then
         local dotgit = vim.fn.finddir(
@@ -268,7 +263,7 @@ vim.keymap.set({ 'c', 'i' }, '<c-v>', function()
   -- using feedkeys to ensure any vim ctrl values that may be in the register
   -- are inserted literally instead of being evaluated (eg. <cr>)
   vim.fn.feedkeys(vim.fn.getreg('+'))
-end, { expr = true })
+end)
 
 -- }}}
 
