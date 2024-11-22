@@ -867,6 +867,7 @@ return {
           grouped = true,
           hide_parent_dir = true,
           hidden = true,
+          no_ignore = true,
           prompt_path = true,
         })
       end)
