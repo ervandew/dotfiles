@@ -413,6 +413,8 @@ return {
               actions.close(prompt_bufnr)
               local selection = action_state.get_selected_entry()
               vim.fn.cursor(selection.lnum, selection.col + 1)
+              -- open folds (z0), center the cursor line (zz)
+              vim.cmd('silent! normal! zOzz')
             end)
             return true
           end,
