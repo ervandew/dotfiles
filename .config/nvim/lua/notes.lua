@@ -40,7 +40,11 @@ local open = function(opts)
     vim.cmd(cmd .. ' ' .. notes)
   end
 
+  -- close any open folds (may no longer be relevant)
+  vim.cmd('silent! normal! zM')
+
   if opts.args ~= '' then
+    vim.fn.cursor(1, 1)
     ---@diagnostic disable-next-line: param-type-mismatch
     local ok, result = pcall(vim.cmd, '/' .. opts.args .. '\\c')
     if not ok then
@@ -57,11 +61,15 @@ M.init = function()
   vim.g.markdown_folding = 1 -- enable folding at headers
   vim.api.nvim_create_user_command('Notes', open, { bang = true, nargs = '*' })
   vim.api.nvim_create_autocmd('FileType', {
-    pattern = 'notes.md',
+    pattern = 'markdown',
     callback = function()
-      vim.wo.foldlevel = 0
-      vim.bo.tabstop = 2
-      vim.bo.shiftwidth = 2
+      local bufname = vim.fn.bufname()
+      if bufname:match('notes.md$') ~= nil then
+        vim.wo.foldlevel = 0
+        vim.bo.tabstop = 2
+        vim.bo.shiftwidth = 2
+        vim.cmd('silent! normal! zM')
+      end
     end,
   })
 end
