@@ -330,7 +330,11 @@ vim.api.nvim_create_autocmd('BufReadPost', {
 vim.api.nvim_create_autocmd('BufWinEnter', {
   pattern = '*',
   callback = function()
-    if vim.fn.bufname():match('/%.git/') ~= nil then return end
+    -- ignore some files
+    local bufname = vim.fn.bufname()
+    if bufname:match('/%.git/') ~= nil then return end
+    if bufname:match('notes.md$') ~= nil then return end
+
     -- move cursor (g`"), open folds (zO), center the cursor line (zz)
     vim.cmd('silent! normal! g`"zOzz')
   end
