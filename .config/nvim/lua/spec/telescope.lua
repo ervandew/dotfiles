@@ -265,6 +265,7 @@ return {
           end
 
           local current
+          local current_index
           local results = {}
           local lnum = vim.fn.line('.') - 1
           local path = vim.fn.expand('%:p')
@@ -298,6 +299,7 @@ return {
               -- hopefully provide a list of nodes in the outer context)
               if start_lnum <= lnum and lnum <= end_lnum then
                 current = name
+                current_index = #results + 1
                 if #results ~= 0 and string.match(name, '%.') then
                   local parent_name = string.match(name, '(.*)%.')
                   local prev_name = results[#results].name
@@ -319,6 +321,20 @@ return {
               }
             end
           end
+
+          -- if 'current' is just 1 node, then don't use it so we aren't
+          -- presenting just a single result that will probably need to be
+          -- removed to see broader results
+          if current and not string.match(current, '%.$') then
+            if #results == current_index then
+              current = nil
+            elseif #results > current_index and
+               not string.match(#results[current_index + 1], current .. '%.')
+            then
+              current = nil
+            end
+          end
+
           return { current = current, results = results }
         end -- }}}
 
