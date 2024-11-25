@@ -71,7 +71,7 @@
 #   By default git can handle argument completion on simple aliases, but it
 #   can't handle pick aliases like those found above. However if you look at my
 #   bash completion script:
-#     https://github.com/ervandew/dotfiles/blob/master/.bash_completion.d/git.sh
+#     https://github.com/ervandew/dotfiles/blob/main/.config/bash/completion.d/git.sh
 #   you'll see a section dedicated to handling the translation of pick aliases
 #   to the git command they invoke so that the default git bash completion can
 #   then complete their arguments.
