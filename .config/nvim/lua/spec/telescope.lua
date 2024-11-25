@@ -329,7 +329,7 @@ return {
             if #results == current_index then
               current = nil
             elseif #results > current_index and
-               not string.match(#results[current_index + 1], current .. '%.')
+               not string.match(results[current_index + 1].name, current .. '%.')
             then
               current = nil
             end
