@@ -60,6 +60,17 @@ end
 M.init = function()
   vim.g.markdown_folding = 1 -- enable folding at headers
   vim.api.nvim_create_user_command('Notes', open, { bang = true, nargs = '*' })
+  vim.keymap.set('ca', 'notes', function()
+    local abbrev = 'notes'
+    local type = vim.fn.getcmdtype()
+    local pos = vim.fn.getcmdpos()
+    ---@diagnostic disable-next-line: redundant-parameter
+    local char = vim.fn.nr2char(vim.fn.getchar(1))
+    if type == ':' and pos == #abbrev + 1 and (char == ' ' or char == '\r') then
+      return 'Notes'
+    end
+    return abbrev
+  end, { expr = true })
   vim.api.nvim_create_autocmd('FileType', {
     pattern = 'markdown',
     callback = function()
