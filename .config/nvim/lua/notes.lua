@@ -83,6 +83,17 @@ M.init = function()
       end
     end,
   })
+  vim.api.nvim_create_autocmd({ 'BufWinEnter', 'WinEnter' }, {
+    pattern = '*',
+    callback = function()
+      local bufname = vim.fn.bufname()
+      if bufname:match('notes.md$') ~= nil then
+        vim.o.foldclose = 'all'
+      else
+        vim.o.foldclose = ''
+      end
+    end,
+  })
 end
 
 return M
