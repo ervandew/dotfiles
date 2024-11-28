@@ -249,3 +249,4 @@ c.colors.tabs.pinned.selected.even.bg = selected_bg
 c.colors.tabs.pinned.selected.even.fg = selected_fg
 c.colors.tabs.pinned.selected.odd.bg = selected_bg
 c.colors.tabs.pinned.selected.odd.fg = selected_fg
+c.colors.webpage.bg = '#ccc'
