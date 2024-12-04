@@ -190,6 +190,15 @@ return {
         },
       }) -- }}}
 
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'TelescopeResults',
+        callback = function() vim.opt_local.scrolloff = 5 end,
+      })
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'TelescopePreviewerLoaded',
+        callback = function() vim.wo.number = true end,
+      })
+
       vim.keymap.set('n', '<leader>fh', builtin.help_tags)
 
       vim.keymap.set('n', '<leader>fp', builtin.builtin)
