@@ -391,11 +391,15 @@ return {
         end
 
         local opts = {}
+        local entries = results.results
+        table.sort(entries, function(e1, e2)
+          return e1.name:lower() < e2.name:lower()
+        end)
         pickers.new(opts, {
           default_text = results.current,
           prompt_title = 'Treesitter Picker',
           finder = finders.new_table({
-            results = results.results,
+            results = entries,
             entry_maker = function(entry)
               -- highlight elements like a gradiant so the most significant
               -- part stands out
