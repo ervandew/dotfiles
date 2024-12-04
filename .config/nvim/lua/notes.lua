@@ -66,7 +66,7 @@ M.init = function()
     local pos = vim.fn.getcmdpos()
     ---@diagnostic disable-next-line: redundant-parameter
     local char = vim.fn.nr2char(vim.fn.getchar(1))
-    if type == ':' and pos == #abbrev + 1 and (char == ' ' or char == '\r') then
+    if type == ':' and pos == #abbrev + 1 and char:match('[%s\r!]') then
       return 'Notes'
     end
     return abbrev
@@ -90,7 +90,8 @@ M.init = function()
       if bufname:match('notes.md$') ~= nil then
         vim.o.foldclose = 'all'
       else
-        vim.o.foldclose = ''
+        -- reset to default value
+        vim.cmd('set foldclose&')
       end
     end,
   })
