@@ -33,15 +33,16 @@ return {
         -- change select_default action when selecting a file
         local is_file = function()
           local entry = action_state.get_selected_entry()
-          if entry.filename and vim.fn.filereadable(entry.filename) == 1 then
-            return true
-          end
+          if entry then
+            if entry.filename and vim.fn.filereadable(entry.filename) == 1 then
+              return true
+            end
 
-          -- git_status
-          if entry.value and vim.fn.filereadable(entry.value) == 1 then
-            return true
+            -- git_status
+            if entry.value and vim.fn.filereadable(entry.value) == 1 then
+              return true
+            end
           end
-
           return false
         end
 
