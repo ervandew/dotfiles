@@ -56,6 +56,7 @@ myScratchpads = [
     l = 0      -- distance from left edge
 
 main = do
+  spawn "xrandr --auto"
   spawn "polybar-msg cmd quit ; polybar &"
   spawn "xset -b"
   spawn "xset r rate 250 30"
