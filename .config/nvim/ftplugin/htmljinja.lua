@@ -77,7 +77,6 @@ vim.keymap.set('n', '<cr>', function()
     if num == 0 then
       vim.api.nvim_echo({{ 'No result found', 'WarningMsg' }}, true, {})
     elseif num == 1 then
-      vim.cmd('cclose')
       vim.cmd(winnum .. 'winc w')
       if not vim.list_contains(vim.fn.tabpagebuflist(), results[1].bufnr) then
         vim.cmd('new | buffer ' .. results[1].bufnr)

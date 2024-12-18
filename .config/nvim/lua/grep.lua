@@ -171,10 +171,11 @@ local grep = function(opts, args, action, suppress_messages)
 
     -- if the user doesn't want to jump to the first result and there are
     -- multiple results, then return the user to where they were and open the
-    -- quickfix window for the user to choose the file from
+    -- telescope quickfix picker for the user to choose the file from
     elseif opts.bang then
       vim.cmd('silent exec "normal! \\<c-o>"')
-      vim.cmd('copen')
+      vim.cmd('normal ' .. vim.g.mapleader .. 'fq')
+      vim.cmd('startinsert')
     end
 
   elseif not opts.bang then
@@ -188,9 +189,10 @@ local grep = function(opts, args, action, suppress_messages)
   else
     -- if the user doesn't want to jump to the first result, then navigate back
     -- to where they were (cexpr! just ignores changes to the current file, so
-    -- we need to use the jumplist) and open the quickfix window.
+    -- we need to use the jumplist) and open the telescope quickfix picker.
     vim.cmd('silent exec "normal! \\<c-o>"')
-    vim.cmd('copen')
+    vim.cmd('normal ' .. vim.g.mapleader .. 'fq')
+    vim.cmd('startinsert')
   end
   return true
 end

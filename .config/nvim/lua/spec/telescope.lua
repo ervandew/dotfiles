@@ -62,8 +62,7 @@ return {
           if string.sub(cwd, -1) ~= '/' then
             cwd = cwd .. '/'
           end
-          local index = string.find(selection, cwd, 1, true)
-          if index == 1 then
+          if string.find(selection, cwd, 1, true) == 1 then
             selection = string.sub(selection, #cwd + 1)
           end
 
@@ -114,7 +113,16 @@ return {
             prompt_position = 'top',
           }, -- }}}
           path_display = function(opts, path) -- {{{
-            -- first truncate the path if it doesn't fit in the window width
+            -- make the path relative if it is within our cwd
+            local cwd = vim.fn.getcwd()
+            if string.sub(cwd, -1) ~= '/' then
+              cwd = cwd .. '/'
+            end
+            if string.find(path, cwd, 1, true) == 1 then
+              path = string.sub(path, #cwd + 1)
+            end
+
+            -- truncate the path if it doesn't fit in the window width
             if not opts.__length then
               local status = state.get_status(vim.api.nvim_get_current_buf())
               local width = vim.api.nvim_win_get_width(status.results_win)
@@ -452,6 +460,12 @@ return {
           sorter = conf.generic_sorter(opts),
         }):find()
       end, { silent = true }) -- }}}
+
+      vim.keymap.set('n', '<leader>fq', function() -- quickfix {{{
+        builtin.quickfix({
+          attach_mappings = attach_mappings_file,
+        })
+      end) -- }}}
 
       vim.keymap.set('n', '<leader>fw', function() -- window {{{
         local bufnames = {}
