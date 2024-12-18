@@ -101,6 +101,14 @@
   # FIXME: will this work if there was a conflict?
   stash-unapply = !git stash show -p --no-textconv --binary | git apply -R
 
+  # after starting a git bisect, this alias allows git to perform the rest of
+  # the operations based on the success/failure of a specified unit test.
+  # NOTE: requires that a config entry of 'runtest.<repo-name>' exists.
+  # Eg.
+  # [runtest]
+  #   my-repo = runtest-cmd --some-arg
+  bisect-test = "!git bisect run $(git config runtest.$(basename $(git root)))"
+
   # $ git all <command> [<command args>]
   #   runs the supplied git command against all repositories found in ~/projects
   all = "!f() { set -e; for i in $(find ~/projects/ -maxdepth 3 -name .git -type d -exec dirname {} \\; | sort) ; do echo -e \"\\n### \\e[0;33m$(basename $i)\\e[0m\"; cd $i ; git -c color.ui=always \"$@\" ; done; }; e(){ f \"$@\" | /usr/bin/less -FRX; }; e"
