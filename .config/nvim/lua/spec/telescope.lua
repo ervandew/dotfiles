@@ -446,13 +446,17 @@ return {
               }
             end,
           }),
-          attach_mappings = function(prompt_bufnr)
+
+          attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
               actions.close(prompt_bufnr)
               local selection = action_state.get_selected_entry()
               vim.fn.cursor(selection.lnum, selection.col + 1)
               -- open folds (z0), center the cursor line (zz)
               vim.cmd('silent! normal! zOzz')
+            end)
+            map('i', '<c-f>', function() -- switch to find_files
+              vim.api.nvim_feedkeys(esc .. vim.g.mapleader .. 'ff', 'm', false)
             end)
             return true
           end,
