@@ -11,6 +11,8 @@ return {
     'neovim/nvim-lspconfig',
 
     config = function()
+      -- Add a border to lsp windows, eg LspInfo
+      require('lspconfig.ui.windows').default_options.border = 'rounded'
 
       -- Diagnostics {{{
 
