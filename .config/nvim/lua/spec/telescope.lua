@@ -208,6 +208,8 @@ return {
         callback = function() vim.wo.number = true end,
       })
 
+      vim.keymap.set('n', 'z=', builtin.spell_suggest)
+
       vim.keymap.set('n', '<leader>fh', builtin.help_tags)
 
       vim.keymap.set('n', '<leader>fp', builtin.builtin)
