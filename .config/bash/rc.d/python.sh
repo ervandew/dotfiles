@@ -26,6 +26,15 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
         python="${versions[REPLY]}"
         $python -m venv "$venv"
       fi
+    elif [ ! -f $(readlink -f "$venv/bin/python") ] ; then
+      read -p "venv '$1' python binary is no longer valid. delete this venv? (y/n)? "
+      if [ "$REPLY" == "y" ] ; then
+        rm -r "$venv"
+        python-venv "$1"
+        return $?
+      else
+        return 0
+      fi
     fi
 
     if [ -d "$venv" ] ; then
