@@ -15,10 +15,10 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
     if [ ! -d "$venv" ] ; then
       read -p "venv '$1' does not exist, create it? (y/n)? "
       if [ "$REPLY" == "y" ] ; then
-        versions=$(apropos python | sort | grep "^python[0-9.]* " | cut -d ' ' -f 1)
+        versions=$(uv python list --only-installed | grep -v -- "->" | sed 's|.*\s||')
         readarray -t versions <<< "$versions"
         for index in "${!versions[@]}" ; do
-          echo "$index) ${versions[index]}"
+          echo "$index) $(basename ${versions[index]})"
         done
         read -p "Please choose a python version: "
         [[ ! "$REPLY" =~ ^[0-9]+$ ]] && echo 'not a number' && exit 1
