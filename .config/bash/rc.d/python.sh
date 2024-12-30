@@ -7,7 +7,7 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
   function python-venv {
     if [ $# != 1 ] ; then
       echo "Please supply a venv name."
-      exit 1
+      return 1
     fi
 
     venv="$PYENV_ROOT/$1"
@@ -46,5 +46,57 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
         deactivate
       fi
     fi
+  }
+
+  function python-uwsgi {
+    if [ $# != 1 ] ; then
+      echo "Please supply a venv name."
+      return 1
+    fi
+
+    venv=$1
+    cwd=$PWD
+
+    packages="
+    devtools
+    uwsgi
+    uwsgi-plugin-python
+    "
+    for package in $packages ; do
+      if ! pacman -Qi $package &> /dev/null ; then
+        echo "install $package"
+        sudo pacman -S $package
+      fi
+    done
+
+    sources=$HOME/arch/pkgbuild/uwsgi-plugin-python/sources
+    mkdir -p $sources
+    cd $sources
+
+    pkgctl repo clone --protocol=https uwsgi
+
+    cd uwsgi
+    git fetch
+    git merge origin
+
+    rm uwsgi-*.tar.gz &> /dev/null
+    rm -r src &> /dev/null
+
+    echo "Download package source files..."
+    makepkg -od
+
+    src_dir=$(find src -maxdepth 1 -name "uwsgi*" -type d)
+
+    PYTHON=$HOME/.config/python/venv/$venv/bin/python \
+      uwsgi --build-plugin "$src_dir/plugins/python python"
+
+    echo "Install plugin and restart uwsgi..."
+    sudo chown root:root python_plugin.so
+    sudo mv python_plugin.so /usr/lib/uwsgi/
+
+    sudo systemctl stop uwsgi@emperor
+    sudo systemctl start uwsgi@emperor
+
+    cd $cwd
   }
 fi
