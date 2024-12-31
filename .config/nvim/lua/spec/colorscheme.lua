@@ -144,6 +144,13 @@ return {{
     vim.api.nvim_set_hl(0, '@markup.strong', { fg = gray8, bold = true })
     -- }}}
 
+    -- regex {{{
+    vim.api.nvim_set_hl(0, 'Regex0', { fg = '#00afff', underline = true })
+    vim.api.nvim_set_hl(0, 'Regex1', { fg = '#875fff', underline = true })
+    vim.api.nvim_set_hl(0, 'RegexGroup0', { fg = '#5fd75f', underline = true })
+    vim.api.nvim_set_hl(0, 'RegexGroup1', { fg = '#af87df', underline = true })
+    -- }}}
+
     -- taglisttoo {{{
     vim.api.nvim_set_hl(0, 'TagListFileName', { link = 'Special' })
     vim.api.nvim_set_hl(0, 'TagListKeyword', { link = '@keyword' })

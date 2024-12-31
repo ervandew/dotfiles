@@ -1,3 +1,4 @@
+*.class
 *.swp
 .config/nvim/lazy-lock.json
 /README.html
