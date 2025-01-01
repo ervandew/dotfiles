@@ -12,17 +12,17 @@ local patterns = function(offsets, match)
   local end_line, end_col = offsets:pos(tonumber(end_))
 
   local patterns = {}
-  local hi_pattern = '\\%<startline>l\\%<startcol>c\\_.*\\%<endline>l\\%<endcol>c'
+  local hi_pattern = '\\%<sl>l\\%<sc>c\\_.*\\%<el>l\\%<ec>c'
 
   if start_line < end_line then
     while start_line < end_line do
       -- ignore virtual sections.
       if start_col <= #vim.fn.getline(start_line) then
         local pattern = hi_pattern
-        pattern = vim.fn.substitute(pattern, '<startline>', start_line, '')
-        pattern = vim.fn.substitute(pattern, '<startcol>', start_col, '')
-        pattern = vim.fn.substitute(pattern, '<endline>', start_line, '')
-        pattern = vim.fn.substitute(pattern, '<endcol>', tostring(#vim.fn.getline(start_line) + 1), '')
+        pattern = pattern:gsub('<sl>', start_line)
+        pattern = pattern:gsub('<sc>', start_col)
+        pattern = pattern:gsub('<el>', start_line)
+        pattern = pattern:gsub('<ec>', tostring(#vim.fn.getline(start_line) + 1))
         patterns[#patterns + 1] = pattern
       end
       start_line = start_line + 1
@@ -30,17 +30,17 @@ local patterns = function(offsets, match)
     end
 
     local pattern = hi_pattern
-    pattern = vim.fn.substitute(pattern, '<startline>', end_line, '')
-    pattern = vim.fn.substitute(pattern, '<startcol>', '1', '')
-    pattern = vim.fn.substitute(pattern, '<endline>', end_line, '')
-    pattern = vim.fn.substitute(pattern, '<endcol>', end_col + 1, '')
+    pattern = pattern:gsub('<sl>', end_line)
+    pattern = pattern:gsub('<sc>', '1')
+    pattern = pattern:gsub('<el>', end_line)
+    pattern = pattern:gsub('<ec>', end_col + 1)
     patterns[#patterns + 1] = pattern
   else
     local pattern = hi_pattern
-    pattern = vim.fn.substitute(pattern, '<startline>', start_line, '')
-    pattern = vim.fn.substitute(pattern, '<startcol>', start_col, '')
-    pattern = vim.fn.substitute(pattern, '<endline>', end_line, '')
-    pattern = vim.fn.substitute(pattern, '<endcol>', end_col + 1, '')
+    pattern = pattern:gsub('<sl>', start_line)
+    pattern = pattern:gsub('<sc>', start_col)
+    pattern = pattern:gsub('<el>', end_line)
+    pattern = pattern:gsub('<ec>', end_col + 1)
     patterns[#patterns + 1] = pattern
   end
 
@@ -105,7 +105,7 @@ local eval = function()
       'language specific regex against.',
     })
     vim.cmd('1,1delete _')
-    vim.cmd('setlocal nomodified')
+    vim.bo.modified = false
   end
 
   -- forces reset of syntax
@@ -113,7 +113,7 @@ local eval = function()
 
   if vim.b.regex_compile and not vim.b.regex_compiled then
     local compile_cmd = vim.b.regex_compile
-    compile_cmd = vim.fn.substitute(compile_cmd, '<file>', vim.b.regex_script, '')
+    compile_cmd = compile_cmd:gsub('<file>', vim.b.regex_script)
     local result = vim.fn.system(compile_cmd)
     if vim.v.shell_error ~= 0 then
       vim.api.nvim_echo(
@@ -129,10 +129,10 @@ local eval = function()
 
   local cmd = vim.b.regex_execute
   local script_path = vim.fn.fnamemodify(vim.b.regex_script, ':p:h')
-  cmd = vim.fn.substitute(cmd, '<path>', script_path, '')
-  cmd = vim.fn.substitute(cmd, '<script>', vim.b.regex_script, '')
-  cmd = vim.fn.substitute(cmd, '<file>', vim.fn.bufname(), '')
-  cmd = vim.fn.substitute(cmd, '<flags>', vim.b.regex_flags, '')
+  cmd = cmd:gsub('<path>', script_path)
+  cmd = cmd:gsub('<script>', vim.b.regex_script)
+  cmd = cmd:gsub('<file>', vim.fn.bufname())
+  cmd = cmd:gsub('<flags>', vim.b.regex_flags)
   local results = vim.fn.system(cmd)
   if vim.v.shell_error ~= 0 then
     vim.api.nvim_echo(
@@ -171,7 +171,9 @@ local flag_toggle = function()
   local line = vim.fn.getline('.')
   if line:match('^[x ] %([mid]%)') then
     local value = line:match('^x') and ' ' or 'x'
+    vim.bo.modifiable = true
     vim.fn.setline(vim.fn.line('.'), value .. line:sub(2))
+    vim.bo.modifiable = false
   end
 
   local lines = vim.tbl_filter(
@@ -214,28 +216,24 @@ local function flags(action)
 
   vim.cmd('vertical rightb 50new RegexFlags')
 
-  vim.b.regex_buffer = regex_buffer
-
-  local m = regex_flags:match('m') and 'x' or ' '
-  local i = regex_flags:match('i') and 'x' or ' '
-  local d = regex_flags:match('d') and 'x' or ' '
-
+  vim.bo.modifiable = true
   vim.fn.append(1, {
-    'Toggle regex compile flags using <cr> or <space>.',
+    'Toggle regex compile flags using <cr>.',
     '',
-    m .. ' (m) multiline',
-    i .. ' (i) ignore case',
-    d .. ' (d) dotall',
+    (regex_flags:match('m') and 'x' or ' ') .. ' (m) multiline',
+    (regex_flags:match('i') and 'x' or ' ') .. ' (i) ignore case',
+    (regex_flags:match('d') and 'x' or ' ') .. ' (d) dotall',
   })
   vim.cmd('1,1delete _')
 
-  vim.cmd('setlocal nonumber')
-  vim.cmd('setlocal buftype=nofile')
-  vim.cmd('setlocal winfixwidth')
+  vim.b.regex_buffer = regex_buffer
+  vim.bo.buftype = 'nofile'
+  vim.bo.modifiable = false
+  vim.wo.number = false
+  vim.wo.winfixwidth = true
 
   vim.keymap.set('n', '<c-f>', flags, {buffer = true})
   vim.keymap.set('n', '<cr>', flag_toggle, {buffer = true})
-  vim.keymap.set('n', '<space>', flag_toggle, {buffer = true})
   vim.keymap.set('n', 'u', '<Nop>', {buffer = true})
   vim.keymap.set('n', 'U', '<Nop>', {buffer = true})
   vim.keymap.set('n', '<c-r>', '<Nop>', {buffer = true})
@@ -279,17 +277,17 @@ local open = function(opts)
     vim.opt.shortmess = shortmess
 
     local comment = vim.bo[script_bufnr].commentstring
-    local comment_left, comment_right = comment:match('^(.-)%%s(.-)$')
-    comment_left = vim.trim(comment_left)
-    comment_right = vim.trim(comment_right)
+    local cl, cr = comment:match('^(.-)%%s(.-)$')
+    cl = vim.trim(cl)
+    cr = vim.trim(cr)
 
     local headers = vim.fn.getbufline(script_bufnr, 1, 2)
     for _, header in ipairs(headers) do
-      local match = header:match('^' .. comment_left .. '%s*execute:%s*(.*)' .. comment_right)
+      local match = header:match('^' .. cl .. '%s*execute:%s*(.*)' .. cr)
       if match then
         execute = match
       else
-        match = header:match('^' .. comment_left .. '%s*compile:%s*(.*)' .. comment_right)
+        match = header:match('^' .. cl .. '%s*compile:%s*(.*)' .. cr)
         if match then
           compile = match
         end
@@ -298,7 +296,9 @@ local open = function(opts)
 
     if not execute then
       vim.api.nvim_echo(
-        {{ 'Regex script missing execute header: ' .. script, 'Error' }}, false, {}
+        {{ 'Regex script missing execute header: ' .. script, 'Error' }},
+        false,
+        {}
       )
       return
     end
@@ -308,13 +308,11 @@ local open = function(opts)
   local winnr = vim.fn.bufwinnr(file)
   if winnr == -1 then
     vim.cmd('keepalt botright 10split ' .. file)
-    vim.cmd('setlocal ft=regex')
-    vim.cmd('setlocal winfixheight')
-    vim.cmd('setlocal bufhidden=wipe')
-    vim.cmd('setlocal nobuflisted')
-    vim.cmd('setlocal nobackup')
-    vim.cmd('setlocal nowritebackup')
-    vim.cmd('setlocal statusline=%<%f\\ %M\\ %h%=%-10.(%l,%c%V\\ flags=%{b:regex_flags}%)\\ %P')
+    vim.bo.ft = 'regex'
+    vim.bo.bufhidden = 'wipe'
+    vim.bo.buflisted = false
+    vim.wo.winfixheight = true
+    vim.wo.statusline = '%<%f\\ %M\\ %h%=%-10.(%l,%c%V\\ flags=%{b:regex_flags}%)\\ %P'
 
     vim.b.regex_flags = 'm' -- default multiline on
     vim.b.regex_script = script
