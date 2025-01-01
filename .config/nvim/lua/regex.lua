@@ -231,6 +231,7 @@ local function flags(action)
   vim.bo.modifiable = false
   vim.wo.number = false
   vim.wo.winfixwidth = true
+  vim.wo.statusline = '%<%f'
 
   vim.keymap.set('n', '<c-f>', flags, {buffer = true})
   vim.keymap.set('n', '<cr>', flag_toggle, {buffer = true})
@@ -312,7 +313,7 @@ local open = function(opts)
     vim.bo.bufhidden = 'wipe'
     vim.bo.buflisted = false
     vim.wo.winfixheight = true
-    vim.wo.statusline = '%<%f\\ %M\\ %h%=%-10.(%l,%c%V\\ flags=%{b:regex_flags}%)\\ %P'
+    vim.wo.statusline = '%<%f %M %=%-10.(%l,%c%V flags=%{b:regex_flags}%) %P'
 
     vim.b.regex_flags = 'm' -- default multiline on
     vim.b.regex_script = script
