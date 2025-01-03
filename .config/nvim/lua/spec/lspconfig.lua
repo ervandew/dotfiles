@@ -241,7 +241,7 @@ return {
 
       -- Mappings {{{
 
-      local on_list = function(options)
+      local on_list = function(options) -- {{{
         local item
         if #options.items == 1 then
           item = options.items[1]
@@ -284,7 +284,7 @@ return {
           vim.fn.setqflist({}, ' ', options)
           vim.cmd.copen()
         end
-      end
+      end -- }}}
 
       vim.api.nvim_create_autocmd('LspAttach', {
         pattern = '*',
@@ -293,20 +293,57 @@ return {
           local client = vim.lsp.get_client_by_id(args.data.client_id)
           if client and client.server_capabilities.definitionProvider then
             vim.keymap.set('n', '<cr>', function()
-              -- for lua files, try looking up docs first
+              -- lua: try looking up docs first {{{
               if vim.bo.filetype == 'lua' then
-                if vim.fn['lookup#Lookup']('', '') then
+                local element = vim.fn.substitute(
+                  vim.fn.getline('.'),
+                  '.\\{-}\\(\\(<[a-zA-Z]\\+>\\)\\?[[:alnum:]_:#.&]*' ..
+                  '\\%.c[[:alnum:]_:#.&]*(\\?\\).*',
+                  '\\1',
+                  ''
+                )
+                if element:match('^vim%.g%.') then
+                  element = vim.fn.substitute(element, 'vim\\.g\\.', 'g:', '')
+                -- option reference
+                elseif vim.fn.match(
+                  element,
+                  '^vim.[bgw]\\?o\\(pt\\)\\?\\(_local\\|_global\\)\\?\\.'
+                ) ~= -1 then
+                  element = vim.fn.substitute(element, '.*\\.', '', '')
+                  element = vim.fn.substitute(element, ':.*', '', '')
+                  element = "'" .. element .. "'"
+                elseif element:match('^vim%.api%.') then
+                  element = element:sub(9)
+                elseif element:match('^vim%.fn%.') then
+                  element = element:sub(8)
+                elseif element:match('^vim%.uv%.') then
+                  element = element:sub(5)
+                elseif element:match('^vim%.cmd%.') then
+                  element = ':' .. element:sub(9)
+                  if element:match('%($') then
+                    element = element:sub(1, #element - 1)
+                  end
+                end
+
+                local help_entries = vim.fn.getcompletion(element, 'help')
+                help_entries = vim.tbl_filter(
+                  function(e)
+                    return vim.fn.match(e, '^[:\'\']\\?' .. element .. '\\w*\\W*$') ~= -1
+                  end,
+                  help_entries
+                )
+                if #help_entries > 0 then
+                  vim.cmd.help(element)
                   return
                 end
-              end
+              end -- }}}
 
-              -- for python files, see if the reference under the cursor is to an
-              -- html file
+              -- python: handle refs to html files {{{
               if vim.bo.filetype == 'python' then
                 local line = vim.fn.getline('.')
                 local possible_path = vim.fn.substitute(line,
-                  "\\(.*[[:space:]\"',(\\[{><]\\|^\\)\\(.*\\%" ..
-                  vim.fn.col('.') .. "c.\\{-}\\)\\([[:space:]\"',)\\]}<>].*\\|$\\)",
+                  "\\(.*[[:space:]\"',(\\[{><]\\|^\\)\\(.*" ..
+                  "\\%.c.\\{-}\\)\\([[:space:]\"',)\\]}<>].*\\|$\\)",
                   '\\2',
                   ''
                 )
@@ -315,7 +352,7 @@ return {
                   vim.cmd('Grep! --files')
                   return
                 end
-              end
+              end -- }}}
 
               -- now we can run lsp definition lookup
               vim.lsp.buf.definition({on_list = on_list})
