@@ -101,6 +101,25 @@ return {
         return ''
       end -- }}}
 
+      local search_path = function() -- {{{
+        local cwd = vim.fn.getcwd()
+
+        -- if the current file isn't within our cwd, then attempt to find a
+        -- suitable root dir (git repo, or just the parent directory)
+        local path = vim.fn.expand('%:p:h')
+        if not path:match('^' .. cwd:gsub('%-', '%%-')) then
+          local found = vim.fn.finddir('.git', path .. ';')
+          if found ~= '' then
+            cwd = vim.fn.fnamemodify(found, ':p:h:h')
+          else
+            cwd = path
+          end
+        end
+
+        local cwd_display = vim.fn.fnamemodify(cwd, ':t')
+        return cwd, cwd_display
+      end -- }}}
+
       require('telescope').setup({ ---@diagnostic disable-line: undefined-field {{{
         defaults = { -- {{{
           file_ignore_patterns = { '.git/' },
@@ -215,6 +234,7 @@ return {
       vim.keymap.set('n', '<leader>fp', builtin.builtin)
 
       vim.keymap.set('n', '<leader>ff', function() -- find_files {{{
+        local cwd, cwd_display = search_path()
         builtin.find_files({
           attach_mappings = function(prompt_bufnr, map)
             attach_mappings_file(prompt_bufnr)
@@ -223,8 +243,10 @@ return {
             end)
             return true
           end,
+          cwd = cwd,
           hidden = true,
           default_text = current_prompt_text(),
+          prompt_title = 'Find Files: ' .. cwd_display,
         })
       end)
       -- when using :S command of my open.lua, allow ctrl-f to switch to fuzzy
@@ -258,15 +280,6 @@ return {
         end
       end)
       -- }}}
-
-      vim.keymap.set('n', '<leader>fr', function() -- find_files (relative) {{{
-        builtin.find_files({
-          attach_mappings = attach_mappings_file,
-          cwd = vim.fn.expand('%:h'),
-          default_text = current_prompt_text(),
-          hidden = true,
-        })
-      end) -- }}}
 
       vim.keymap.set('n', '<leader>ft', function() -- treesitter {{{
         local ts_results = function(lang, parser) -- {{{
@@ -961,6 +974,7 @@ return {
           default_text = current_prompt_text()
         end
 
+        local cwd, cwd_display = search_path()
         local lga_actions = require('telescope-live-grep-args.actions')
         ---@diagnostic disable-next-line: undefined-field
         require('telescope').extensions.live_grep_args.live_grep_args({
@@ -971,7 +985,9 @@ return {
             end)
             return true
           end,
+          cwd = cwd,
           default_text = default_text,
+          prompt_title = 'Live Grep: ' .. cwd_display,
           mappings = {
             i = {
               -- Examples of common args to add to the pattern:
