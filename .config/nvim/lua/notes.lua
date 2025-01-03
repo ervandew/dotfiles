@@ -16,11 +16,8 @@ local open = function(opts)
 
   local notes = path .. '/notes.md'
 
-  -- convert to a relative path if it's within our cwd
-  local index = string.find(notes, cwd, 1, true)
-  if index == 1 then
-    notes = string.sub(notes, #cwd + 2)
-  end
+  -- convert to a relative path if possible
+  notes = vim.fn.fnamemodify(notes, ':.')
 
   local winnr = vim.fn.bufwinnr(vim.fn.bufnr('^' .. notes .. '$'))
   if winnr ~= -1 then

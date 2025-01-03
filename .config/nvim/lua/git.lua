@@ -891,15 +891,8 @@ local log_action = function()
   elseif vim.fn.filereadable(root .. link) ~= 0 then
     local filename = root .. link
 
-    -- make relative to cwd if possible
-    local cwd = vim.fn.getcwd()
-    if string.sub(cwd, -1) ~= '/' then
-      cwd = cwd .. '/'
-    end
-    local index = string.find(filename, cwd, 1, true)
-    if index == 1 then
-      filename = string.sub(filename, #cwd + 1)
-    end
+    -- make relative if possible
+    filename = vim.fn.fnamemodify(filename, ':.')
 
     local winnr = vim.fn.bufwinnr(filename)
     if winnr == -1 then

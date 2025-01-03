@@ -57,14 +57,8 @@ return {
             selection = picker.cwd .. '/' .. selection
           end
 
-          -- convert to a relative path if it's within our cwd
-          local cwd = vim.fn.getcwd()
-          if string.sub(cwd, -1) ~= '/' then
-            cwd = cwd .. '/'
-          end
-          if string.find(selection, cwd, 1, true) == 1 then
-            selection = string.sub(selection, #cwd + 1)
-          end
+          -- convert to a relative path if possible
+          selection = vim.fn.fnamemodify(selection, ':.')
 
           -- check if the file is already open
           local winnr = vim.fn.bufwinnr(vim.fn.bufnr('^' .. selection .. '$'))
@@ -132,14 +126,8 @@ return {
             prompt_position = 'top',
           }, -- }}}
           path_display = function(opts, path) -- {{{
-            -- make the path relative if it is within our cwd
-            local cwd = vim.fn.getcwd()
-            if string.sub(cwd, -1) ~= '/' then
-              cwd = cwd .. '/'
-            end
-            if string.find(path, cwd, 1, true) == 1 then
-              path = string.sub(path, #cwd + 1)
-            end
+            -- make the path relative if possible
+            path = vim.fn.fnamemodify(path, ':.')
 
             -- truncate the path if it doesn't fit in the window width
             if not opts.__length then
@@ -607,19 +595,15 @@ return {
       local get_buffers = function()
         local result = {}
         local buffer_ids = vim.api.nvim_list_bufs()
-        local cwd = vim.fn.getcwd()
         for _, buffer_id in ipairs(buffer_ids) do
           if vim.api.nvim_buf_is_loaded(buffer_id) then
             local name = get_buffer_name(buffer_id)
             local dir = vim.fn.fnamemodify(name, ':p:h')
-            if string.find(dir, cwd, 1, true) == 1 then
-              dir = string.sub(dir, #cwd + 2)
-            end
             result[#result + 1] = {
               bufnr = buffer_id,
               hidden = vim.fn.bufwinid(buffer_id) == -1,
               modified = vim.bo[buffer_id].modified,
-              dir = dir,
+              dir = vim.fn.fnamemodify(dir, ':.'),
               file = vim.fn.fnamemodify(name, ':p:t'),
             }
           end

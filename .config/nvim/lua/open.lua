@@ -120,8 +120,7 @@ M.open = function(action, opts)
     end
   end
 
-  path = vim.fn.substitute(path, '^' .. vim.fn.getcwd() .. '/', '', '')
-  vim.cmd(action .. ' ' .. path)
+  vim.cmd(action .. ' ' .. vim.fn.fnamemodify(path, ':.'))
 end
 
 M.init = function()

@@ -409,15 +409,8 @@ vim.api.nvim_create_autocmd('BufReadCmd', {
       return
     end
 
-    -- make the path relative if it's in our cwd
-    local cwd = vim.fn.getcwd()
-    if string.sub(cwd, -1) ~= '/' then
-      cwd = cwd .. '/'
-    end
-    local index = string.find(path, cwd, 1, true)
-    if index == 1 then
-      path = string.sub(path, #cwd + 1)
-    end
+    -- make the path relative if possible
+    path = vim.fn.fnamemodify(path, ':.')
 
     if vim.fn.filereadable(path) == 1 then
       local tempbufnr = vim.fn.bufnr()
