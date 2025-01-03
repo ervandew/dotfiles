@@ -9,8 +9,13 @@ return {
   },
   {
     'neovim/nvim-lspconfig',
-
+    event = 'FileType',
     config = function()
+      -- allow skipping of lsp setup (eg. for a git commit session)
+      if vim.g.lsp_disabled then
+        return
+      end
+
       -- Add a border to lsp windows, eg LspInfo
       require('lspconfig.ui.windows').default_options.border = 'rounded'
 

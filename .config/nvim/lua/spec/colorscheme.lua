@@ -126,6 +126,20 @@ return {{
     vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextError', { link = 'DiagnosticError' })
     -- }}}
 
+    -- git {{{
+    vim.api.nvim_set_hl(0, 'GitAnnotate', { fg = gray6 })
+    vim.api.nvim_set_hl(0, 'GitAnnotateMe', { fg = purple })
+    vim.api.nvim_set_hl(0, 'GitAnnotateUncommitted', { fg = green })
+    vim.api.nvim_set_hl(0, 'GitAuthor', { fg = gray6 })
+    vim.api.nvim_set_hl(0, 'GitDate', { link = 'String' })
+    vim.api.nvim_set_hl(0, 'GitFiles', { link = 'Comment' })
+    vim.api.nvim_set_hl(0, 'GitLink', { link = 'Label' })
+    vim.api.nvim_set_hl(0, 'GitLogHeader', { fg = gray9 })
+    vim.api.nvim_set_hl(0, 'GitLogHeaderName', { fg = gray6 })
+    vim.api.nvim_set_hl(0, 'GitRefs', { fg = yellow_mid })
+    vim.api.nvim_set_hl(0, 'GitRevision', { link = '@number' })
+    -- }}}
+
     -- html {{{
     vim.api.nvim_set_hl(0, 'htmlEndTag', { fg = gray5 })
     vim.api.nvim_set_hl(0, 'htmlH3', { fg = gray8 })
@@ -189,13 +203,6 @@ return {{
     vim.api.nvim_set_hl(0, 'TreesitterContextVisibleLine', { link = 'TreesitterContextLineNumber' })
     -- }}}
 
-    -- vcs {{{
-    vim.api.nvim_set_hl(0, 'VcsAnnotate', { fg = gray6 })
-    vim.api.nvim_set_hl(0, 'VcsAnnotateMe', { fg = purple })
-    vim.api.nvim_set_hl(0, 'VcsAnnotateUncommitted', { fg = green })
-    vim.api.nvim_set_hl(0, 'VcsAuthor', { fg = gray6 })
-    vim.api.nvim_set_hl(0, 'VcsRevision', { link = '@number' })
-    -- }}}
   end,
 }}
 

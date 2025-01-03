@@ -470,6 +470,7 @@ vim.api.nvim_create_autocmd('SearchWrapped', {
 
 require('comment').init()
 require('diff').init()
+require('git').init()
 require('grep').init()
 require('indentdetect').init()
 require('maximize').init()
