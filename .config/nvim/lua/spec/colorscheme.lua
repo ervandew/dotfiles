@@ -130,7 +130,7 @@ return {{
     vim.api.nvim_set_hl(0, 'GitAnnotate', { fg = gray6 })
     vim.api.nvim_set_hl(0, 'GitAnnotateMe', { fg = purple })
     vim.api.nvim_set_hl(0, 'GitAnnotateUncommitted', { fg = green })
-    vim.api.nvim_set_hl(0, 'GitAuthor', { fg = gray6 })
+    vim.api.nvim_set_hl(0, 'GitAuthor', { fg = gray9 })
     vim.api.nvim_set_hl(0, 'GitDate', { link = 'String' })
     vim.api.nvim_set_hl(0, 'GitFiles', { link = 'Comment' })
     vim.api.nvim_set_hl(0, 'GitLink', { link = 'Label' })
@@ -138,6 +138,13 @@ return {{
     vim.api.nvim_set_hl(0, 'GitLogHeaderName', { fg = gray6 })
     vim.api.nvim_set_hl(0, 'GitRefs', { fg = yellow_mid })
     vim.api.nvim_set_hl(0, 'GitRevision', { link = '@number' })
+    vim.api.nvim_set_hl(0, 'GitStatusAdded', { fg = green })
+    vim.api.nvim_set_hl(0, 'GitStatusComment', { link = 'Comment' })
+    vim.api.nvim_set_hl(0, 'GitStatusDeleted', { fg = blue })
+    vim.api.nvim_set_hl(0, 'GitStatusDeletedStaged', { fg = green })
+    vim.api.nvim_set_hl(0, 'GitStatusModified', { fg = blue })
+    vim.api.nvim_set_hl(0, 'GitStatusModifiedStaged', { fg = green })
+    vim.api.nvim_set_hl(0, 'GitStatusUntracked', { fg = gray8 })
     -- }}}
 
     -- html {{{

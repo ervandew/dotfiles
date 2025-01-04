@@ -15,6 +15,7 @@ vim.opt.list = true
 vim.opt.listchars = { precedes = '<', extends = '>', tab = '>-', trail = '\\u25e6' }
 vim.opt.number = true
 vim.opt.scrolloff = 10
+vim.opt.shell = 'bash -l'
 vim.opt.shiftwidth = 2
 vim.opt.sidescrolloff = 10
 vim.opt.signcolumn = 'number'

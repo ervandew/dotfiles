@@ -531,47 +531,6 @@ return {
         })
       end) -- }}}
 
-      vim.keymap.set('n', '<leader>gs', function() -- git_status {{{
-        local make_entry = require('telescope.make_entry')
-        local git_status_opts = {
-          entry_maker = function(entry)
-            entry = make_entry.gen_from_git_status({
-              use_git_root = true,
-              cwd = vim.fn.getcwd(),
-            })(entry)
-            -- path used in the picker, but is absolute, so swap with value
-            -- which is relative.
-            ---@diagnostic disable-next-line: need-check-nil
-            entry.path = entry.value
-            return entry
-          end,
-          git_icons = {
-            added = '+',
-            changed = '~',
-            copied = '>',
-            deleted = '-',
-            renamed = '>',
-            unmerged = '‡',
-            untracked = '?',
-          },
-        }
-        git_status_opts.attach_mappings = function(prompt_bufnr, map)
-          ---@diagnostic disable-next-line: undefined-field
-          actions.git_checkout:enhance {
-            post = function()
-              builtin.git_status(git_status_opts)
-            end,
-          }
-          attach_mappings_file(prompt_bufnr)
-          map({ 'i', 'n' }, '<tab>', actions.move_selection_next)
-          map({ 'i', 'n' }, '<c-s>', actions.git_staging_toggle)
-          map({ 'i', 'n' }, '<c-u>', actions.git_checkout)
-          return true
-        end
-
-        builtin.git_status(git_status_opts)
-      end) -- }}}
-
       -- buffers {{{
       local tab_prev = nil
       local tab_count = 1

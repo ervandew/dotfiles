@@ -981,8 +981,9 @@ local log = function(opts)
   set_info(root, path, nil)
 
   local bufnr = vim.fn.bufnr()
+  vim.keymap.set('n', 'q', vim.cmd.quit, { buffer = bufnr })
   vim.keymap.set('n', '<cr>', log_action, { buffer = bufnr })
-  vim.api.nvim_clear_autocmds({ buffer = bufnr, group = log_augroup })
+  vim.api.nvim_clear_autocmds({ group = log_augroup })
   if filename then
     vim.b.git_filename = filename
     vim.api.nvim_create_autocmd('BufWinLeave', {
@@ -1037,11 +1038,258 @@ local grep_files = function(opts)
   log_grep('files', opts)
 end
 
+local status_action = function()
+  local line = vim.fn.getline('.')
+
+  -- ignore comment lines
+  if line:sub(1, 1) == '#' then
+    return
+  end
+
+  local status_bufnr = vim.fn.bufnr()
+  local path = line:sub(4)
+  local col = vim.fn.col('.')
+
+  -- act on the status
+  if col <= 2 then
+    local status = line:sub(col, col)
+    if status == 'A' then
+      local result = M.git('show ":' .. path .. '"')
+      if not result then
+        return
+      end
+      window(path, 'above new', { lines = vim.fn.split(result, '\n') })
+    elseif status == 'D' then
+      local revision = M.git(
+        'rev-list --abbrev-commit -n 1 HEAD -- ' .. '"' .. path .. '"'
+      )
+      M.show({
+        path = path,
+        revision = revision,
+        open = 'above new',
+      })
+    elseif status == 'M' then
+      local staged = col == 1
+      local diff_cmd = 'diff ' .. (staged and '--cached ' or '')
+      local result = M.git(diff_cmd .. '"' .. path .. '"')
+      if not result then
+        return
+      end
+      window(path .. '.patch', 'above new', {
+        lines = vim.fn.split(result, '\n'),
+      })
+    end
+
+    local temp_bufnr = vim.fn.bufnr()
+    if temp_bufnr ~= status_bufnr then
+      vim.keymap.set('n', 'q', vim.cmd.quit, { buffer = temp_bufnr })
+    end
+
+  -- open the file if it hasn't been deleted
+  elseif not line:gsub('^%s', ''):match('^D') then
+    local winnr = vim.fn.bufwinnr(path)
+    if winnr == -1 then
+      vim.cmd('above new ' .. path)
+    else
+      vim.cmd(winnr .. 'winc w')
+    end
+  end
+
+  local bufnr = vim.fn.bufnr()
+  if bufnr ~= status_bufnr then
+    vim.api.nvim_create_autocmd('WinClosed', {
+      buffer = bufnr,
+      callback = function()
+        local winnr = vim.fn.bufwinnr(status_bufnr)
+        if winnr ~= -1 then
+          vim.cmd(winnr .. 'winc w')
+        end
+      end,
+      once = true,
+    })
+  end
+end
+
+local term = function(cmd)
+  vim.cmd('above new')
+
+  local cr = vim.api.nvim_replace_termcodes('<cr>', true, false, true)
+  local term_bufnr = vim.fn.bufnr()
+  vim.cmd.term()
+  vim.api.nvim_create_autocmd('TermClose', {
+    callback = function()
+      vim.cmd.bdelete(term_bufnr)
+      status()
+    end,
+    once = true,
+  })
+
+  vim.wo.number = false
+  vim.uv.new_timer():start(200, 0, vim.schedule_wrap(function()
+    vim.cmd.startinsert()
+    vim.fn.feedkeys(cmd .. cr, 'nt')
+  end))
+end
+
+local status_cmd = function(cmd, opts)
+  opts = opts or {}
+
+  local lines
+  if vim.fn.mode() == 'V' then
+    local pos1 = vim.fn.getpos('v')
+    local pos2 = vim.fn.getpos('.')
+    lines = vim.fn.getregion(pos1, pos2, { type = 'V' })
+
+    -- clear --VISUAL *-- mode status
+    local esc = vim.api.nvim_replace_termcodes('<esc>', true, false, true)
+    vim.fn.feedkeys(esc, 'nt')
+    vim.cmd('redraw!')
+  else
+    lines = { vim.fn.getline('.') }
+  end
+
+  -- filter out lines we want to ignore
+  lines = vim.tbl_filter(function(l)
+    -- ignore comment lines
+    if l:sub(1, 1) == '#' then
+      return false
+    end
+
+    if opts.untracked == false and l:sub(1, 1) == '?' then
+      return false
+    end
+
+    return true
+  end, lines)
+
+  if #lines == 0 then
+    return
+  end
+
+  if opts.confirm then
+    local msg = 'Are you sure you want to run: git ' .. cmd .. ' on ' .. #lines .. ' file(s)?'
+    local result = vim.fn.confirm(msg, '&Yes\n&Cancel', 2)
+    if result ~= 1 then
+      return
+    end
+  end
+
+  local paths = vim.fn.join(
+    vim.tbl_map(function(l) return l:sub(4) end, lines),
+    ' '
+  )
+  if opts.term then
+    term('git ' .. cmd .. ' ' .. paths)
+  else
+    M.git(cmd .. ' ' .. paths)
+    status()
+  end
+end
+
+local status_augroup = vim.api.nvim_create_augroup('git_status', {})
+function status(opts) ---@diagnostic disable-line: lowercase-global
+  local result = M.git('status -sb')
+  if not result then
+    return
+  end
+
+  local lines = vim.fn.split(result, '\n')
+  local head = M.git('log -1 "--pretty=format:%h %an (%ar) %s"')
+  lines = vim.list_extend({
+    '## (s)tage (i)nteractive (u)nstage (r)estore (c)ommit (a)mend',
+    '## HEAD: ' .. head,
+  }, lines)
+
+  local name = 'git status'
+
+  -- attempt to retain the cursor position when refreshing
+  local pos
+  local winnr = vim.fn.bufwinnr(name)
+  if winnr ~= -1 then
+    vim.cmd(winnr .. 'winc w')
+    pos = vim.fn.getpos('.')
+  end
+
+  window(name, 'botright 10sview', { lines = lines })
+  if pos then
+    vim.fn.setpos('.', pos)
+  end
+
+  vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
+  vim.wo.wrap = false
+  vim.wo.winfixheight = true
+  vim.cmd.resize(10)
+
+  vim.bo.ft = 'git_status'
+  vim.cmd('syntax match GitStatusAdded /\\%1cA/')
+  vim.cmd('syntax match GitStatusComment /^#.*/ contains=GitRevision,GitAuthor,GitDate')
+  vim.cmd('syntax match GitStatusDeleted /\\%2cD/')
+  vim.cmd('syntax match GitStatusDeletedStaged /\\%1cD/')
+  vim.cmd('syntax match GitStatusModified /\\%2cM/')
+  vim.cmd('syntax match GitStatusModifiedStaged /\\%1cM/')
+  vim.cmd('syntax match GitStatusUntracked /^?.*/')
+  -- same highlight groups as log, but different patterns
+  vim.cmd('syntax match GitRevision /\\(^## HEAD: \\)\\@<=\\w\\+/')
+  vim.cmd('syntax match GitAuthor /\\(^## HEAD: \\w\\+ \\)\\@<=.\\{-}\\( (\\)\\@=/')
+  vim.cmd('syntax match GitDate /\\(^## HEAD: \\w\\+ \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
+
+  local bufnr = vim.fn.bufnr()
+  vim.keymap.set('n', 'q', vim.cmd.quit, { buffer = bufnr })
+  vim.keymap.set('n', '<cr>', status_action, { buffer = bufnr })
+
+  vim.keymap.set({ 'n', 'x' }, 's', function()
+    status_cmd('stage')
+  end, { buffer = bufnr })
+
+  vim.keymap.set({ 'n', 'x' }, 'i', function()
+    status_cmd('stage -p', { term = true })
+  end, { buffer = bufnr })
+
+  vim.keymap.set({ 'n', 'x' }, 'u', function()
+    status_cmd('restore --staged', { untracked = false })
+  end, { buffer = bufnr })
+
+  vim.keymap.set('n', 'r', function()
+    status_cmd('restore', { confirm = true, untracked = false })
+  end, { buffer = bufnr })
+
+  vim.keymap.set('n', 'c', function()
+    term('git commit -e')
+  end, { buffer = bufnr })
+
+  vim.keymap.set('n', 'a', function()
+    term('git commit --amend')
+  end, { buffer = bufnr })
+
+  vim.api.nvim_clear_autocmds({ group = status_augroup })
+  vim.api.nvim_create_autocmd('BufUnload', {
+    buffer = bufnr,
+    group = status_augroup,
+    callback = function()
+      vim.api.nvim_clear_autocmds({ group = status_augroup })
+    end,
+  })
+  vim.api.nvim_create_autocmd('BufWritePost', {
+    pattern = '*',
+    group = status_augroup,
+    callback = function()
+      status({ focus = false })
+    end,
+  })
+
+  opts = opts or {}
+  local focus = opts.focus == nil and true or opts.focus
+  if not focus then
+    vim.cmd.winc('p')
+  end
+end
+
 local commands = {
   annotate = annotate,
   diff = diff,
   log = log,
   show = M.show,
+  status = status,
   ['grep-commits'] = grep_commits,
   ['grep-files'] = grep_files,
 }
@@ -1093,6 +1341,7 @@ M.init = function()
 
   vim.keymap.set('n', '<leader>ga', ':Git annotate<cr>', { silent = true })
   vim.keymap.set('n', '<leader>gl', ':Git log<cr>', { silent = true })
+  vim.keymap.set('n', '<leader>gs', ':Git status<cr>', { silent = true })
 end
 
 return M
