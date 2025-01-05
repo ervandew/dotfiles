@@ -63,7 +63,7 @@ M.init = function()
     local pos = vim.fn.getcmdpos()
     ---@diagnostic disable-next-line: redundant-parameter
     local char = vim.fn.nr2char(vim.fn.getchar(1))
-    if type == ':' and pos == #abbrev + 1 and char:match('[%s\r!]') then
+    if type == ':' and pos == #abbrev + 1 and char:match('[%s!]') then
       return 'Notes'
     end
     return abbrev

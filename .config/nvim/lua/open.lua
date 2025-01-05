@@ -140,7 +140,7 @@ M.init = function()
       local pos = vim.fn.getcmdpos()
       ---@diagnostic disable-next-line: redundant-parameter
       local char = vim.fn.nr2char(vim.fn.getchar(1))
-      if type == ':' and pos == #abbrev + 1 and char == ' ' then
+      if type == ':' and pos == #abbrev + 1 and char:match('[%s]') then
         return abbrev:sub(1, 1):upper()
       end
       return abbrev
