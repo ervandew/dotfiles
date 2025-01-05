@@ -348,6 +348,10 @@ local window = function(name, open, opts)
       vim.cmd.doautocmd('WinEnter')
     end, { buffer = true })
 
+    if type(opts.created) == 'function' then
+      opts.created()
+    end
+
     -- detach all lsp clients for this temp buffer
     local bufnr = vim.fn.bufnr()
     local clients = vim.lsp.get_clients({ buffer = bufnr })
@@ -1190,9 +1194,33 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     pos = vim.fn.getpos('.')
   end
 
-  window(name, 'botright 10sview', { lines = lines })
+  window(name, 'botright 10sview', { lines = lines, created = function()
+    local nav = function()
+      local line = vim.fn.getline('.')
+      local col = vim.fn.col('.')
+      if col == 1 and line:sub(1, 1) == ' ' then
+        vim.fn.cursor('.', 2) ---@diagnostic disable-line: param-type-mismatch
+      elseif col == 2 and line:sub(2, 2) == ' ' then
+        vim.fn.cursor('.', 1) ---@diagnostic disable-line: param-type-mismatch
+      end
+    end
+    vim.keymap.set('n', 'j', function()
+      vim.cmd('normal! j')
+      nav()
+    end, { buffer = true })
+    vim.keymap.set('n', 'k', function()
+      vim.cmd('normal! k')
+      nav()
+    end, { buffer = true })
+  end})
+
   if pos then
     vim.fn.setpos('.', pos)
+  else
+    -- place the cursor on the first status char we find
+    if vim.fn.search('^[^#]') ~= 0 then
+      vim.cmd.normal('kj')
+    end
   end
 
   vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
