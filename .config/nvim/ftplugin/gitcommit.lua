@@ -6,6 +6,10 @@ local window = function(name, lines)
     vim.cmd(winnr .. 'winc w')
   else
     vim.cmd('belowright new ' .. vim.fn.escape(name, ''))
+    vim.keymap.set('n', 'q', function()
+      vim.cmd.quit()
+      vim.cmd.doautocmd('WinEnter')
+    end, { buffer = true })
   end
 
   vim.bo.readonly = false

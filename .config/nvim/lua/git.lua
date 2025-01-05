@@ -33,45 +33,25 @@ local repo = function()
   if vim.b.git_info then
     return vim.b.git_info.root
   end
-
-  local root
-  local path = vim.fn.resolve(vim.fn.expand('%:p'))
-  if vim.fn.isdirectory(path) == 0 then
-    path = vim.fn.fnamemodify(path, ':h')
+  local root = M.git('rev-parse --show-toplevel')
+  if root then
+    -- ensure we have the full path ending in a path delimiter
+    root = vim.fn.fnamemodify(root, ':p')
   end
-
-  -- try submodule first
-  local submodule = vim.fn.findfile('.git', path .. ';')
-  if submodule ~= '' and
-     vim.fn.readfile(submodule, '', 1)[1]:match('^gitdir:')
-  then
-    return vim.fn.fnamemodify(submodule, ':p:h')
-  end
-
-  -- try standard .git dir
-  local found = vim.fn.finddir('.git', path .. ';')
-  if found ~= '' then
-    -- handle result relative to cwd
-    if found == '.git' then
-      found = vim.fn.getcwd() .. '/.git'
-    end
-    root = vim.fn.fnamemodify(found, ':p:h:h') .. '/'
-  end
-
   return root
 end
 
 local repo_settings = function()
   local root = repo()
-  if root:match('/$') then
-    root = root:sub(1, #root - 1)
-  end
-  -- escape dashes for matching
-  root = root:gsub('%-', '%%-')
-  for key, settings in pairs(vim.g.git_repo_settings) do
-    key = vim.fn.expand(key)
-    if key:match('^' .. root .. '$') then
-      return settings
+  if root then
+    -- escape dashes for matching
+    root = root:gsub('%-', '%%-')
+    for key, settings in pairs(vim.g.git_repo_settings) do
+      -- normalize the path by expanding to a full path ending in path delimiter
+      key = vim.fn.fnamemodify(vim.fn.expand(key), ':p')
+      if key:match('^' .. root .. '$') then
+        return settings
+      end
     end
   end
   return {}
@@ -103,7 +83,7 @@ local file = function(path)
     if vim.b.git_info then
       root = vim.b.git_info.root
       path = vim.b.git_info.path
-      -- don't use cached the revision if we are in the actual file since there
+      -- don't use the cached revision if we are in the actual file since there
       -- could have been additional commits since this was set (latest revision
       -- will be determined below)
       if vim.fn.resolve(vim.fn.expand('%:p')) ~= root .. path then
@@ -363,6 +343,10 @@ local window = function(name, open, opts)
     vim.cmd(winnr .. 'winc w')
   else
     vim.cmd(open .. ' ' .. vim.fn.escape(name, ''))
+    vim.keymap.set('n', 'q', function()
+      vim.cmd.quit()
+      vim.cmd.doautocmd('WinEnter')
+    end, { buffer = true })
 
     -- detach all lsp clients for this temp buffer
     local bufnr = vim.fn.bufnr()
@@ -388,7 +372,7 @@ local window = function(name, open, opts)
     vim.bo.buflisted = false
     vim.bo.buftype = 'nofile'
     vim.bo.bufhidden = 'wipe'
-    vim.cmd('doautocmd BufReadPost')
+    vim.cmd.doautocmd('BufReadPost')
 
     -- let nvim diff code attempt to sync the cursor position
     if opts.diff_sync then
@@ -949,6 +933,7 @@ local log = function(opts)
   end
   lines[#lines + 1] = ''
 
+  local cursor = #lines + 1
   for _, line in ipairs(vim.fn.split(result, '\n')) do
     local values = vim.fn.split(line, '|')
     lines[#lines + 1] = log_line({
@@ -964,6 +949,7 @@ local log = function(opts)
   vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
   vim.wo.wrap = false
   vim.wo.winfixheight = true
+  vim.fn.cursor(cursor, 1)
   vim.cmd.resize(10)
   vim.cmd.doautocmd('WinNew')
   vim.cmd.doautocmd('WinEnter')
@@ -981,7 +967,6 @@ local log = function(opts)
   set_info(root, path, nil)
 
   local bufnr = vim.fn.bufnr()
-  vim.keymap.set('n', 'q', vim.cmd.quit, { buffer = bufnr })
   vim.keymap.set('n', '<cr>', log_action, { buffer = bufnr })
   vim.api.nvim_clear_autocmds({ group = log_augroup })
   if filename then
@@ -1078,11 +1063,6 @@ local status_action = function()
       window(path .. '.patch', 'above new', {
         lines = vim.fn.split(result, '\n'),
       })
-    end
-
-    local temp_bufnr = vim.fn.bufnr()
-    if temp_bufnr ~= status_bufnr then
-      vim.keymap.set('n', 'q', vim.cmd.quit, { buffer = temp_bufnr })
     end
 
   -- open the file if it hasn't been deleted
@@ -1234,7 +1214,6 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.cmd('syntax match GitDate /\\(^## HEAD: \\w\\+ \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
 
   local bufnr = vim.fn.bufnr()
-  vim.keymap.set('n', 'q', vim.cmd.quit, { buffer = bufnr })
   vim.keymap.set('n', '<cr>', status_action, { buffer = bufnr })
 
   vim.keymap.set({ 'n', 'x' }, 's', function()
