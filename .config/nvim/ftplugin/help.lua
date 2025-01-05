@@ -7,3 +7,8 @@ vim.keymap.set('n', '<cr>', function()
     )
   end
 end, { buffer = true })
+
+vim.keymap.set('n', 'q', function()
+  vim.cmd.quit()
+  vim.cmd.doautocmd('WinEnter')
+end, { buffer = true })
