@@ -96,15 +96,14 @@ local view = function()
   vim.api.nvim_create_autocmd('BufEnter', {
     buffer = vim.fn.bufnr(),
     callback = function()
-      -- if nothing but differ buffers are open, then close the editor.
+      -- if nothing but diff buffers are open, then close the editor.
       local winnr = 1 ---@diagnostic disable-line: redefined-local
       while winnr <= vim.fn.winnr('$') do
         local bufnr = vim.fn.winbufnr(winnr)
-        if vim.bo[bufnr].ft ~= 'gitcommit' then
-          vim.cmd(bufnr .. 'bdelete')
-        else
-          winnr = winnr + 1
+        if vim.bo[bufnr].ft == 'gitcommit' then
+          return
         end
+        winnr = winnr + 1
       end
       vim.cmd.quitall()
     end,
