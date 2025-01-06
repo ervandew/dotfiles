@@ -4,6 +4,39 @@ local error = function(msg, hl)
   vim.api.nvim_echo({{ msg, hl or 'Error' }}, true, {})
 end
 
+local modal = function()
+  local width = math.floor(vim.o.columns * 0.75)
+  local height = math.floor(vim.o.lines * 0.75)
+  local col = math.floor((vim.o.columns - width) / 2)
+  local row = math.floor((vim.o.lines - height) / 2)
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_open_win(bufnr, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = col,
+    row = row,
+    style = 'minimal',
+    border = 'rounded',
+  })
+end
+
+local term = function(cmd, opts)
+  modal()
+  vim.wo.cursorline = false
+  vim.wo.cursorcolumn = false
+  vim.wo.number = false
+  vim.wo.statusline = opts.title or cmd
+  local term_bufnr = vim.fn.bufnr()
+  vim.fn.termopen(vim.o.shell .. ' -c "' .. cmd .. '"', {
+    cwd = opts.cwd,
+    on_exit = opts.on_exit and function()
+      opts.on_exit(term_bufnr)
+    end or nil
+  })
+  vim.cmd.startinsert()
+end
+
 M.git = function(args, exec)
   local cmd = 'git --no-pager ' .. args
   local result
@@ -343,7 +376,12 @@ local window = function(name, open, opts)
   if winnr ~= -1 then
     vim.cmd(winnr .. 'winc w')
   else
-    vim.cmd(open .. ' ' .. vim.fn.escape(name, ''))
+    if open == 'modal' then
+      modal()
+    else
+      vim.cmd(open .. ' ' .. vim.fn.escape(name, ''))
+    end
+
     vim.keymap.set('n', 'q', function()
       vim.cmd.quit()
       vim.cmd.doautocmd('WinEnter')
@@ -1085,7 +1123,7 @@ local status_action = function()
       if not result then
         return
       end
-      window(path, 'above new', { lines = vim.fn.split(result, '\n') })
+      window(path, 'modal', { lines = vim.fn.split(result, '\n') })
     elseif status == 'D' then
       local revision = M.git(
         'rev-list --abbrev-commit -n 1 HEAD -- ' .. '"' .. path .. '"'
@@ -1093,7 +1131,7 @@ local status_action = function()
       M.show({
         path = path,
         revision = revision,
-        open = 'above new',
+        open = 'modal',
       })
     elseif status == 'M' then
       local staged = col == 1
@@ -1102,7 +1140,7 @@ local status_action = function()
       if not result then
         return
       end
-      window(path .. '.patch', 'above new', {
+      window(path .. '.patch', 'modal', {
         lines = vim.fn.split(result, '\n'),
       })
     end
@@ -1133,24 +1171,12 @@ local status_action = function()
 end
 
 local status_name = 'git status'
-local term = function(cmd, title)
-  vim.cmd('above new')
-  vim.wo.cursorline = false
-  vim.wo.cursorcolumn = false
-  vim.wo.number = false
-  vim.wo.statusline = title or cmd
-  local term_bufnr = vim.fn.bufnr()
-  vim.fn.termopen(vim.o.shell .. ' -c "' .. cmd .. '"', {
-    cwd = repo(),
-    on_exit = function()
-      vim.cmd.bdelete(term_bufnr)
-      local winnr = vim.fn.bufwinnr(status_name)
-      if winnr ~= -1 then
-        status()
-      end
-    end
-  })
-  vim.cmd.startinsert()
+local status_term_exit = function(term_bufnr)
+  vim.cmd.bdelete(term_bufnr)
+  local winnr = vim.fn.bufwinnr(status_name)
+  if winnr ~= -1 then
+    status()
+  end
 end
 
 local status_cmd = function(cmd, opts)
@@ -1204,7 +1230,11 @@ local status_cmd = function(cmd, opts)
     ' '
   )
   if opts.term then
-    term('git ' .. cmd .. ' ' .. paths, opts.term_title)
+    term('git ' .. cmd .. ' ' .. paths, {
+      cwd = repo(),
+      title = opts.term_title,
+      on_exit = status_term_exit,
+    })
   else
     M.git(cmd .. ' ' .. paths)
     status()
@@ -1324,22 +1354,22 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'c', function()
-    term('git commit -e')
+    term('git commit -e', { cwd = repo(), on_exit = status_term_exit })
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'a', function()
-    term('git commit --amend')
+    term('git commit --amend', { cwd = repo(), on_exit = status_term_exit })
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'p', function()
     if can_push then
-      term('git push')
+      term('git push', { cwd = repo(), on_exit = status_term_exit })
     end
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'P', function()
     if can_push then
-      term('git push -f')
+      term('git push -f', { cwd = repo(), on_exit = status_term_exit })
     end
   end, { buffer = bufnr })
 
