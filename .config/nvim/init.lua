@@ -458,6 +458,17 @@ vim.api.nvim_create_autocmd('SearchWrapped', {
   end
 })
 
+-- setup terminal buffers
+vim.api.nvim_create_autocmd('TermOpen', {
+  callback = function()
+    vim.wo.cursorline = false
+    vim.wo.number = false
+    vim.cmd.startinsert()
+    -- mapping to exit terminal mode
+    vim.keymap.set('t', '<esc><esc>', '<c-\\><c-n>', { buffer = true })
+  end
+})
+
 -- }}}
 
 -- plugins {{{
