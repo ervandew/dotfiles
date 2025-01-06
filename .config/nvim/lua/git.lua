@@ -1056,7 +1056,7 @@ local status_action = function()
           'log "--pretty=format:## - %h %an (%ar) %s" @{upstream}..'
         )
         if commits then
-          vim.fn.append(lnum, commits)
+          vim.fn.append(lnum, vim.fn.split(commits, '\n'))
           vim.b.git_pending = true
         else
           status() -- if there aren't any commits, then we might be out of date
