@@ -326,7 +326,7 @@ return {{
         end),
       Rule(')', 'end', 'lua')
         :end_wise(function(opts)
-          return opts.line:match('%W*function%s*%w*%s*%([^%)]*%)[%s%)}]*$') ~= nil
+          return opts.line:match('%W*function%s*%w*%s*%([^%)]*%)[%s%)},]*$') ~= nil
         end),
     })
     -- }}}
