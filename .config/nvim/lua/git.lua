@@ -14,7 +14,7 @@ M.git = function(args, exec)
     result = vim.fn.join(vim.fn.readfile(outfile), "\n")
     vim.fn.delete(outfile)
   else
-    result = vim.fn.system(cmd, exec)
+    result = vim.fn.system(cmd)
   end
 
   if vim.v.shell_error ~= 0 or result:match('^fatal:') then
