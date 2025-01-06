@@ -1029,7 +1029,44 @@ local grep_files = function(opts)
 end
 
 local status_action = function()
-  local line = vim.fn.getline('.')
+  local lnum = vim.fn.line('.')
+  local line = vim.fn.getline(lnum)
+
+  local pending = false
+  if lnum == 3 then
+    local pending_match = vim.fn.substitute(
+      line, '.*\\(\\[.\\{-}\\%.c.\\{-}\\]\\)', '\\1', ''
+    )
+    if pending_match ~= line then
+      pending = true
+    end
+
+    if pending then
+      vim.o.modifiable = true
+      vim.o.readonly = false
+      if vim.fn.getline(lnum + 1):match('^## -') then
+        local pos = vim.fn.getpos('.')
+        while vim.fn.getline(lnum + 1):match('^## -') do
+          vim.cmd(lnum + 1 .. 'delete _')
+        end
+        vim.fn.setpos('.', pos)
+        vim.b.git_pending = false
+      else
+        local commits = M.git(
+          'log "--pretty=format:## - %h %an (%ar) %s" @{upstream}..'
+        )
+        if commits then
+          vim.fn.append(lnum, commits)
+          vim.b.git_pending = true
+        else
+          status() -- if there aren't any commits, then we might be out of date
+        end
+      end
+      vim.o.modifiable = false
+      vim.o.readonly = true
+    end
+    return
+  end
 
   -- ignore comment lines
   if line:sub(1, 1) == '#' then
@@ -1154,7 +1191,8 @@ local status_cmd = function(cmd, opts)
   end
 
   if opts.confirm then
-    local msg = 'Are you sure you want to run: git ' .. cmd .. ' on ' .. #lines .. ' file(s)?'
+    local msg = 'Are you sure you want to run: ' ..
+      'git ' .. cmd .. ' on ' .. #lines .. ' file(s)?'
     local result = vim.fn.confirm(msg, '&Yes\n&Cancel', 2)
     if result ~= 1 then
       return
@@ -1182,8 +1220,13 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
 
   local lines = vim.fn.split(result, '\n')
   local head = M.git('log -1 "--pretty=format:%h %an (%ar) %s"')
+  local actions = '(s)tage (i)nteractive (u)nstage (r)estore (c)ommit (a)mend'
+  local can_push = result:match('%[ahead %d+]')
+  if can_push then
+    actions = actions .. ' (p)ush (P)ush force'
+  end
   lines = vim.list_extend({
-    '## (s)tage (i)nteractive (u)nstage (r)estore (c)ommit (a)mend',
+    '## ' .. actions,
     '## HEAD: ' .. head,
   }, lines)
 
@@ -1196,8 +1239,19 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end
 
   window(status_name, 'botright 10sview', { lines = lines, created = function()
-    local nav = function()
-      local line = vim.fn.getline('.')
+    local nav = function(dir)
+      -- if we are on the pending commits line, then reset our position
+      if vim.fn.line('.') == 3 then
+        vim.fn.cursor(0, 1)
+      end
+      vim.cmd('normal! ' .. dir)
+
+      local lnum = vim.fn.line('.')
+      local line = vim.fn.getline(lnum)
+      if lnum == 3 and line:match('%[ahead') then
+        vim.fn.search('ahead')
+      end
+
       local col = vim.fn.col('.')
       if col == 1 and line:sub(1, 1) == ' ' then
         vim.fn.cursor('.', 2) ---@diagnostic disable-line: param-type-mismatch
@@ -1206,21 +1260,27 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       end
     end
     vim.keymap.set('n', 'j', function()
-      vim.cmd('normal! j')
-      nav()
+      nav('j')
     end, { buffer = true })
     vim.keymap.set('n', 'k', function()
-      vim.cmd('normal! k')
-      nav()
+      nav('k')
     end, { buffer = true })
   end})
+
+  -- restore the state of our pending commits
+  if vim.b.git_pending then
+    if vim.fn.search('\\[ahead \\d') ~= 0 then
+      vim.fn.cursor(0, vim.fn.col('.') + 1)
+      status_action()
+    end
+  end
 
   if pos then
     vim.fn.setpos('.', pos)
   else
     -- place the cursor on the first status char we find
     if vim.fn.search('^[^#]') ~= 0 then
-      vim.cmd.normal('kj')
+      vim.cmd.normal('jk')
     end
   end
 
@@ -1231,7 +1291,8 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
 
   vim.bo.ft = 'git_status'
   vim.cmd('syntax match GitStatusAdded /\\%1cA/')
-  vim.cmd('syntax match GitStatusComment /^#.*/ contains=GitRevision,GitAuthor,GitDate')
+  vim.cmd('syntax match GitStatusComment /^#.*/ contains=GitAuthor,GitDate,GitRevision,GitStatusCommits')
+  vim.cmd('syntax match GitStatusCommits /\\(\\%3l.*\\[\\)\\@<=ahead \\d\\+/')
   vim.cmd('syntax match GitStatusDeleted /\\%2cD/')
   vim.cmd('syntax match GitStatusDeletedStaged /\\%1cD/')
   vim.cmd('syntax match GitStatusDeletedFile /\\(\\%1cD\\|\\%2cD\\)\\@<=.*/')
@@ -1239,9 +1300,9 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.cmd('syntax match GitStatusModifiedStaged /\\%1cM/')
   vim.cmd('syntax match GitStatusUntracked /^?.*/')
   -- same highlight groups as log, but different patterns
-  vim.cmd('syntax match GitRevision /\\(^## HEAD: \\)\\@<=\\w\\+/')
-  vim.cmd('syntax match GitAuthor /\\(^## HEAD: \\w\\+ \\)\\@<=.\\{-}\\( (\\)\\@=/')
-  vim.cmd('syntax match GitDate /\\(^## HEAD: \\w\\+ \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
+  vim.cmd('syntax match GitRevision /\\(^## \\(HEAD:\\|-\\) \\)\\@<=\\w\\+/')
+  vim.cmd('syntax match GitAuthor /\\(^## \\(HEAD:\\|-\\) \\w\\+ \\)\\@<=.\\{-}\\( (\\)\\@=/')
+  vim.cmd('syntax match GitDate /\\(^## \\(HEAD:\\|-\\) \\w\\+ \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
 
   local bufnr = vim.fn.bufnr()
   vim.keymap.set('n', '<cr>', status_action, { buffer = bufnr })
@@ -1268,6 +1329,18 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
 
   vim.keymap.set('n', 'a', function()
     term('git commit --amend')
+  end, { buffer = bufnr })
+
+  vim.keymap.set('n', 'p', function()
+    if can_push then
+      term('git push')
+    end
+  end, { buffer = bufnr })
+
+  vim.keymap.set('n', 'P', function()
+    if can_push then
+      term('git push -f')
+    end
   end, { buffer = bufnr })
 
   vim.api.nvim_clear_autocmds({ group = status_augroup })
