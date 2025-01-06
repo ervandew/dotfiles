@@ -1095,25 +1095,25 @@ local status_action = function()
   end
 end
 
-local term = function(cmd)
+local status_name = 'git status'
+local term = function(cmd, title)
   vim.cmd('above new')
-
-  local cr = vim.api.nvim_replace_termcodes('<cr>', true, false, true)
-  local term_bufnr = vim.fn.bufnr()
-  vim.cmd.term()
-  vim.api.nvim_create_autocmd('TermClose', {
-    callback = function()
-      vim.cmd.bdelete(term_bufnr)
-      status()
-    end,
-    once = true,
-  })
-
+  vim.wo.cursorline = false
+  vim.wo.cursorcolumn = false
   vim.wo.number = false
-  vim.uv.new_timer():start(200, 0, vim.schedule_wrap(function()
-    vim.cmd.startinsert()
-    vim.fn.feedkeys(cmd .. cr, 'nt')
-  end))
+  vim.wo.statusline = title or cmd
+  local term_bufnr = vim.fn.bufnr()
+  vim.fn.termopen(vim.o.shell .. ' -c "' .. cmd .. '"', {
+    cwd = repo(),
+    on_exit = function()
+      vim.cmd.bdelete(term_bufnr)
+      local winnr = vim.fn.bufwinnr(status_name)
+      if winnr ~= -1 then
+        status()
+      end
+    end
+  })
+  vim.cmd.startinsert()
 end
 
 local status_cmd = function(cmd, opts)
@@ -1126,9 +1126,11 @@ local status_cmd = function(cmd, opts)
     lines = vim.fn.getregion(pos1, pos2, { type = 'V' })
 
     -- clear --VISUAL *-- mode status
-    local esc = vim.api.nvim_replace_termcodes('<esc>', true, false, true)
-    vim.fn.feedkeys(esc, 'nt')
-    vim.cmd('redraw!')
+    if not opts.term then
+      local esc = vim.api.nvim_replace_termcodes('<esc>', true, false, true)
+      vim.fn.feedkeys(esc, 'nt')
+      vim.cmd('redraw!')
+    end
   else
     lines = { vim.fn.getline('.') }
   end
@@ -1164,7 +1166,7 @@ local status_cmd = function(cmd, opts)
     ' '
   )
   if opts.term then
-    term('git ' .. cmd .. ' ' .. paths)
+    term('git ' .. cmd .. ' ' .. paths, opts.term_title)
   else
     M.git(cmd .. ' ' .. paths)
     status()
@@ -1185,17 +1187,15 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     '## HEAD: ' .. head,
   }, lines)
 
-  local name = 'git status'
-
   -- attempt to retain the cursor position when refreshing
   local pos
-  local winnr = vim.fn.bufwinnr(name)
+  local winnr = vim.fn.bufwinnr(status_name)
   if winnr ~= -1 then
     vim.cmd(winnr .. 'winc w')
     pos = vim.fn.getpos('.')
   end
 
-  window(name, 'botright 10sview', { lines = lines, created = function()
+  window(status_name, 'botright 10sview', { lines = lines, created = function()
     local nav = function()
       local line = vim.fn.getline('.')
       local col = vim.fn.col('.')
@@ -1251,7 +1251,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end, { buffer = bufnr })
 
   vim.keymap.set({ 'n', 'x' }, 'i', function()
-    status_cmd('stage -p', { term = true })
+    status_cmd('stage -p', { term = true, term_title = 'git stage -p' })
   end, { buffer = bufnr })
 
   vim.keymap.set({ 'n', 'x' }, 'u', function()

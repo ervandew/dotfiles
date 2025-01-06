@@ -462,6 +462,7 @@ vim.api.nvim_create_autocmd('SearchWrapped', {
 vim.api.nvim_create_autocmd('TermOpen', {
   callback = function()
     vim.wo.cursorline = false
+    vim.wo.cursorcolumn = false
     vim.wo.number = false
     vim.cmd.startinsert()
     -- mapping to exit terminal mode
