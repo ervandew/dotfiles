@@ -72,7 +72,7 @@ function _status_left() ---@diagnostic disable-line: lowercase-global
       name = '[No Name]'
     end
   end
-  local stl = name .. (vim.o.modified and ' +' or '')
+  local stl = name .. (vim.bo.modified and ' +' or '')
   if curwinid == winid then
     -- show the max diagnostic severity in the statusline
     if vim.b.max_diagnostics ~= nil then
@@ -91,15 +91,15 @@ function _status_left() ---@diagnostic disable-line: lowercase-global
 
   local stl_addl = ''
   -- for csv files, display which column the cursor is in
-  if vim.o.ft == 'csv' then
+  if vim.bo.ft == 'csv' then
     if vim.fn.exists(':CSV_WCol') == 3 then
       stl_addl = '[col: ' .. vim.fn.CSV_WCol('Name') .. ' (' .. vim.fn.CSV_WCol() .. ')]'
     end
   end
 
   -- show in the status line if the file is in dos format
-  if vim.o.ff ~= 'unix' then
-    stl_addl = '[' .. vim.o.ff .. '] ' .. stl_addl
+  if vim.bo.ff ~= 'unix' then
+    stl_addl = '[' .. vim.bo.ff .. '] ' .. stl_addl
   end
 
   if curwinid == winid then
@@ -223,7 +223,7 @@ vim.keymap.set('n', '<leader>wt', ':let &wrap = !&wrap<cr>', { silent = true })
 
 -- toggle diff of the current buffer
 vim.keymap.set('n', '<leader>dt', function()
-  vim.cmd(vim.o.diff and 'diffoff' or 'diffthis')
+  vim.cmd(vim.wo.diff and 'diffoff' or 'diffthis')
 end)
 
 -- modified version of '*' which doesn't move the cursor
@@ -237,8 +237,8 @@ vim.keymap.set(
 
 -- toggle spelling with <c-z> (normal or insert mode)
 vim.keymap.set('n', '<c-z>', function()
-  vim.o.spell = not vim.o.spell
-  local state = vim.o.spell and 'on' or 'off'
+  vim.wo.spell = not vim.wo.spell
+  local state = vim.wo.spell and 'on' or 'off'
   vim.api.nvim_echo(
     {{ 'spell check: ' .. state, 'WarningMsg' }}, false, {}
   )
@@ -272,7 +272,7 @@ end)
 
 -- print or jump to an absolute offset in the file
 vim.api.nvim_create_user_command('Offset', function(opts)
-  local eol = vim.o.ff == 'dos' and 2 or 1
+  local eol = vim.bo.ff == 'dos' and 2 or 1
   if opts.args == '' then
     local offset = vim.fn.col('.')
     local line = vim.fn.line('.')
@@ -384,20 +384,30 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
 vim.api.nvim_create_autocmd('WinLeave', {
   pattern = '*',
   callback = function()
-    vim.o.cursorline = false
-    vim.o.colorcolumn = ''
+    vim.opt.cursorline = false
+    vim.opt.colorcolumn = ''
   end
 })
 vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'FileType' }, {
   pattern = '*',
   callback = function()
-    -- don't show the colorcolumn for certain file types or files that can't be
-    -- edited
-    local ignore = { 'man', 'qf' }
-    if not vim.list_contains(ignore, vim.o.ft) and not vim.o.readonly then
-      vim.opt.colorcolumn = '82'
-    end
-    vim.o.cursorline = true
+    -- using schedule since sometimes WinEnter has the wrong target buffer
+    -- (possibly a bug with something in my env triggering the event too soon)
+    vim.schedule(function()
+      -- don't show the colorcolumn for certain file types or files that can't be
+      -- edited
+      local ignore = { 'man', 'qf' }
+      if not vim.list_contains(ignore, vim.bo.ft) and
+         not vim.bo.readonly and
+         vim.bo.buftype ~= 'terminal'
+      then
+        vim.opt.colorcolumn = '82'
+      end
+      if vim.bo.buftype ~= 'terminal' then
+        vim.opt.number = true
+        vim.opt.cursorline = true
+      end
+    end)
   end
 })
 
@@ -467,6 +477,17 @@ vim.api.nvim_create_autocmd('TermOpen', {
     vim.cmd.startinsert()
     -- mapping to exit terminal mode
     vim.keymap.set('t', '<esc><esc>', '<c-\\><c-n>', { buffer = true })
+    -- restore window settings when the term buffer is removed from the window
+    vim.api.nvim_create_autocmd('BufWinLeave', {
+      buffer = vim.fn.bufnr(),
+      callback = function(args)
+        if vim.fn.winnr() == vim.fn.bufwinnr(args.buf) then
+          vim.wo.number = true
+          -- let our WinEnter autocmd do the rest of the work
+          vim.cmd.doautocmd('WinEnter')
+        end
+      end
+    })
   end
 })
 
