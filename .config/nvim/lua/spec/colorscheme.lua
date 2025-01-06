@@ -80,7 +80,7 @@ return {{
     vim.api.nvim_set_hl(0, 'TabLine', { fg = '#626262',  bg = background })
     vim.api.nvim_set_hl(0, 'TabLineSel', { fg = white,  bg = background })
     vim.api.nvim_set_hl(0, 'TabLineFill', { bg = background })
-    vim.api.nvim_set_hl(0, 'TermCursor', { bg= '#acacac' })
+    vim.api.nvim_set_hl(0, 'TermCursor', { fg = gray2, bg= '#acacac'})
     vim.api.nvim_set_hl(0, 'Visual', { bg = '#353535' })
     vim.api.nvim_set_hl(0, 'VisualCursor', { bg = '#d787d7' })
     vim.api.nvim_set_hl(0, 'WarningMsg', { fg = warn })
