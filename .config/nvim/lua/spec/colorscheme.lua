@@ -141,6 +141,7 @@ return {{
     vim.api.nvim_set_hl(0, 'GitStatusAdded', { fg = green })
     vim.api.nvim_set_hl(0, 'GitStatusComment', { link = 'Comment' })
     vim.api.nvim_set_hl(0, 'GitStatusDeleted', { fg = blue })
+    vim.api.nvim_set_hl(0, 'GitStatusDeletedFile', { fg = gray5 })
     vim.api.nvim_set_hl(0, 'GitStatusDeletedStaged', { fg = green })
     vim.api.nvim_set_hl(0, 'GitStatusModified', { fg = blue })
     vim.api.nvim_set_hl(0, 'GitStatusModifiedStaged', { fg = green })

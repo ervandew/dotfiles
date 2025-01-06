@@ -192,7 +192,8 @@ local me = {}
 local log_bufname = 'git log'
 local annotate_augroup = vim.api.nvim_create_augroup('git_annotate', {})
 local function annotate(opts)
-  if vim.fn.bufname() == log_bufname then
+  local bufname = vim.fn.bufname()
+  if bufname == log_bufname or bufname == '' then
     return
   end
 
@@ -1233,6 +1234,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.cmd('syntax match GitStatusComment /^#.*/ contains=GitRevision,GitAuthor,GitDate')
   vim.cmd('syntax match GitStatusDeleted /\\%2cD/')
   vim.cmd('syntax match GitStatusDeletedStaged /\\%1cD/')
+  vim.cmd('syntax match GitStatusDeletedFile /\\(\\%1cD\\|\\%2cD\\)\\@<=.*/')
   vim.cmd('syntax match GitStatusModified /\\%2cM/')
   vim.cmd('syntax match GitStatusModifiedStaged /\\%1cM/')
   vim.cmd('syntax match GitStatusUntracked /^?.*/')
