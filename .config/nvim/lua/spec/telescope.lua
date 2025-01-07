@@ -124,7 +124,7 @@ return {
             height = .9,
             preview_height = .5,
             prompt_position = 'top',
-          }, -- }}}
+          },
           path_display = function(opts, path) -- {{{
             -- make the path relative if possible
             path = vim.fn.fnamemodify(path, ':.')

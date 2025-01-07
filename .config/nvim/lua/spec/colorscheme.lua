@@ -184,7 +184,7 @@ return {{
     vim.api.nvim_set_hl(0, 'TelescopePreviewLine', { bg = background })
     vim.api.nvim_set_hl(0, 'TelescopeResultsComment', { fg = gray6 })
     vim.api.nvim_set_hl(0, 'TelescopeResultsNormal', { fg = '#aaaaaa' })
-    vim.api.nvim_set_hl(0, 'TelescopeSelection', { fg = green })
+    vim.api.nvim_set_hl(0, 'TelescopeSelection', { fg = green, bg = '#202020' })
 
     -- git_status picker
     vim.api.nvim_set_hl(0, 'TelescopeResultsDiffAdd', { fg = green, bold = true })
