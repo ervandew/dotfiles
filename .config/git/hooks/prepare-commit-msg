@@ -61,6 +61,13 @@ else
     fi
     line=$(grep '^#' -nm 1 $1 | cut -d':' -f1)
     if [ -n "$line" ] ; then
+      # add an additional line if no initial message was supplied.
+      # git message format is: summary, blank line, details, so we always want
+      # to ensure there is a blank line before our ticket reference
+      if [ "$line" -eq "2" ] ; then
+        sed -i '1i\\' $1
+        line=$((line + 1))
+      fi
       sed -i "${line}i ${message}\n" $1
     fi
   fi
