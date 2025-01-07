@@ -116,6 +116,9 @@ local file = function(path)
     if vim.b.git_info then
       root = vim.b.git_info.root
       path = vim.b.git_info.path
+      if not path then
+        return
+      end
       -- don't use the cached revision if we are in the actual file since there
       -- could have been additional commits since this was set (latest revision
       -- will be determined below)
@@ -378,6 +381,7 @@ local window = function(name, open, opts)
   else
     if open == 'modal' then
       modal()
+      vim.cmd.file(name)
     else
       vim.cmd(open .. ' ' .. vim.fn.escape(name, ''))
     end
@@ -444,10 +448,6 @@ local window = function(name, open, opts)
 end
 
 M.show = function(opts)
-  if vim.fn.bufname() == log_bufname then
-    return
-  end
-
   opts.revision = opts.revision or (opts.fargs and opts.fargs[2]) or 'HEAD'
 
   local root, path, revision = file(opts.path)
@@ -704,13 +704,11 @@ local log_files = function()
 end
 
 local log_open = function()
-  local open = 'new'
+  local open = 'above new'
   if vim.b.git_filename then
     local winnr = vim.fn.bufwinnr(vim.b.git_filename)
     if winnr ~= -1 then
       vim.cmd(winnr .. 'winc w')
-    else
-      open = 'above new'
     end
   end
   return open
@@ -723,8 +721,7 @@ local log_patch = function()
     return
   end
 
-  local open = log_open()
-  window('git_' .. revision .. '.patch', open, {
+  window('git_' .. revision .. '.patch', 'modal', {
     lines = vim.fn.split(result, '\n')
   })
 end
@@ -878,7 +875,7 @@ local log_action = function()
       M.show({
         path = path,
         revision = revision,
-        open = 'above new',
+        open = 'modal',
       })
 
     -- deleted file
@@ -888,7 +885,7 @@ local log_action = function()
       M.show({
         path = path,
         revision = previous,
-        open = 'above new',
+        open = 'modal',
       })
     else
       local path, old, previous
