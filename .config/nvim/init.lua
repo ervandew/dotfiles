@@ -150,6 +150,7 @@ function _tab() ---@diagnostic disable-line: lowercase-global
     local tab_name = vim.fn.gettabvar(tabnr, 'tab_name')
     if tab_name ~= '' then
       if tabnr == curr_tab then
+        -- NOTE: avoid system calls since they could cause annoying flickering
         local dotgit = vim.fn.finddir(
           '.git',
           vim.fn.escape(vim.fn.getcwd(), ' ') .. ';'
@@ -159,6 +160,7 @@ function _tab() ---@diagnostic disable-line: lowercase-global
           if #lines > 0 then
             local branch = lines[1]:gsub('ref: refs/heads/', '')
             if branch ~= '' and branch ~= lines[1] then
+              branch = '%#TabLineSelBranch#' .. branch .. '%#TabLineSel#'
               tab_name = tab_name .. '(' .. branch .. ')'
             end
           end
@@ -167,7 +169,7 @@ function _tab() ---@diagnostic disable-line: lowercase-global
       name = tab_name .. ': ' .. name
     end
 
-    tabline = tabline .. ' %{"' .. name .. '"} '
+    tabline = tabline .. ' ' .. name
     if tabnr ~= num_tabs then
       tabline = tabline .. '%#TabLine# | '
     end
