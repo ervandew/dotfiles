@@ -116,7 +116,7 @@ return {
 
       require('telescope').setup({ ---@diagnostic disable-line: undefined-field {{{
         defaults = { -- {{{
-          file_ignore_patterns = { '.git/' },
+          file_ignore_patterns = { '%.git/' },
           sorting_strategy = 'ascending',
           layout_strategy = 'vertical',
           layout_config = {
