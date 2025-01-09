@@ -17,14 +17,8 @@ local error = function(msg)
 end
 
 local prompt = function(msg)
-  local ok, choice = pcall(
-    vim.fn.input,
-    msg .. '\n' ..
-    '[a]bsolute or [r]elative: '
-  )
-  if ok and choice:match('^[ar]$') then
-    return choice
-  end
+  local ok, choice = pcall(vim.fn.confirm, msg, '&absolute\n&relative', 0)
+  return (ok and choice ~= 0) and choice or nil
 end
 
 M.complete = function(lead)
@@ -91,7 +85,7 @@ M.open = function(action, opts)
     )
     if not choice then
       return
-    elseif choice == 'r' then
+    elseif choice == 2 then
       path = rel_path
     end
   elseif file_readable(path) then
@@ -107,7 +101,7 @@ M.open = function(action, opts)
       local choice = prompt('open new file: ' .. opts.args)
       if not choice then
         return
-      elseif choice == 'r' then
+      elseif choice == 2 then
         path = rel_path
       end
     elseif cwd_exists then
