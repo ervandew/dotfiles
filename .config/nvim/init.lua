@@ -542,7 +542,7 @@ require('lazy').setup( ---@diagnostic disable-line: undefined-field
 -- }}}
 
 -- load any work specific settings
-local loaded, err = pcall(function() require('work') end)
+local loaded, err = pcall(require, 'work')
 if not loaded and err ~= nil and not err:match("module 'work' not found") then
   vim.schedule(function()
     vim.api.nvim_echo({{ err, 'Error' }}, true, {})
