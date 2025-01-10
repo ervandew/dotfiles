@@ -5,7 +5,7 @@ export IPYTHONDIR=$HOME/.config/ipython
 
 if [[ -z "$VIRTUAL_ENV" ]] ; then
   function python-venv {
-    if [ $# != 1 ] ; then
+    if [ $# -lt 1 ] ; then
       echo "Please supply a venv name."
       return 1
     fi
@@ -36,14 +36,23 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
         return 0
       fi
     fi
+    shift
 
     if [ -d "$venv" ] ; then
-      source "$venv/bin/activate"
+      # if there are arguments, then we'll run them in a temp shell w/ the venv
+      # enabled
+      if [ $# -gt 0 ] ; then
+        venv=$venv bash -c '. $venv/bin/activate && "$@"' -- "$@"
 
-      if [[ ! "$TERM" =~ ^tmux ]] ; then
-        name=$(basename $VIRTUAL_ENV)
-        tmux -L "$name" new-session -s "$name" -A
-        deactivate
+      # otherwise, initialize the venv and start tmux if necessary
+      else
+        source "$venv/bin/activate"
+
+        if [[ ! "$TERM" =~ ^tmux ]] ; then
+          name=$(basename $VIRTUAL_ENV)
+          tmux -L "$name" new-session -s "$name" -A
+          deactivate
+        fi
       fi
     fi
   }
