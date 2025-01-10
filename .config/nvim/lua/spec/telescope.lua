@@ -525,12 +525,6 @@ return {
         }):find()
       end, { silent = true }) -- }}}
 
-      vim.keymap.set('n', '<leader>gb', function() -- git_branch {{{
-        builtin.git_branches({
-          show_remote_tracking_branches = false,
-        })
-      end) -- }}}
-
       -- buffers {{{
       local tab_prev = nil
       local tab_count = 1

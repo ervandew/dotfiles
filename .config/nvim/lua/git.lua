@@ -1,7 +1,18 @@
 M = {}
 
+local notify = function(msg, level, opts)
+  opts = opts or {}
+  opts.title = opts.title or 'git'
+  vim.notify(msg, level, opts)
+end
+
 local error = function(msg, hl)
   vim.api.nvim_echo({{ msg, hl or 'Error' }}, true, {})
+end
+
+local confirm = function(...)
+  local ok, choice = pcall(vim.fn.confirm, ...)
+  return (ok and choice ~= 0) and choice or nil
 end
 
 local modal = function()
@@ -28,19 +39,109 @@ local term = function(cmd, opts)
   vim.wo.number = false
   vim.wo.statusline = opts.title or cmd
   local term_bufnr = vim.fn.bufnr()
+  if opts.echo then
+    cmd = 'echo \\"' .. opts.echo .. '\\" ; ' .. cmd
+  end
   vim.fn.termopen(vim.o.shell .. ' -c "' .. cmd .. '"', {
     cwd = opts.cwd,
-    on_exit = opts.on_exit and function()
-      opts.on_exit(term_bufnr)
+    on_exit = opts.on_exit and function(_, exit_code)
+      opts.on_exit(term_bufnr, exit_code)
     end or nil
   })
-  vim.cmd.startinsert()
+  vim.schedule(function()
+    vim.cmd.startinsert()
+  end)
 end
 
-M.git = function(args, exec)
+local window = function(name, open, opts)
+  opts = opts or {}
+
+  local winnr = vim.fn.bufwinnr(name)
+  if winnr ~= -1 then
+    vim.cmd(winnr .. 'winc w')
+  else
+    if open == 'modal' then
+      modal()
+      vim.cmd.file(name)
+    else
+      vim.cmd(open .. ' ' .. vim.fn.escape(name, ''))
+    end
+
+    vim.keymap.set('n', 'q', function()
+      vim.cmd.quit()
+      vim.cmd.doautocmd('WinEnter')
+    end, { buffer = true })
+
+    if type(opts.created) == 'function' then
+      opts.created()
+    end
+
+    -- detach all lsp clients for this temp buffer
+    local bufnr = vim.fn.bufnr()
+    local clients = vim.lsp.get_clients({ buffer = bufnr })
+    for _, client in ipairs(clients) do
+      if vim.lsp.buf_is_attached(bufnr, client.id) then
+        vim.lsp.buf_detach_client(bufnr, client.id)
+      end
+    end
+  end
+
+  if opts.lines then
+    vim.bo.readonly = false
+    vim.bo.modifiable = true
+    vim.cmd('silent 1,$delete _')
+    vim.fn.append(1, opts.lines)
+    vim.cmd('silent 1,1delete _')
+    vim.fn.cursor(1, 1)
+    vim.bo.modified = false
+    vim.bo.readonly = true
+    vim.bo.modifiable = false
+    vim.bo.swapfile = false
+    vim.bo.buflisted = false
+    vim.bo.buftype = 'nofile'
+    vim.bo.bufhidden = 'wipe'
+    vim.cmd.doautocmd('BufReadPost')
+
+    -- work around a possible vim bug where setting this buffer as
+    -- modifiable = false above affects all unnamed buffers, despite using
+    -- vim.bo and the fact that 'modifiable' is a local buffer only option.
+    -- Note: using 'vim.o' vs 'vim.bo' since 'vim.bo' doesn't seem to work,
+    -- again despite the docs noting that 'modifiable' is a buffer local only
+    -- option.
+-- FIXME: needed?
+--    autocmd! BufUnload <buffer> set modifiable
+
+    -- let nvim diff code attempt to sync the cursor position
+    if opts.diff_sync then
+      vim.cmd.diffthis()
+      vim.cmd.winc('p')
+
+      -- don't discrupt an existing diff
+      local other_diff = vim.wo.diff
+      if not other_diff then
+        vim.cmd.diffthis()
+      end
+
+      -- opening the diff folds seems to be necessary, at least of the original
+      -- cursor position is within one
+      vim.cmd('normal zR')
+
+      if not other_diff then
+        vim.cmd.diffoff()
+      else
+        vim.cmd('normal zM') -- close folds we opened
+      end
+      vim.cmd.winc('p')
+      vim.cmd.diffoff()
+    end
+  end
+end
+
+M.git = function(args, opts)
   local cmd = 'git --no-pager ' .. args
   local result
-  if exec then
+  opts = opts or {}
+  if opts.exec then
     local outfile = vim.fn.tempname()
     cmd = '!' .. cmd .. ' 2>&1| tee "' .. outfile .. '"'
     vim.cmd(vim.fn.escape(cmd, '%'))
@@ -51,7 +152,9 @@ M.git = function(args, exec)
   end
 
   if vim.v.shell_error ~= 0 or result:match('^fatal:') then
-    error('Error executing command: ' .. cmd .. '\n' .. result)
+    if not opts.quiet then
+      error('Error executing command: ' .. cmd .. '\n' .. result)
+    end
     return
   end
 
@@ -88,6 +191,11 @@ local repo_settings = function()
     end
   end
   return {}
+end
+
+local is_protected = function(branch)
+  local protected = vim.fn.split(M.git('config get push.force.protected') or '')
+  return vim.list_contains(protected, branch)
 end
 
 local get_revision = function(path, revision)
@@ -372,83 +480,8 @@ local function annotate(opts)
   end
 end
 
-local window = function(name, open, opts)
-  opts = opts or {}
-
-  local winnr = vim.fn.bufwinnr(name)
-  if winnr ~= -1 then
-    vim.cmd(winnr .. 'winc w')
-  else
-    if open == 'modal' then
-      modal()
-      vim.cmd.file(name)
-    else
-      vim.cmd(open .. ' ' .. vim.fn.escape(name, ''))
-    end
-
-    vim.keymap.set('n', 'q', function()
-      vim.cmd.quit()
-      vim.cmd.doautocmd('WinEnter')
-    end, { buffer = true })
-
-    if type(opts.created) == 'function' then
-      opts.created()
-    end
-
-    -- detach all lsp clients for this temp buffer
-    local bufnr = vim.fn.bufnr()
-    local clients = vim.lsp.get_clients({ buffer = bufnr })
-    for _, client in ipairs(clients) do
-      if vim.lsp.buf_is_attached(bufnr, client.id) then
-        vim.lsp.buf_detach_client(bufnr, client.id)
-      end
-    end
-  end
-
-  if opts.lines then
-    vim.bo.readonly = false
-    vim.bo.modifiable = true
-    vim.cmd('silent 1,$delete _')
-    vim.fn.append(1, opts.lines)
-    vim.cmd('silent 1,1delete _')
-    vim.fn.cursor(1, 1)
-    vim.bo.modified = false
-    vim.bo.readonly = true
-    vim.bo.modifiable = false
-    vim.bo.swapfile = false
-    vim.bo.buflisted = false
-    vim.bo.buftype = 'nofile'
-    vim.bo.bufhidden = 'wipe'
-    vim.cmd.doautocmd('BufReadPost')
-
-    -- let nvim diff code attempt to sync the cursor position
-    if opts.diff_sync then
-      vim.cmd.diffthis()
-      vim.cmd.winc('p')
-
-      -- don't discrupt an existing diff
-      local other_diff = vim.wo.diff
-      if not other_diff then
-        vim.cmd.diffthis()
-      end
-
-      -- opening the diff folds seems to be necessary, at least of the original
-      -- cursor position is within one
-      vim.cmd('normal zR')
-
-      if not other_diff then
-        vim.cmd.diffoff()
-      else
-        vim.cmd('normal zM') -- close folds we opened
-      end
-      vim.cmd.winc('p')
-      vim.cmd.diffoff()
-    end
-  end
-end
-
 M.show = function(opts)
-  opts.revision = opts.revision or (opts.fargs and opts.fargs[2]) or 'HEAD'
+  opts.revision = opts.revision or (opts.fargs and opts.fargs[1]) or 'HEAD'
 
   local root, path, revision = file(opts.path)
   if not path or not revision then
@@ -496,7 +529,7 @@ local diff = function(opts)
     return
   end
 
-  opts.revision = opts.revision or (opts.fargs and opts.fargs[2]) or 'HEAD'
+  opts.revision = opts.revision or (opts.fargs and opts.fargs[1]) or 'HEAD'
 
   local _, path, revision = file()
   local target_revision
@@ -942,9 +975,9 @@ local log = function(opts)
   end
 
   local log_cmd = 'log --pretty=tformat:"%h|%an|%ar|%d|%s|"'
-  if opts.log_args then
+  if opts.args and opts.args ~= '' then
     root = repo()
-    log_cmd = log_cmd .. ' ' .. opts.log_args
+    log_cmd = log_cmd .. ' ' .. opts.args
   elseif filename then
     root, path, _ = file(filename)
   else
@@ -959,7 +992,7 @@ local log = function(opts)
     log_cmd = log_cmd .. ' --follow ' .. path
   end
 
-  local result = M.git(log_cmd, opts.exec)
+  local result = M.git(log_cmd, opts)
   if not result then
     return
   end
@@ -985,12 +1018,24 @@ local log = function(opts)
     })
   end
 
-  window(name, 'botright 10sview', { lines = lines })
+  -- if the cursor is on an annotation line, then jump to that log entry
+  local annotation
+  if path and vim.b.git_annotations then
+    local first = vim.b.git_annotations[1].lnum
+    local last = vim.b.git_annotations[#vim.b.git_annotations].lnum
+    local lnum = vim.fn.line('.')
+    if first <= lnum and lnum <= last then
+      annotation = vim.b.git_annotations[lnum - first + 1]
+    end
+  end
+
+  local height = 15
+  window(name, 'botright ' .. height .. 'sview', { lines = lines })
   vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
   vim.wo.wrap = false
   vim.wo.winfixheight = true
   vim.fn.cursor(cursor, 1)
-  vim.cmd.resize(10)
+  vim.cmd.resize(height)
   vim.cmd.doautocmd('WinNew')
   vim.cmd.doautocmd('WinEnter')
 
@@ -1005,6 +1050,19 @@ local log = function(opts)
   vim.cmd('syntax match GitLogHeader /^\\%<4l.\\{-}: .*/ contains=GitLogHeaderName')
 
   set_info(root, path, nil)
+
+  if annotation and not annotation.uncommitted then
+    local revision = annotation.revision
+    -- the annotate hash may be longer than the log hash, so perform a little
+    -- extra work to ensure the revision is as long or shorter than the log hash
+    local sample_line = vim.fn.search('^[+-] \\w\\+', 'n')
+    if sample_line ~= -1 then
+      local sample_hash = vim.fn.getline(sample_line):match('^[+-] (%w+)')
+      revision = revision:sub(1, #sample_hash)
+    end
+    vim.fn.search('^[+-] ' .. revision)
+    vim.cmd('normal! z') -- move line to top of the log window
+  end
 
   local bufnr = vim.fn.bufnr()
   vim.keymap.set('n', '<cr>', log_action, { buffer = bufnr })
@@ -1047,7 +1105,7 @@ local log_grep = function(type, opts)
   end
 
   log({
-    log_args = log_args,
+    args = log_args,
     title = opts.title .. args,
     exec = type == 'files',
   })
@@ -1063,44 +1121,172 @@ local grep_files = function(opts)
   log_grep('files', opts)
 end
 
+local status_name = 'git status'
+
+local status_term_update = function()
+  if vim.fn.bufwinnr(status_name) ~= -1 then
+    status({ focus = false })
+  end
+end
+
+local status_term_exit = function(term_bufnr, exit_code)
+  local opts = { focus = true }
+  -- only close the term window if the command completed successfully,
+  -- otherwise allow the user to see the error output
+  if exit_code == 0 then
+    vim.cmd.bdelete(term_bufnr)
+  else
+    -- on error, don't steal focus from the term window
+    opts.focus = false
+  end
+  if vim.fn.bufwinnr(status_name) ~= -1 then
+    status(opts)
+  end
+end
+
+local status_branch = function()
+  local loaded, builtin = pcall(require, 'telescope.builtin')
+  if loaded and builtin then
+    local actions = require('telescope.actions')
+    local action_state = require('telescope.actions.state')
+    builtin.git_branches({
+      previewer = false,
+      show_remote_tracking_branches = false,
+      attach_mappings = function(prompt_bufnr, map)
+        actions.select_default:replace(function()
+          local selection = action_state.get_selected_entry()
+          if selection then
+            local name = selection.value
+            actions.close(prompt_bufnr)
+            if M.git('switch ' .. name) then
+              notify('Current branch: ' .. name)
+              vim.cmd.checktime() -- update existing buffers if necessary
+              status_term_update()
+            end
+          else
+            local picker = action_state.get_current_picker(prompt_bufnr)
+            local name = picker:_get_prompt()
+            local branch = M.git('rev-parse --abbrev-ref HEAD')
+            actions.close(prompt_bufnr)
+            local msg = 'Create new branch ' .. name .. ' from ' .. branch .. '?'
+            local result = confirm(msg, '&yes\n&no', 0)
+            if result == 1 then
+              if M.git('switch -c ' .. name) then
+                notify('Created new branch: ' .. name)
+                status_term_update()
+              end
+            end
+          end
+        end)
+        map({ 'i', 'n' }, '<c-r>', function()
+          local selection = action_state.get_selected_entry()
+          if selection then
+            local name = selection.value
+            local branch = M.git('rev-parse --abbrev-ref HEAD')
+            actions.close(prompt_bufnr)
+            local msg = 'Rebase branch ' .. branch .. ' against ' .. name .. '?'
+            local result = confirm(msg, '&yes\n&no', 0)
+            if result == 1 then
+              term('git rebase ' .. name, {
+                cwd = repo(),
+                on_exit = function()
+                  vim.cmd.checktime() -- update existing buffers if necessary
+                  status_term_update()
+                end,
+              })
+            end
+          end
+        end)
+        map({ 'i', 'n' }, '<c-g>', function()
+          local selection = action_state.get_selected_entry()
+          if selection then
+            local name = selection.value
+            local branch = M.git('rev-parse --abbrev-ref HEAD')
+            actions.close(prompt_bufnr)
+            local msg = 'Merge branch ' .. name .. ' into ' .. branch .. '?'
+            local result = confirm(msg, '&yes\n&no', 0)
+            if result == 1 then
+              -- custom alias!
+              term('git mergein ' .. name, {
+                cwd = repo(),
+                on_exit = status_term_update,
+              })
+            end
+          end
+        end)
+        map({ 'i', 'n' }, '<c-d>', function()
+          local selection = action_state.get_selected_entry()
+          if selection then
+            local branch = M.git('rev-parse --abbrev-ref HEAD')
+            local name = selection.value
+            if name == branch then
+              actions.close(prompt_bufnr)
+              vim.schedule(function()
+                error('Current branch cannot be deleted: ' .. name)
+              end)
+              return
+            end
+            actions.close(prompt_bufnr)
+            local msg = 'Delete branch? ' .. name
+            local result = confirm(msg, '&yes\n&force\n&no', 0)
+            vim.cmd.redraw()
+            if not result or result == 3 then
+              return
+            end
+
+            local remote = M.git(
+              'config get branch.' .. name .. '.remote',
+              { quiet = true }
+            )
+            local flag = result == 2 and ' -D ' or ' -d '
+            if M.git('branch' .. flag .. name) then
+              notify('Deleted local branch: ' .. name)
+              if remote then
+                msg = 'Delete remote? ' .. remote .. '/' .. name
+                result = confirm(msg, '&yes\n&no', 0)
+                vim.cmd.redraw()
+                if result == 1 then
+                  term('git push ' .. remote .. ' -d ' .. name, {
+                    cwd = repo(),
+                    echo = 'deleting ' .. remote .. '/' .. name .. '...',
+                  })
+                end
+              end
+            end
+          end
+        end)
+        return true
+      end,
+    })
+  end
+end
+
+local status_pending_line = 1
 local status_action = function()
   local lnum = vim.fn.line('.')
   local line = vim.fn.getline(lnum)
 
-  local pending = false
-  if lnum == 3 then
+  if lnum == status_pending_line then
+    local branch_match = vim.fn.substitute(
+      line, '^## \\([^[:space:]]\\{-}\\%.c\\)', '\\1', ''
+    )
+    if branch_match ~= line then
+      status_branch()
+      return
+    end
+
     local pending_match = vim.fn.substitute(
       line, '.*\\(\\[.\\{-}\\%.c.\\{-}\\]\\)', '\\1', ''
     )
     if pending_match ~= line then
-      pending = true
-    end
-
-    if pending then
-      vim.o.modifiable = true
-      vim.o.readonly = false
-      if vim.fn.getline(lnum + 1):match('^## -') then
-        local pos = vim.fn.getpos('.')
-        while vim.fn.getline(lnum + 1):match('^## -') do
-          vim.cmd(lnum + 1 .. 'delete _')
-        end
-        vim.fn.setpos('.', pos)
-        vim.b.git_pending = false
-      else
-        local commits = M.git(
-          'log "--pretty=format:## - %h %an (%ar) %s" @{upstream}..'
-        )
-        if commits then
-          vim.fn.append(lnum, vim.fn.split(commits, '\n'))
-          vim.b.git_pending = true
-        else
-          status() -- if there aren't any commits, then we might be out of date
-        end
+      local pending = vim.fn.expand('<cword>')
+      if pending == 'ahead' then
+        log({ title = 'commits:      outbound', args = '@{upstream}..'})
+      elseif pending == 'behind' then
+        log({ title = 'commits:      inbound', args = '..@{upstream}'})
       end
-      vim.o.modifiable = false
-      vim.o.readonly = true
+      return
     end
-    return
   end
 
   -- ignore comment lines
@@ -1167,15 +1353,6 @@ local status_action = function()
   end
 end
 
-local status_name = 'git status'
-local status_term_exit = function(term_bufnr)
-  vim.cmd.bdelete(term_bufnr)
-  local winnr = vim.fn.bufwinnr(status_name)
-  if winnr ~= -1 then
-    status()
-  end
-end
-
 local status_cmd = function(cmd, opts)
   opts = opts or {}
 
@@ -1206,6 +1383,10 @@ local status_cmd = function(cmd, opts)
       return false
     end
 
+    if opts.filter then
+      return opts.filter(l)
+    end
+
     return true
   end, lines)
 
@@ -1214,9 +1395,7 @@ local status_cmd = function(cmd, opts)
   end
 
   if opts.confirm then
-    local msg = 'Are you sure you want to run: ' ..
-      'git ' .. cmd .. ' on ' .. #lines .. ' file(s)?'
-    local result = vim.fn.confirm(msg, '&Yes\n&Cancel', 2)
+    local result = confirm(opts.confirm(#lines), '&yes\n&no', 0)
     if result ~= 1 then
       return
     end
@@ -1247,15 +1426,26 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
 
   local lines = vim.fn.split(result, '\n')
   local head = M.git('log -1 "--pretty=format:%h %an (%ar) %s"')
-  local actions = '(s)tage (i)nteractive (u)nstage (r)estore (c)ommit (a)mend'
-  local can_push = result:match('%[ahead %d+]')
-  if can_push then
-    actions = actions .. ' (p)ush (P)ush force'
+  local repo_actions = '(f)etch (c)ommit (a)mend'
+  local file_actions = '(s)tage (i)nteractive (u)nstage (r)estore'
+  local is_ahead = result:match('%[ahead %d+')
+  local is_behind = result:match('[%[%s]behind %d+')
+  if is_ahead then
+    local branch = M.git('rev-parse --abbrev-ref HEAD')
+    if is_behind and not is_protected(branch) then
+      repo_actions = repo_actions .. ' (P)ush force'
+    else
+      repo_actions = repo_actions .. ' (p)ush'
+    end
+  elseif is_behind then
+    repo_actions = repo_actions .. ' (m)erge'
   end
   lines = vim.list_extend({
-    '## ' .. actions,
+    lines[1],
     '## HEAD: ' .. head,
-  }, lines)
+    '## ' .. repo_actions,
+    '## ' .. file_actions,
+  }, lines, 2)
 
   -- attempt to retain the cursor position when refreshing
   local pos
@@ -1265,42 +1455,34 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     pos = vim.fn.getpos('.')
   end
 
-  window(status_name, 'botright 10sview', { lines = lines, created = function()
-    local nav = function(dir)
-      -- if we are on the pending commits line, then reset our position
-      if vim.fn.line('.') == 3 then
-        vim.fn.cursor(0, 1)
-      end
-      vim.cmd('normal! ' .. dir)
+  local height = 15
+  window(status_name, 'botright ' .. height .. 'sview', {
+    lines = lines,
+    created = function()
+      local nav = function(dir)
+        -- if we are on the pending commits line, then reset our position
+        if vim.fn.line('.') == status_pending_line then
+          vim.fn.cursor(0, 1)
+        end
+        vim.cmd('normal! ' .. dir)
 
-      local lnum = vim.fn.line('.')
-      local line = vim.fn.getline(lnum)
-      if lnum == 3 and line:match('%[ahead') then
-        vim.fn.search('ahead')
+        local lnum = vim.fn.line('.')
+        local line = vim.fn.getline(lnum)
+        local col = vim.fn.col('.')
+        if col == 1 and line:sub(1, 1) == ' ' then
+          vim.fn.cursor('.', 2) ---@diagnostic disable-line: param-type-mismatch
+        elseif col == 2 and line:sub(2, 2) == ' ' then
+          vim.fn.cursor('.', 1) ---@diagnostic disable-line: param-type-mismatch
+        end
       end
-
-      local col = vim.fn.col('.')
-      if col == 1 and line:sub(1, 1) == ' ' then
-        vim.fn.cursor('.', 2) ---@diagnostic disable-line: param-type-mismatch
-      elseif col == 2 and line:sub(2, 2) == ' ' then
-        vim.fn.cursor('.', 1) ---@diagnostic disable-line: param-type-mismatch
-      end
-    end
-    vim.keymap.set('n', 'j', function()
-      nav('j')
-    end, { buffer = true })
-    vim.keymap.set('n', 'k', function()
-      nav('k')
-    end, { buffer = true })
-  end})
-
-  -- restore the state of our pending commits
-  if vim.b.git_pending then
-    if vim.fn.search('\\[ahead \\d') ~= 0 then
-      vim.fn.cursor(0, vim.fn.col('.') + 1)
-      status_action()
-    end
-  end
+      vim.keymap.set('n', 'j', function()
+        nav('j')
+      end, { buffer = true })
+      vim.keymap.set('n', 'k', function()
+        nav('k')
+      end, { buffer = true })
+    end,
+  })
 
   if pos then
     vim.fn.setpos('.', pos)
@@ -1314,12 +1496,23 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
   vim.wo.wrap = false
   vim.wo.winfixheight = true
-  vim.cmd.resize(10)
+  vim.cmd.resize(height)
 
   vim.bo.ft = 'git_status'
   vim.cmd('syntax match GitStatusAdded /\\%1cA/')
-  vim.cmd('syntax match GitStatusComment /^#.*/ contains=GitAuthor,GitDate,GitRevision,GitStatusCommits')
-  vim.cmd('syntax match GitStatusCommits /\\(\\%3l.*\\[\\)\\@<=ahead \\d\\+/')
+  vim.cmd('syntax match GitStatusAhead /\\(\\%1l.*\\[\\)\\@<=ahead \\d\\+/')
+  vim.cmd('syntax match GitStatusBehind /\\(\\%1l.*[\\[\\|,[:space:]]\\)\\@<=behind \\d\\+/')
+  vim.cmd('syntax match GitStatusBranchLocal /\\(\\%1l## \\)\\@<=.\\{-}\\(\\.\\.\\.\\|$\\)/')
+  vim.cmd('syntax match GitStatusBranchRemote /\\(\\%1l## .*\\.\\.\\.\\)\\@<=.\\{-}\\(\\s\\|$\\)/')
+  vim.cmd('syntax match GitStatusComment /^#.*/ contains=' ..
+    'GitAuthor,' ..
+    'GitDate,' ..
+    'GitRevision,' ..
+    'GitStatusAhead,' ..
+    'GitStatusBehind,' ..
+    'GitStatusBranchLocal,' ..
+    'GitStatusBranchRemote'
+  )
   vim.cmd('syntax match GitStatusDeleted /\\%2cD/')
   vim.cmd('syntax match GitStatusDeletedStaged /\\%1cD/')
   vim.cmd('syntax match GitStatusDeletedFile /\\(\\%1cD\\|\\%2cD\\)\\@<=.*/')
@@ -1327,9 +1520,9 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.cmd('syntax match GitStatusModifiedStaged /\\%1cM/')
   vim.cmd('syntax match GitStatusUntracked /^?.*/')
   -- same highlight groups as log, but different patterns
-  vim.cmd('syntax match GitRevision /\\(^## \\(HEAD:\\|-\\) \\)\\@<=\\w\\+/')
-  vim.cmd('syntax match GitAuthor /\\(^## \\(HEAD:\\|-\\) \\w\\+ \\)\\@<=.\\{-}\\( (\\)\\@=/')
-  vim.cmd('syntax match GitDate /\\(^## \\(HEAD:\\|-\\) \\w\\+ \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
+  vim.cmd('syntax match GitRevision /\\(^## HEAD: \\)\\@<=\\w\\+/')
+  vim.cmd('syntax match GitAuthor /\\(^## HEAD: \\w\\+ \\)\\@<=.\\{-}\\( (\\)\\@=/')
+  vim.cmd('syntax match GitDate /\\(^## HEAD: \\w\\+ \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
 
   local bufnr = vim.fn.bufnr()
   vim.keymap.set('n', '<cr>', status_action, { buffer = bufnr })
@@ -1339,7 +1532,14 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end, { buffer = bufnr })
 
   vim.keymap.set({ 'n', 'x' }, 'i', function()
-    status_cmd('stage -p', { term = true, term_title = 'git stage -p' })
+    status_cmd('stage -p', {
+      term = true,
+      term_title = 'git stage -p',
+      filter = function(line)
+        -- only allow entries with unstaged changes
+        return line:match('^%sM')
+      end,
+    })
   end, { buffer = bufnr })
 
   vim.keymap.set({ 'n', 'x' }, 'u', function()
@@ -1347,7 +1547,22 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'r', function()
-    status_cmd('restore', { confirm = true, untracked = false })
+    status_cmd('restore', {
+      confirm = function(count)
+        return 'Are you sure you want to run: ' ..
+          'git restore on ' .. count .. ' file(s) ' ..
+          '(unstaged changes will be lost)?'
+      end,
+      untracked = false,
+    })
+  end, { buffer = bufnr })
+
+  vim.keymap.set('n', 'f', function()
+    term('git fetch', {
+      cwd = repo(),
+      echo = 'fetching...',
+      on_exit = status_term_update,
+    })
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'c', function()
@@ -1358,15 +1573,36 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     term('git commit --amend', { cwd = repo(), on_exit = status_term_exit })
   end, { buffer = bufnr })
 
+  vim.keymap.set('n', 'm', function()
+    if is_behind then
+      term(is_ahead and 'git rebase' or 'git merge', {
+        cwd = repo(),
+        echo = is_ahead and 'rebasing...' or 'merging...',
+        on_exit = function()
+          vim.cmd.checktime() -- update existing buffers if necessary
+          status_term_update()
+        end
+      })
+    end
+  end, { buffer = bufnr })
+
   vim.keymap.set('n', 'p', function()
-    if can_push then
-      term('git push', { cwd = repo(), on_exit = status_term_exit })
+    if is_ahead then
+      term('git push', {
+        cwd = repo(),
+        echo = 'pushing...',
+        on_exit = status_term_update,
+      })
     end
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'P', function()
-    if can_push then
-      term('git push -f', { cwd = repo(), on_exit = status_term_exit })
+    if is_ahead then
+      term('git push -f', {
+        cwd = repo(),
+        echo = 'force pushing...',
+        on_exit = status_term_update,
+      })
     end
   end, { buffer = bufnr })
 
@@ -1411,9 +1647,15 @@ M.init = function()
       if not vim.fn.executable('git') then
         error('git executable not found in your path.')
       elseif command then
+        table.remove(opts.fargs, 1)
+        opts.args = vim.fn.join(opts.fargs, ' ')
         command(opts)
       else
-        error('Command does not exist: ' .. command)
+        term('git ' .. opts.args, {
+          cwd = repo(),
+          echo = 'running: git ' .. opts.args .. ' ...\n',
+          on_exit = status_term_update,
+        })
       end
     end,
     {
@@ -1451,6 +1693,7 @@ M.init = function()
   vim.keymap.set('n', '<leader>ga', ':Git annotate<cr>', { silent = true })
   vim.keymap.set('n', '<leader>gl', ':Git log<cr>', { silent = true })
   vim.keymap.set('n', '<leader>gs', ':Git status<cr>', { silent = true })
+  vim.keymap.set('n', '<leader>gb', status_branch)
 end
 
 return M

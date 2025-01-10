@@ -25,6 +25,7 @@ return {{
     local green = '#789978'
     local purple = '#875f87'
     local red = '#964848'
+    local red_dark = '#624646'
     local yellow = '#afaf5f'
     local yellow_mid = '#8f8f3f'
 
@@ -43,7 +44,7 @@ return {{
     vim.api.nvim_set_hl(0, '@function.builtin', { fg = gray6 })
     vim.api.nvim_set_hl(0, '@function.method', { fg = white })
     vim.api.nvim_set_hl(0, '@keyword', { fg = gray8 })
-    vim.api.nvim_set_hl(0, '@number', { fg = '#624646' })
+    vim.api.nvim_set_hl(0, '@number', { fg = red_dark })
     vim.api.nvim_set_hl(0, '@string.special.url.comment', { underline = false })
     vim.api.nvim_set_hl(0, 'Comment', { link = '@comment' })
     vim.api.nvim_set_hl(0, 'ColorColumn', { bg = '#191919' })
@@ -88,7 +89,7 @@ return {{
     vim.api.nvim_set_hl(0, 'Whitespace', { fg = gray4 })
 
     -- file type specific changes
-    vim.api.nvim_set_hl(0, '@constant.git_rebase', { link = '@number' })
+    vim.api.nvim_set_hl(0, '@constant.git_rebase', { fg = red_dark })
     vim.api.nvim_set_hl(0, '@markup.heading.gitcommit', { link = '@keyword' })
     vim.api.nvim_set_hl(0, '@string.special.url.gitcommit', { link = '@markup.link.gitcommit' })
     vim.api.nvim_set_hl(0, '@number.float.python', { link = '@number' })
@@ -138,10 +139,13 @@ return {{
     vim.api.nvim_set_hl(0, 'GitLogHeader', { fg = gray9 })
     vim.api.nvim_set_hl(0, 'GitLogHeaderName', { fg = gray6 })
     vim.api.nvim_set_hl(0, 'GitRefs', { fg = yellow_mid })
-    vim.api.nvim_set_hl(0, 'GitRevision', { link = '@number' })
+    vim.api.nvim_set_hl(0, 'GitRevision', { fg = red_dark })
     vim.api.nvim_set_hl(0, 'GitStatusAdded', { fg = green })
+    vim.api.nvim_set_hl(0, 'GitStatusAhead', { fg = green })
+    vim.api.nvim_set_hl(0, 'GitStatusBehind', { fg = red })
+    vim.api.nvim_set_hl(0, 'GitStatusBranchLocal', { fg = green })
+    vim.api.nvim_set_hl(0, 'GitStatusBranchRemote', { fg = red_dark })
     vim.api.nvim_set_hl(0, 'GitStatusComment', { link = 'Comment' })
-    vim.api.nvim_set_hl(0, 'GitStatusCommits', { fg = green })
     vim.api.nvim_set_hl(0, 'GitStatusDeleted', { fg = blue })
     vim.api.nvim_set_hl(0, 'GitStatusDeletedFile', { fg = gray5 })
     vim.api.nvim_set_hl(0, 'GitStatusDeletedStaged', { fg = green })
