@@ -43,6 +43,7 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
       # enabled
       if [ $# -gt 0 ] ; then
         venv=$venv bash -c '. $venv/bin/activate && "$@"' -- "$@"
+        exit $?
 
       # otherwise, initialize the venv and start tmux if necessary
       else
