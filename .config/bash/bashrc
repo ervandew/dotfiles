@@ -7,8 +7,6 @@
 [[ -f /etc/profile.d/bash-completion.sh ]] && . /etc/profile.d/bash-completion.sh
 
 ## Bash settings. {{{
-  PROMPT_COMMAND="echo -ne \"\033]0;\${USER}@\${HOSTNAME%%.*}\${showchroot}: \${PWD/\$HOME/~}\007\""
-
   # bash history settings
   ignore="&:??:clear:exit:k"
   ignore="$ignore:shutdown*:reboot:*systemctl poweroff*:*systemctl reboot*"
@@ -66,7 +64,7 @@
     if [ "$TERM" == "linux" ] ; then
       PS1_COLOR=${white}
     fi
-    export BASH_PS1="$PS1_COLOR\u@\h${NONE} \w\$(_info)\n"$SCREEN_PS1'\$ '
+    export BASH_PS1="$PS1_COLOR\u@\h${NONE} \w\$(_info)\n"'\$ '
   fi
   export PS1=$BASH_PS1
 
