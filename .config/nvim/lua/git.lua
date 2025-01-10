@@ -37,7 +37,6 @@ local term = function(cmd, opts)
   vim.wo.cursorline = false
   vim.wo.cursorcolumn = false
   vim.wo.number = false
-  vim.wo.statusline = opts.title or cmd
   local term_bufnr = vim.fn.bufnr()
   if opts.echo then
     cmd = 'echo \\"' .. opts.echo .. '\\" ; ' .. cmd
@@ -1087,13 +1086,12 @@ end
 
 local log_grep = function(type, opts)
   local log_args
-  local args = opts.args:match('^[^%s]+%s+(.*)$')
-  if not args or args:match('^%s*$') then
+  if not opts.args or opts.args:match('^%s*$') then
     error('Please supply a pattern to search for.', 'WarningMsg')
     return
   end
 
-  args = vim.fn.escape(args, '"')
+  local args = vim.fn.escape(opts.args, '"')
   if type == 'commits' then
     log_args = '-E "--grep=' .. args .. '"'
   elseif type == 'files' then
