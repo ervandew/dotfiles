@@ -16,8 +16,8 @@ commits=$(git cherry -v $1)
 contains=$(echo $commits | perl -pe 's|\+ ([a-f0-9]+) .*|--contains \1|')
 
 if [ -n "$contains" ] ; then
-  # make sure we are reasonably up to date
-  git lfetch
+  # make sure we are up to date
+  git fetch
 
   # allow a list of branches to ignore when checking for overlapping branches
   ignore_branches=($(git config rewrite.safe.ignore))

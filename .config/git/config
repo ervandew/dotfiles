@@ -1,5 +1,6 @@
 [alias]
   ls = ls-files
+  desc = describe
   brname = rev-parse --abbrev-ref HEAD
   brexists = "!f() { git show-ref --verify --quiet refs/heads/$1; }; f"
   root = rev-parse --show-toplevel
@@ -20,15 +21,18 @@
   slog = !git -c color.ui=always log --pretty=simple "$@" | git pick -t rev '^(?:.*\\dm)?(\\w+) .*'
 
   # act on file list indexes
-  u = pick -t file checkout
+  r = pick -t file restore
   d = pick -t file diff
   a = pick -t file -r add
-  r = pick -t file -r clean -f
-  ci = !git -c status.relativePaths=false pick -t file commit -e
-  desc = describe
+  del = pick -t file -r clean -f
   unstage = pick -t file reset HEAD
-  untrack = pick -t file --cached
-  forget = pick -t file rm --cached
+  # remove from git, but keep the file
+  untrack = pick -t file rm --cached
+
+  ci = !git -c status.relativePaths=false pick -t file commit -e
+  # The pre commit hook ~/.git-template/hooks/prepare-commit-msg will also
+  # check that the commit to be ammeneded is not in another branch.
+  amend = "!f() { git pick -t file commit --amend --date=\"$(date -R)\" \"$@\"; }; f"
 
   # add alias to open files in editor, w/ alias to do so using pick indexes
   edit = "!f() { $EDITOR -o \"$@\"; }; f"
@@ -38,33 +42,19 @@
   unignore = pick -t file update-index --no-assume-unchanged
 
   # act on rev list indexes
-  co = pick -t rev checkout
-  rs = pick -t rev reset
+  s = pick -t rev switch
   cp = pick -t rev cherry-pick
   flog = pick -t rev log -1 --name-status
   glog = pick -t rev slog --graph
   dlog = "!f() { R=HEAD; if [[ \"$1\" =~ ^[a-zA-Z0-9]+$ ]] ; then R=$1; shift; fi; git pick -t rev log -1 -p $R \"$@\"; }; f"
 
   # view the last committed version of a file, even if it has since been removed
-  view = "!f() { F=$1; if [[ ! \"$1\" == *:* ]] ; then F=$(git rev-list -n 1 HEAD -- $F)^:$F; fi; git show $F 2>&1 | $EDITOR - -c \"doautocmd BufRead $1 | set nomod noma\"; }; f"
+  view = "!f() { F=$1; if [[ ! \"$1\" == *:* ]] ; then F=$(git rev-list -n 1 HEAD -- $F)^:$F; fi; git show $F 2>&1 | $EDITOR - -c \"let g:lsp_disabled = v:true | doautocmd BufRead $1 | set nomod noma\"; }; f"
 
-  # $ git clone git://<host>/.git <target>
-  # Reverse tunnel to allow checkout from a client machine to a server machine.
-  # $ ssh -N <client_host> -R 9418:localhost:9418
-  serve = daemon --reuseaddr --verbose --base-path=. --export-all ./.git
-  serveweb = instaweb
+  omerge = !git merge @{upstream}
+  orebase = "!f() { git rebase \"$@\" @{upstream}; }; f"
 
-  # The pre commit hook ~/.git-template/hooks/prepare-commit-msg will also
-  # check that the commit to be ammeneded is not in another branch.
-  amend = "!f() { git pick -t file commit --amend --date=\"$(date -R)\" \"$@\"; }; f"
-
-  omerge = !git merge origin/$(git brname)
-  orebase = "!f() { git rebase \"$@\" origin/$(git brname); }; f"
-
-  dbranch = "!f() { B=$1; git branch -d ${B} && if [ -n \"$(git remote)\" ] ; then git push origin :heads/${B}; fi; }; f"
-
-  # perform a fetch only if the current FETCH_HEAD is 60 or more minutes old.
-  lfetch = "!f() { if [ -z \"$(git remote)\" ] ; then return; fi; T=$((($(date +%s) - $((ls -l --time-style=+%s .git/FETCH_HEAD 2> /dev/null || echo 0) | cut -d ' ' -f6)) / 60)); if [ $T -ge 60 ] ; then git fetch; fi; }; f"
+  dbranch = "!f() { B=$1; if git config get push.force.protected | grep \"\\b${B}\\b\" &> /dev/null ; then echo \"cannot delete protected branch: $B\"; else git branch -d ${B} && if [ -n \"$(git remote)\" ] ; then git push origin :heads/${B}; fi; fi; }; f"
 
   # $ git mergein <target branch>
   #   - rebase the target branch against the current branch
@@ -76,7 +66,7 @@
   #       requests are closed.
   #   - finally display a prompt to delete the now merged in branch locally
   #     and from the origin.
-  mergein = "!f() { set -e; I=$(git pick -e -t rev $1); if [ -z \"$I\" ] ; then echo \"abort: Name of the branch to merge into this branch is required.\"; return; fi; B=$(git brname); if ! $(git brexists \"$I\") ; then echo \"abort: Local branch '$I' not found.\"; return; fi; if [ \"$B\" == \"$I\" ] ; then echo \"abort: Attempting to merge $B into itself.\"; return; fi; echo \"Running git fetch...\"; git fetch; if [ \"$(git in)\" != \"\" ] ; then echo \"abort: Incoming commits not yet merged.\"; git in; return; fi; git co $I; git rebase $B; if [ $? -ne 0 ] ; then return; fi; git rebase -i $B; if [ \"$(git brname)\" == \"HEAD\" ] ; then return; fi; read -p \"Continue to merge $(git brname) into $B (y/n)? \"; if [ \"$REPLY\" != \"y\" ] ; then return; fi; git co $B; git merge $I; if [ -n \"$(git remote)\" ] ; then git out; read -p \"Push to origin (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git co $I && git push -f; git co $B && git push; fi; fi; git dbranch $I; }; f"
+  mergein = "!f() { set -e; I=$(git pick -e -t rev $1); if [ -z \"$I\" ] ; then echo \"abort: Name of the branch to merge into this branch is required.\"; return; fi; B=$(git brname); if ! $(git brexists \"$I\") ; then echo \"abort: Local branch '$I' not found.\"; return; fi; if [ \"$B\" == \"$I\" ] ; then echo \"abort: Attempting to merge $B into itself.\"; return; fi; echo \"Running git fetch...\"; git fetch; if [ \"$(git in)\" != \"\" ] ; then echo \"abort: Incoming commits not yet merged.\"; git in; return; fi; git switch $I; git rebase $B; if [ $? -ne 0 ] ; then return; fi; git rebase -i $B; if [ \"$(git brname)\" == \"HEAD\" ] ; then return; fi; read -p \"Continue to merge $(git brname) into $B (y/n)? \"; if [ \"$REPLY\" != \"y\" ] ; then return; fi; git switch $B; git merge $I; if [ -n \"$(git remote)\" ] ; then git out; read -p \"Push to origin (y/n)? \"; if [ \"$REPLY\" == \"y\" ] ; then git switch $I && git push -f; git switch $B && git push; fi; fi; git dbranch $I; }; f"
 
   # log commits that differ between the current branch and the supplied target
   blog = "!f() { ARGS=\"\"; while [[ \"$1\" =~ ^- ]] ; do ARGS=\"$ARGS $1\"; shift; done; B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; B2=$1; echo \"$B1...$B2\"; echo \"  < $B1\"; echo \"  > $B2\"; git log $ARGS --pretty=blog $B1...$B2; }; f"
@@ -89,13 +79,13 @@
   # $ git bdiff staging...topic-branch
   bdiff = !git diff --left-only
 
-  in = !git log --pretty=simple ..origin/$(git brname)
-  din = !git log -p ..origin/$(git brname)
+  in = !git log --pretty=simple ..@{upstream}
+  din = !git log -p ..@{upstream}
   fin = !git in --name-status
 
-  out = !git -c color.ui=always log --pretty=simple origin/$(git brname).. | git pick -t rev '^(?:.*\\dm)?(\\w+) .*'
-  dout = !git log -p origin/$(git brname)..
-  fout = !git log --pretty=simple origin/$(git brname).. --name-status
+  out = !git -c color.ui=always log --pretty=simple @{upstream}.. | git pick -t rev '^(?:.*\\dm)?(\\w+) .*'
+  dout = !git log -p @{upstream}..
+  fout = !git log --pretty=simple @{upstream}.. --name-status
 
   dstash = stash show -p
   # FIXME: will this work if there was a conflict?
@@ -109,10 +99,6 @@
   #   my-repo = runtest-cmd --some-arg
   bisect-test = "!git bisect run $(git config runtest.$(basename $(git root)))"
 
-  # $ git all <command> [<command args>]
-  #   runs the supplied git command against all repositories found in ~/projects
-  all = "!f() { set -e; for i in $(find ~/projects/ -maxdepth 3 -name .git -type d -exec dirname {} \\; | sort) ; do echo -e \"\\n### \\e[0;33m$(basename $i)\\e[0m\"; cd $i ; git -c color.ui=always \"$@\" ; done; }; e(){ f \"$@\" | /usr/bin/less -FRX; }; e"
-
   # opens up the github url comparing the current branch against the default or the
   # optionally supplied branch.
   ghcompare = "!f() { B=${1}; A=${2-$(git brname)}; $(git config web.open) \"https://github.com/$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@github.com:(.*)\\.git .*|\\1|')/compare/$B...$A\"; }; f"
@@ -122,9 +108,9 @@
 
   # aliases for working with gitlab
   glcompare = "!f() { B=${1}; A=${2-$(git brname)}; $(git config web.open) \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/compare/$B...$A\"; }; f"
-  glpullrequest = "!f() { set -e; B=${1}; A=${2-$(git brname)}; if ! $(git pushed $A) ; then git push ; fi; $(git config web.open) \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
+  glpullrequest = "!f() { set -e; if [ $# -lt 1 ]; then echo \"abort: target branch name required\"; return 1; fi; B=${1}; A=${2-$(git brname)}; echo \"creating gitlab pull request $A -> $B...\"; if ! $(git pushed $A) ; then git push ; fi; $(git config web.open) \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
 
-  azurepullrequest = "!f() { set -e; B=${1}; A=${2-$(git brname)}; if ! $(git pushed $A) ; then git push ; fi; $(git config web.open) \"$(git config azure.url)/pullrequestcreate?sourceRef=$A&targetRef=$B&sourceRepositoryId=$(git config azure.repoid)&targetRepositoryId=$(git config azure.repoid)\"; }; f"
+  azurepullrequest = "!f() { set -e; if [ $# -lt 1 ]; then echo \"abort: target branch name required\"; return 1; fi; B=${1}; A=${2-$(git brname)}; echo \"creating ado pull request $A -> $B...\"; if ! $(git pushed $A) ; then git push ; fi; $(git config web.open) \"$(git config azure.url)/pullrequestcreate?sourceRef=$A&targetRef=$B&sourceRepositoryId=$(git config azure.repoid)&targetRepositoryId=$(git config azure.repoid)\"; }; f"
 
 [branch]
   autosetupmerge = true
@@ -170,10 +156,12 @@
 
 [push]
   default = current
+  autosetupremote = true
 
 [push "force"]
   # space separated list of branches to prevent force pushing to
   # (enforced by custom pre-push hook)
+  # NOTE: also used by dbranch alias
   protected = main master staging sprint
 
 [rebase]
