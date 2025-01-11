@@ -157,13 +157,6 @@ M.init = function()
       end
     end
   })
-
-  -- another :pclose workaround, but this one from supertab
-  local stgroup = vim.api.nvim_create_augroup('supertab_preview_closed', {})
-  vim.api.nvim_create_autocmd('User', {
-    group = stgroup,
-    callback = function() vim.schedule(update) end
-  })
 end
 
 return M
