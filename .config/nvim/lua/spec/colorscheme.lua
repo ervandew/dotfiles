@@ -20,6 +20,7 @@ return {{
     local gray7 = '#777777'
     local gray8 = '#888888'
     local gray9 = '#999999'
+    local gray11 = '#bbbbbb'
 
     local blue = '#708090'
     local green = '#789978'
@@ -28,6 +29,7 @@ return {{
     local red_dark = '#624646'
     local yellow = '#afaf5f'
     local yellow_mid = '#8f8f3f'
+    local yellow_dark = '#5f5f0f'
 
     local error= red
     local warn = yellow
@@ -138,7 +140,9 @@ return {{
     vim.api.nvim_set_hl(0, 'GitLink', { link = 'Label' })
     vim.api.nvim_set_hl(0, 'GitLogHeader', { fg = gray9 })
     vim.api.nvim_set_hl(0, 'GitLogHeaderName', { fg = gray6 })
-    vim.api.nvim_set_hl(0, 'GitRefs', { fg = yellow_mid })
+    vim.api.nvim_set_hl(0, 'GitLogHeaderFile', { fg = yellow_mid })
+    vim.api.nvim_set_hl(0, 'GitMessage', { fg = gray11 })
+    vim.api.nvim_set_hl(0, 'GitRefs', { fg = yellow_dark })
     vim.api.nvim_set_hl(0, 'GitRevision', { fg = red_dark })
     vim.api.nvim_set_hl(0, 'GitStatusAdded', { fg = green })
     vim.api.nvim_set_hl(0, 'GitStatusAhead', { fg = green })

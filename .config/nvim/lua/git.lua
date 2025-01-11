@@ -49,6 +49,10 @@ local term = function(cmd, opts)
   })
   vim.schedule(function()
     vim.cmd.startinsert()
+    vim.keymap.set('n', 'q', function()
+      vim.cmd.quit()
+      vim.cmd.doautocmd('WinEnter')
+    end, { buffer = true })
   end)
 end
 
@@ -274,6 +278,10 @@ local file = function(path)
   return root, path, revision
 end
 
+local me = {}
+local log_name = 'git log'
+local status_name = 'git status'
+
 local annotate_info = function()
   if vim.fn.mode() ~= 'n' then
     return
@@ -331,12 +339,10 @@ local annotate_info = function()
   vim.o.showcmd = saved_showcmd
 end
 
-local me = {}
-local log_bufname = 'git log'
 local annotate_augroup = vim.api.nvim_create_augroup('git_annotate', {})
 local function annotate(opts)
   local bufname = vim.fn.bufname()
-  if bufname == log_bufname or bufname == '' then
+  if bufname == log_name or bufname == '' then
     return
   end
 
@@ -524,7 +530,7 @@ end
 
 local diff_augroup = vim.api.nvim_create_augroup('git_diff', {})
 local diff = function(opts)
-  if vim.fn.bufname() == log_bufname then
+  if vim.fn.bufname() == log_name then
     return
   end
 
@@ -962,19 +968,22 @@ end
 local log_augroup = vim.api.nvim_create_augroup('git_log', {})
 local log = function(opts)
   local root, path
-  local name = log_bufname
   local filename
-  if vim.fn.bufname() == name and vim.b.git_filename then
+  if vim.fn.bufname() == log_name and vim.b.git_filename then
     filename = vim.b.git_filename
   else
     filename = vim.fn.expand('%:p')
-    if filename == '' then
+    if filename == '' or vim.fn.bufname() == status_name then
       filename = nil
     end
   end
 
   local log_cmd = 'log --pretty=tformat:"%h|%an|%ar|%d|%s|"'
   if opts.args and opts.args ~= '' then
+    if opts.args:match('--graph') then
+      term('git log ' .. opts.args, { cwd = repo() })
+      return
+    end
     root = repo()
     log_cmd = log_cmd .. ' ' .. opts.args
   elseif filename then
@@ -1029,7 +1038,7 @@ local log = function(opts)
   end
 
   local height = 15
-  window(name, 'botright ' .. height .. 'sview', { lines = lines })
+  window(log_name, 'botright ' .. height .. 'sview', { lines = lines })
   vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
   vim.wo.wrap = false
   vim.wo.winfixheight = true
@@ -1043,10 +1052,12 @@ local log = function(opts)
   vim.cmd('syntax match GitAuthor /\\(^[+-] \\w\\+ \\)\\@<=.\\{-}\\( (\\)\\@=/')
   vim.cmd('syntax match GitDate /\\(^[+-] \\w\\+ \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
   vim.cmd('syntax match GitRefs /\\(^[+-] \\w\\+ \\w.\\{-} (\\d.\\{-}) \\)\\@<=(.\\{-})/')
+  vim.cmd('syntax match GitMessage /\\(^[+-] \\w\\+ \\w.\\{-} (\\d.\\{-})\\( (.\\{-})\\)\\?\\)\\@<=.*/ contains=GitRefs')
   vim.cmd('syntax match GitLink /|\\S.\\{-}|/')
   vim.cmd('syntax match GitFiles /\\(^\\s\\+[+-] \\)\\@<=files\\>/')
+  vim.cmd('syntax match GitLogHeader /^\\%<4l.\\{-}: .*/ contains=GitLogHeaderName,GitLogHeaderFile')
   vim.cmd('syntax match GitLogHeaderName /^\\%<4l.\\{-}:/')
-  vim.cmd('syntax match GitLogHeader /^\\%<4l.\\{-}: .*/ contains=GitLogHeaderName')
+  vim.cmd('syntax match GitLogHeaderFile /\\(\\%<4lfilename:\\s\\+\\)\\@<=.*/')
 
   set_info(root, path, nil)
 
@@ -1066,22 +1077,20 @@ local log = function(opts)
   local bufnr = vim.fn.bufnr()
   vim.keymap.set('n', '<cr>', log_action, { buffer = bufnr })
   vim.api.nvim_clear_autocmds({ group = log_augroup })
-  if filename then
-    vim.b.git_filename = filename
-    vim.api.nvim_create_autocmd('BufWinLeave', {
-      buffer = bufnr,
-      group = log_augroup,
-      callback = function()
-        local winnr = vim.fn.bufwinnr(vim.b.git_filename)
-        if winnr ~= -1 then
-          vim.schedule(function()
-            vim.cmd(winnr .. 'winc w')
-            vim.cmd.doautocmd('BufEnter')
-          end)
-        end
-      end,
-    })
-  end
+  vim.b.git_filename = filename
+  vim.api.nvim_create_autocmd('BufWinLeave', {
+    buffer = bufnr,
+    group = log_augroup,
+    callback = function()
+      local winnr = vim.fn.bufwinnr(vim.b.git_filename or status_name)
+      if winnr ~= -1 then
+        vim.schedule(function()
+          vim.cmd(winnr .. 'winc w')
+          vim.cmd.doautocmd('BufEnter')
+        end)
+      end
+    end,
+  })
 end
 
 local log_grep = function(type, opts)
@@ -1118,8 +1127,6 @@ local grep_files = function(opts)
   opts.title = 'grep files:   '
   log_grep('files', opts)
 end
-
-local status_name = 'git status'
 
 local status_term_update = function()
   if vim.fn.bufwinnr(status_name) ~= -1 then
@@ -1260,7 +1267,35 @@ local status_branch = function()
 end
 
 local status_pending_line = 1
+local status_head_line = 2
 local status_action = function()
+  if vim.fn.mode() == 'V' then
+    local pos1 = vim.fn.getpos('v')
+    local pos2 = vim.fn.getpos('.')
+    local lines = vim.tbl_filter(function(l)
+      -- ignore comment lines and untracked files
+      return not (l:sub(1, 1) == '#' or l:sub(1, 1) == '?')
+    end, vim.fn.getregion(pos1, pos2, { type = 'V' }))
+    if #lines then
+      local paths = vim.fn.join(
+        vim.tbl_map(function(l) return l:sub(4) end, lines),
+        ' '
+      )
+      local result = M.git('diff HEAD ' .. paths)
+      if result then
+        window('git_HEAD.patch', 'modal', {
+          lines = vim.fn.split(result, '\n')
+        })
+      end
+    end
+
+    -- clear --VISUAL *-- mode status
+    local esc = vim.api.nvim_replace_termcodes('<esc>', true, false, true)
+    vim.fn.feedkeys(esc, 'nt')
+    vim.cmd('redraw!')
+    return
+  end
+
   local lnum = vim.fn.line('.')
   local line = vim.fn.getline(lnum)
 
@@ -1285,6 +1320,13 @@ local status_action = function()
       end
       return
     end
+  end
+
+  if lnum == status_head_line then
+    if vim.fn.col('.') > 3 then
+      log({ title = 'commits:      HEAD', args = '-1'})
+    end
+    return
   end
 
   -- ignore comment lines
@@ -1406,7 +1448,6 @@ local status_cmd = function(cmd, opts)
   if opts.term then
     term('git ' .. cmd .. ' ' .. paths, {
       cwd = repo(),
-      title = opts.term_title,
       on_exit = status_term_exit,
     })
   else
@@ -1423,11 +1464,12 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end
 
   local lines = vim.fn.split(result, '\n')
-  local head = M.git('log -1 "--pretty=format:%h %an (%ar) %s"')
+  local head = M.git('log -1 "--pretty=format:%h %an: %s"')
   local repo_actions = '(f)etch (c)ommit (a)mend'
   local file_actions = '(s)tage (i)nteractive (u)nstage (r)estore'
   local is_ahead = result:match('%[ahead %d+')
   local is_behind = result:match('[%[%s]behind %d+')
+  local is_gone = result:match('%[gone%]') -- remote is set but doesn't exist
   if is_ahead then
     local branch = M.git('rev-parse --abbrev-ref HEAD')
     if is_behind and not is_protected(branch) then
@@ -1437,6 +1479,8 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     end
   elseif is_behind then
     repo_actions = repo_actions .. ' (m)erge'
+  elseif is_gone then
+    repo_actions = repo_actions .. ' (p)ush'
   end
   lines = vim.list_extend({
     lines[1],
@@ -1504,7 +1548,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.cmd('syntax match GitStatusBranchRemote /\\(\\%1l## .*\\.\\.\\.\\)\\@<=.\\{-}\\(\\s\\|$\\)/')
   vim.cmd('syntax match GitStatusComment /^#.*/ contains=' ..
     'GitAuthor,' ..
-    'GitDate,' ..
+    'GitMessage,' ..
     'GitRevision,' ..
     'GitStatusAhead,' ..
     'GitStatusBehind,' ..
@@ -1519,11 +1563,11 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.cmd('syntax match GitStatusUntracked /^?.*/')
   -- same highlight groups as log, but different patterns
   vim.cmd('syntax match GitRevision /\\(^## HEAD: \\)\\@<=\\w\\+/')
-  vim.cmd('syntax match GitAuthor /\\(^## HEAD: \\w\\+ \\)\\@<=.\\{-}\\( (\\)\\@=/')
-  vim.cmd('syntax match GitDate /\\(^## HEAD: \\w\\+ \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
+  vim.cmd('syntax match GitAuthor /\\(^## HEAD: \\w\\+ \\)\\@<=.\\{-}\\(:\\s\\)\\@=/')
+  vim.cmd('syntax match GitMessage /\\(^## HEAD: \\w\\+ \\w.\\{-}:\\s\\)\\@<=.*/')
 
   local bufnr = vim.fn.bufnr()
-  vim.keymap.set('n', '<cr>', status_action, { buffer = bufnr })
+  vim.keymap.set({ 'n', 'x' }, '<cr>', status_action, { buffer = bufnr })
 
   vim.keymap.set({ 'n', 'x' }, 's', function()
     status_cmd('stage')
@@ -1532,7 +1576,6 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.keymap.set({ 'n', 'x' }, 'i', function()
     status_cmd('stage -p', {
       term = true,
-      term_title = 'git stage -p',
       filter = function(line)
         -- only allow entries with unstaged changes
         return line:match('^%sM')
