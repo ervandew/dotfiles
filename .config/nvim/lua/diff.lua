@@ -76,14 +76,34 @@ local function next_prev(direction)
         continue = true
       end
     end
+
     if not continue then
       -- FIXME: prev doesn't work as well since [c jumps to the start of a change
       -- block, skipping other changes in the block that our command should
       -- visit.  May need to abandon use of the vim bindings.
-      vim.cmd('normal! ' .. (direction == 'next' and ']c' or '[c'))
-      next_prev_line(direction, { 'DiffText', 'DiffAdd' })
+      local key = (direction == 'next' and ']c' or '[c')
+      vim.cmd('normal! ' .. key)
+
       count = count - 1
 
+      -- if the default next mapping only took us one line away where there is
+      -- no apparent change, then we probably just skipped over a delete, so
+      -- repeat the call
+      if direction == 'next' and
+         vim.fn.line('.') == line + 1 and
+         not syntax(vim.fn.line('.'), vim.fn.col('.')):match('^Diff')
+      then
+        vim.cmd('normal! ' .. key)
+      elseif direction == 'prev' and
+         not syntax(vim.fn.line('.'), vim.fn.col('.')):match('^Diff')
+      then
+        -- FIXME: still a minor issue if cursor is on a change, line above is
+        -- unchanged, then line above that is a delete, that delete gets
+        -- skipped.
+        return
+      end
+
+      next_prev_line(direction, { 'DiffText', 'DiffAdd' })
       if count == 0 and
          cur == '' and
          not syntax(vim.fn.line('.'), vim.fn.col('.')):match('^Diff')
