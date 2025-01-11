@@ -1,5 +1,5 @@
-# If not running interactively, don't do anything
-[ -z "$PS1" ] && return
+# If not running interactively and not instructed to source, don't do anything
+[[ -z "$PS1" && -z "$BASHRC_SOURCE" ]] && return
 
 [[ -f /etc/profile ]] && . /etc/profile
 
