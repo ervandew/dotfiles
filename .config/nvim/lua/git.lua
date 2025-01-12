@@ -969,12 +969,18 @@ local log_augroup = vim.api.nvim_create_augroup('git_log', {})
 local log = function(opts)
   local root, path
   local filename
-  if vim.fn.bufname() == log_name and vim.b.git_filename then
-    filename = vim.b.git_filename
-  else
-    filename = vim.fn.expand('%:p')
-    if filename == '' or vim.fn.bufname() == status_name then
-      filename = nil
+
+  -- check if command is using % expansion
+  local expanded = opts.fargs_orig and vim.list_contains(opts.fargs_orig, '%')
+
+  if not opts.bang or expanded then
+    if vim.fn.bufname() == log_name and vim.b.git_filename then
+      filename = vim.b.git_filename
+    else
+      filename = vim.fn.expand('%:p')
+      if filename == '' or vim.fn.bufname() == status_name then
+        filename = nil
+      end
     end
   end
 
@@ -992,12 +998,9 @@ local log = function(opts)
     end
     log_cmd = log_cmd .. ' ' .. opts.args
 
-    -- check if command is using % expansion, and if so prevent adding the path
-    -- to the args a second time below
-    if filename and
-       opts.fargs_orig and
-       vim.list_contains(opts.fargs_orig, '%')
-    then
+    -- if command is using % expansion then prevent adding the path to the args
+    -- a second time below
+    if filename and expanded then
       opts.title = ('filename:     ' .. path)
       path = nil
     end
@@ -1782,6 +1785,7 @@ M.init = function()
       end
     end,
     {
+      bang = true,
       nargs = '+',
       complete = function(_, cmdl, pos)
         local pre = string.sub(cmdl, 1, pos)
@@ -1807,7 +1811,7 @@ M.init = function()
     local pos = vim.fn.getcmdpos()
     ---@diagnostic disable-next-line: redundant-parameter
     local char = vim.fn.nr2char(vim.fn.getchar(1))
-    if type == ':' and pos == #abbrev + 1 and char:match('[%s\r]') then
+    if type == ':' and pos == #abbrev + 1 and char:match('[%!%s\r]') then
       return 'Git'
     end
     return abbrev
