@@ -1667,6 +1667,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       end,
       untracked = false,
     })
+    vim.cmd.checktime() -- update existing buffers if necessary
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'f', function()
