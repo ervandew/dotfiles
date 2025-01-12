@@ -978,18 +978,29 @@ local log = function(opts)
     end
   end
 
+  if filename then
+    root, path, _ = file(filename)
+  else
+    root = repo()
+  end
+
   local log_cmd = 'log --pretty=tformat:"%h|%an|%ar|%d|%s|"'
   if opts.args and opts.args ~= '' then
     if opts.args:match('--graph') then
       term('git log ' .. opts.args, { cwd = repo() })
       return
     end
-    root = repo()
     log_cmd = log_cmd .. ' ' .. opts.args
-  elseif filename then
-    root, path, _ = file(filename)
-  else
-    root = repo()
+
+    -- check if command is using % expansion, and if so prevent adding the path
+    -- to the args a second time below
+    if filename and
+       opts.fargs_orig and
+       vim.list_contains(opts.fargs_orig, '%')
+    then
+      opts.title = ('filename:     ' .. path)
+      path = nil
+    end
   end
 
   if not root then
@@ -1570,6 +1581,8 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     end,
   })
 
+  set_info(repo())
+
   -- restore the state of our stashes
   if vim.b.git_stashes then
     if vim.fn.search('\\[stashes\\]') ~= 0 then
@@ -1739,16 +1752,30 @@ M.init = function()
   vim.api.nvim_create_user_command(
     'Git',
     function(opts)
-      local command = commands[opts.fargs[1]]
       if not vim.fn.executable('git') then
         error('git executable not found in your path.')
-      elseif command then
+        return
+      end
+
+      local command = commands[opts.fargs[1]]
+      -- store a copy of the original args
+      opts.fargs_orig = vim.list_slice(opts.fargs, 1, #opts.fargs)
+      -- expand %
+      opts.fargs = vim.tbl_map(function(a)
+        if a == '%' then
+          local _, path = file()
+          return path and path or a
+        end
+        return a
+      end, opts.fargs)
+      opts.args = vim.fn.join(opts.fargs, ' ')
+
+      if command then
         table.remove(opts.fargs, 1)
         opts.args = vim.fn.join(opts.fargs, ' ')
         command(opts)
       else
         term('git ' .. opts.args, {
-          cwd = repo(),
           echo = 'running: git ' .. opts.args .. ' ...\n',
           on_exit = status_term_update,
         })
