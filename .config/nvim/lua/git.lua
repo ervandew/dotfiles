@@ -1039,6 +1039,7 @@ local log = function(opts)
 
   local height = 15
   window(log_name, 'botright ' .. height .. 'sview', { lines = lines })
+  vim.w.height = height -- for other plugins that may need to restore the height
   vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
   vim.wo.wrap = false
   vim.wo.winfixheight = true
@@ -1268,6 +1269,7 @@ end
 
 local status_pending_line = 1
 local status_head_line = 2
+local status_repo_actions_line = 3
 local status_action = function()
   if vim.fn.mode() == 'V' then
     local pos1 = vim.fn.getpos('v')
@@ -1322,11 +1324,49 @@ local status_action = function()
     end
   end
 
+  if lnum == status_repo_actions_line then
+    local word = vim.fn.expand('<cword>')
+    if word == 'stashes' then
+      vim.o.modifiable = true
+      vim.o.readonly = false
+      if vim.fn.getline(lnum + 1):match('^## %-') then
+        local pos = vim.fn.getpos('.')
+        while vim.fn.getline(lnum + 1):match('^## %-') do
+          vim.cmd(lnum + 1 .. 'delete _')
+        end
+        vim.fn.setpos('.', pos)
+        vim.b.git_stashes = false
+      else
+        local stashes = M.git('stash list')
+        if stashes then
+          vim.fn.append(lnum, vim.tbl_map(function(s)
+            return '## - ' .. s
+          end, vim.fn.split(stashes, '\n')))
+          vim.b.git_stashes = true
+        else
+          status() -- if there aren't any commits, then we might be out of date
+        end
+      end
+      vim.o.modifiable = false
+      vim.o.readonly = true
+    end
+  end
+
   if lnum == status_head_line then
     if vim.fn.col('.') > 3 then
       log({ title = 'commits:      HEAD', args = '-1'})
     end
     return
+  end
+
+  local stash = line:match('^## %- (stash@{%d+}):.*')
+  if stash then
+    local result = M.git('stash show -p ' .. stash)
+    if result then
+      window('git_' .. stash .. '.patch', 'modal', {
+        lines = vim.fn.split(result, '\n')
+      })
+    end
   end
 
   -- ignore comment lines
@@ -1464,6 +1504,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end
 
   local lines = vim.fn.split(result, '\n')
+  local stashes = vim.fn.split(M.git('stash list') or '', '\n')
   local head = M.git('log -1 "--pretty=format:%h %an: %s"')
   local repo_actions = '(f)etch (c)ommit (a)mend'
   local file_actions = '(s)tage (i)nteractive (u)nstage (r)estore'
@@ -1481,6 +1522,9 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     repo_actions = repo_actions .. ' (m)erge'
   elseif is_gone then
     repo_actions = repo_actions .. ' (p)ush'
+  end
+  if #stashes > 0 then
+    repo_actions = repo_actions .. ' [stashes]'
   end
   lines = vim.list_extend({
     lines[1],
@@ -1526,6 +1570,14 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     end,
   })
 
+  -- restore the state of our stashes
+  if vim.b.git_stashes then
+    if vim.fn.search('\\[stashes\\]') ~= 0 then
+      vim.fn.cursor(0, vim.fn.col('.') + 1)
+      status_action()
+    end
+  end
+
   if pos then
     vim.fn.setpos('.', pos)
   else
@@ -1535,6 +1587,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     end
   end
 
+  vim.w.height = height -- for other plugins that may need to restore the height
   vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
   vim.wo.wrap = false
   vim.wo.winfixheight = true
@@ -1553,13 +1606,15 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     'GitStatusAhead,' ..
     'GitStatusBehind,' ..
     'GitStatusBranchLocal,' ..
-    'GitStatusBranchRemote'
+    'GitStatusBranchRemote,' ..
+    'GitStatusStash'
   )
   vim.cmd('syntax match GitStatusDeleted /\\%2cD/')
   vim.cmd('syntax match GitStatusDeletedStaged /\\%1cD/')
   vim.cmd('syntax match GitStatusDeletedFile /\\(\\%1cD\\|\\%2cD\\)\\@<=.*/')
   vim.cmd('syntax match GitStatusModified /\\%2cM/')
   vim.cmd('syntax match GitStatusModifiedStaged /\\%1cM/')
+  vim.cmd('syntax match GitStatusStash /\\(^## - \\)\\@<=stash@{.*/')
   vim.cmd('syntax match GitStatusUntracked /^?.*/')
   -- same highlight groups as log, but different patterns
   vim.cmd('syntax match GitRevision /\\(^## HEAD: \\)\\@<=\\w\\+/')
