@@ -837,6 +837,15 @@ return {
           end
         end
 
+        -- before deleting, check if this is the last loaded buffer, otherwise
+        -- an error will be raised
+        local buffers = vim.tbl_filter(function(b)
+          return vim.api.nvim_buf_is_loaded(b) and vim.bo[b].buflisted
+        end, vim.api.nvim_list_bufs())
+        if #buffers == 1 then
+          vim.cmd('above new')
+        end
+
         -- NOTE: just unload the buffer so we don't delete buffers referenced
         -- by the quickfix list, which causes a "Buffer <n> not found" error
         -- attempting to jump to the entry.
