@@ -1229,7 +1229,10 @@ local status_branch = function()
               -- custom alias!
               term('git mergein ' .. name, {
                 cwd = repo(),
-                on_exit = status_term_update,
+                on_exit = function()
+                  vim.cmd.checktime() -- update existing buffers if necessary
+                  status_term_update()
+                end,
               })
             end
           end
