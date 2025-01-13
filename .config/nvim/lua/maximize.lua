@@ -108,23 +108,34 @@ M.init = function()
   vim.api.nvim_create_autocmd({ 'WinEnter', 'VimResized' }, {
     group = augroup,
     callback = function(opts)
+      if opts.event == 'WinEnter' then
+        -- check if we are entering the last and only non-floating window, and
+        -- if it's a fixed height window, we'll open a new empty window to take
+        -- its place.
+        vim.schedule(function()
+          local winid = vim.fn.win_getid()
+          if vim.wo[winid].winfixheight then
+            local count = 0
+            for winnr = 1, vim.fn.winnr('$') do
+              if not vim.api.nvim_win_get_config(vim.fn.win_getid(winnr)).zindex then
+                count = count + 1
+              end
+            end
+            if count == 1 then
+              vim.cmd('above new')
+              vim.cmd.winc('w')
+              vim.cmd.resize(vim.w.height or 10)
+              vim.cmd.winc('w')
+            end
+          end
+        end)
+      end
+
       if not vim.t.maximized then
         if opts.event == 'VimResized' then
           disable()
         end
         return
-      end
-
-      -- check if we are entering the last and only window, and if it's a fixed
-      -- height window, we'll open a new empty window to prevent fixed height
-      -- window from shrinking nvim down to that size
-      if opts.event == 'WinEnter' then
-        vim.schedule(function()
-          local winid = vim.fn.win_getid()
-          if vim.fn.winnr('$') == 1 and vim.wo[winid].winfixheight then
-            vim.cmd('above new')
-          end
-        end)
       end
 
       vim.schedule(update)
