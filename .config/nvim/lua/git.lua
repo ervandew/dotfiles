@@ -1489,9 +1489,12 @@ local status_cmd = function(cmd, opts)
   end
 
   if opts.confirm then
-    local result = confirm(opts.confirm(#lines), '&yes\n&no', 0)
-    if result ~= 1 then
-      return
+    local msg = opts.confirm(lines)
+    if msg then
+      local result = confirm(msg, '&yes\n&no', 0)
+      if result ~= 1 then
+        return
+      end
     end
   end
 
@@ -1660,10 +1663,19 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
 
   vim.keymap.set('n', 'r', function()
     status_cmd('restore', {
-      confirm = function(count)
-        return 'Are you sure you want to run: ' ..
-          'git restore on ' .. count .. ' file(s) ' ..
-          '(unstaged changes will be lost)?'
+      confirm = function(selection)
+        local affected = vim.tbl_filter(function(l)
+          return l:match('^%sM') and true or false
+        end, selection)
+        if #affected > 0 then
+          return 'Are you sure you want to run: ' ..
+            'git restore on ' .. #selection .. ' file(s) ' ..
+            '(unstaged changes will be lost)?'
+        end
+      end,
+      filter = function(line)
+        -- only allow entries with unstaged changes
+        return line:match('^%s[MD]')
       end,
       untracked = false,
     })
