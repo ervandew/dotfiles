@@ -1843,7 +1843,21 @@ M.init = function()
       else
         term('git ' .. opts.args, {
           echo = 'running: git ' .. opts.args .. ' ...\n',
-          on_exit = status_term_update,
+          on_exit = function(term_bufnr, exit_code)
+            -- when removing the current file, remove the buffer as well
+            if opts.args:match('^rm%s') and
+               opts.fargs_orig[#opts.fargs_orig] == '%' and
+               exit_code == 0
+            then
+              vim.cmd.winc('p')
+              vim.schedule(function()
+                -- custom command!
+                vim.cmd('BufferDelete')
+                vim.cmd(vim.fn.bufwinnr(term_bufnr) .. 'winc w')
+              end)
+            end
+            status_term_update()
+          end
         })
       end
     end,
