@@ -1752,6 +1752,56 @@ local commands = {
   ['grep-files'] = grep_files,
 }
 
+local complete = function(_, cmdl, pos)
+  local pre = string.sub(cmdl, 1, pos)
+  local results = {}
+
+  local completions = {
+    -- complete command name
+    ['^Git%s+([-%w]*)$'] = function(match)
+      return match, vim.tbl_keys(commands)
+    end,
+    -- complete stash action
+    ['^Git%s+stash%s(%w*)$'] = function(match)
+      return match, {
+        'apply', 'branch', 'clear', 'create', 'drop', 'list', 'pop', 'push', 'show',
+      }
+    end,
+    -- complete stash references
+    ['^Git%s+stash%s(%w+%s%S*)'] = function(match)
+      local actions = { 'apply', 'branch', 'drop', 'pop', 'show'}
+      local action = match:match('^%w+')
+      if vim.list_contains(actions, action) then
+        local stashes = M.git('stash list')
+        if stashes then
+          local refs = vim.tbl_map(function(r)
+            return r:match('^stash@{%d+}')
+          end, vim.fn.split(stashes, '\n'))
+          return match:match('%w+%s(%S)'), refs
+        end
+      end
+      return match, {}
+    end,
+  }
+
+  for pattern, values in pairs(completions) do
+    local match = pre:match(pattern)
+    if match then
+      match = match:gsub('%-', '%%-')
+      local compl_pattern, compls = values(match)
+      for _, value in ipairs(compls) do
+        if value:match('^' .. compl_pattern) then
+          results[#results + 1] = value
+        end
+      end
+      break
+    end
+  end
+
+  table.sort(results)
+  return results
+end
+
 M.init = function()
   vim.api.nvim_create_user_command(
     'Git',
@@ -1788,21 +1838,7 @@ M.init = function()
     {
       bang = true,
       nargs = '+',
-      complete = function(_, cmdl, pos)
-        local pre = string.sub(cmdl, 1, pos)
-        local match = pre:match('^Git%s+([-%w]*)$')
-        local results = {}
-        if match then
-          match = match:gsub('%-', '%%-')
-          for k, _ in pairs(commands) do
-            if k:match('^' .. match) then
-              results[#results + 1] = k
-            end
-          end
-        end
-        table.sort(results)
-        return results
-      end,
+      complete = complete,
     }
   )
 
