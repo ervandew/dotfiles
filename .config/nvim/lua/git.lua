@@ -365,10 +365,14 @@ local function annotate(opts)
     return
   end
 
-  revision = opts.revision or revision
+  -- only use an explicitly supplied revision or if viewing a show() buffer,
+  -- then use the revision that is being shown
+  local annotate_revision = opts.revision or (
+    vim.b.git_info and vim.b.git_info.revision
+  )
   local result = M.git(
     'annotate "' .. path .. '"' ..
-    (revision and (' ' .. revision) or '') ..
+    (annotate_revision and (' ' .. annotate_revision) or '') ..
     ' -L ' .. first .. ',' .. last
   )
   if not result then
@@ -974,8 +978,14 @@ local log = function(opts)
   local expanded = opts.fargs_orig and vim.list_contains(opts.fargs_orig, '%')
 
   if not opts.bang or expanded then
+    -- logging from the log window
     if vim.fn.bufname() == log_name and vim.b.git_filename then
       filename = vim.b.git_filename
+
+    -- logging from a show() buffer (eg. :Git show prev, then annotate)
+    elseif vim.b.git_info and vim.b.git_info.path then
+      filename = vim.b.git_info.path
+
     else
       filename = vim.fn.expand('%:p')
       if filename == '' or vim.fn.bufname() == status_name then
