@@ -148,7 +148,13 @@ return {{
     vim.api.nvim_clear_autocmds(tc_au_opts)
     vim.api.nvim_create_autocmd({ 'CursorHold', 'WinResized' }, {
       group = 'treesitter_context_update',
-      callback = tc_callback,
+      callback = function(...)
+        -- treesitter-context already checks filetype, buftype, etc, but will
+        -- fail if the file is not modifiable
+        if vim.bo[vim.api.nvim_get_current_buf()].modifiable then
+          tc_callback(...) ---@diagnostic disable-line: need-check-nil
+        end
+      end
     })
 
     -- add highlighting of visible parent contexts {{{
