@@ -6,14 +6,31 @@ return {{
     -- disabled, usse nvim-treesitter-context instead
     vim.g.matchup_matchparen_offscreen = {}
 
-    -- effectively switch from using a CursorMoved autocmd to CursorHold
-    -- since CursorMoved can result in cpu spikes, bit of lag, etc, even with
-    -- the matchparen deferred setting enabled.
-    vim.cmd('autocmd! matchup_matchparen CursorMoved,CursorMovedI')
+    -- replace CursorMoved*, Insert*, and TextChanged* autocmds with a
+    -- CursorHold since a file with large blocks can cause matchup to be really
+    -- slow and interfere with typing
     vim.cmd(
-      'autocmd matchup_matchparen CursorHold * ' ..
-      'doautocmd matchup_matchparen TextChanged'
+      'autocmd! matchup_matchparen ' ..
+        'CursorMoved,' ..
+        'CursorMovedI,' ..
+        'InsertChange,' ..
+        'InsertEnter,' ..
+        'InsertLeave,' ..
+        'TextChanged,' ..
+        'TextChangedI,' ..
+        'TextChangedP'
     )
+    vim.api.nvim_create_autocmd('CursorHold', {
+      group = 'matchup_matchparen',
+      callback = function()
+        -- CursorHold should only fire in normal mode, but this is firing in
+        -- all modes for some reason (nvim bug?), so explicilty limit it to
+        -- normal mode
+        if vim.fn.mode() == 'n' then
+          vim.cmd.doautocmd('matchup_matchparen WinEnter')
+        end
+      end,
+    })
   end,
   init = function()
 
