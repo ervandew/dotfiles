@@ -161,12 +161,12 @@ function _tab() ---@diagnostic disable-line: lowercase-global
             local branch = lines[1]:gsub('ref: refs/heads/', '')
             if branch ~= '' and branch ~= lines[1] then
               branch = '%#TabLineSelBranch#' .. branch .. '%#TabLineSel#'
-              tab_name = tab_name .. '(' .. branch .. ')'
+              tab_name = tab_name .. ':' .. branch
             end
           end
         end
       end
-      name = tab_name .. ': ' .. name
+      name = tab_name .. ' ' .. name
     end
 
     tabline = tabline .. ' ' .. name
