@@ -1190,7 +1190,7 @@ local status_branch = function()
             actions.close(prompt_bufnr)
             if M.git('switch ' .. name) then
               notify('Current branch: ' .. name)
-              vim.cmd.checktime() -- update existing buffers if necessary
+              pcall(vim.cmd.checktime) -- update existing buffers if necessary
               status_term_update()
             end
           else
@@ -1220,7 +1220,7 @@ local status_branch = function()
               term('git rebase ' .. name, {
                 cwd = repo(),
                 on_exit = function()
-                  vim.cmd.checktime() -- update existing buffers if necessary
+                  pcall(vim.cmd.checktime) -- update existing buffers if necessary
                   status_term_update()
                 end,
               })
@@ -1240,7 +1240,7 @@ local status_branch = function()
               term('git mergein ' .. name, {
                 cwd = repo(),
                 on_exit = function()
-                  vim.cmd.checktime() -- update existing buffers if necessary
+                  pcall(vim.cmd.checktime) -- update existing buffers if necessary
                   status_term_update()
                 end,
               })
@@ -1692,7 +1692,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       end,
       untracked = false,
     })
-    vim.cmd.checktime() -- update existing buffers if necessary
+    pcall(vim.cmd.checktime) -- update existing buffers if necessary
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'f', function()
@@ -1717,7 +1717,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
         cwd = repo(),
         echo = is_ahead and 'rebasing...' or 'merging...',
         on_exit = function()
-          vim.cmd.checktime() -- update existing buffers if necessary
+          pcall(vim.cmd.checktime) -- update existing buffers if necessary
           status_term_update()
         end
       })
