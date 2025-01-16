@@ -27,7 +27,8 @@ return {{
         -- all modes for some reason (nvim bug?), so explicilty limit it to
         -- normal mode
         if vim.fn.mode() == 'n' then
-          vim.cmd.doautocmd('matchup_matchparen WinEnter')
+          -- using pcall to prevent matchup errors from grabbing focus
+          pcall(vim.cmd.doautocmd, 'matchup_matchparen WinEnter')
         end
       end,
     })
