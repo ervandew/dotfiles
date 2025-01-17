@@ -33,6 +33,7 @@ local modal = function()
 end
 
 local term = function(cmd, opts)
+  local curwin = vim.fn.winnr()
   modal()
   vim.wo.cursorline = false
   vim.wo.cursorcolumn = false
@@ -51,6 +52,7 @@ local term = function(cmd, opts)
     vim.cmd.startinsert()
     vim.keymap.set('n', 'q', function()
       vim.cmd.quit()
+      vim.cmd(curwin .. 'winc w')
       vim.cmd.doautocmd('WinEnter')
     end, { buffer = true })
   end)
