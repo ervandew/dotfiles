@@ -10,9 +10,8 @@ return {
           vim.wo.wrap = false
 
           local decisive = require('decisive')
-          -- setup text objects (currently pretty broken)
-          decisive.setup{}
-          decisive.align_csv({})
+          decisive.setup({})
+          decisive.align_csv({ csv_separator = ',' })
 
           vim.api.nvim_buf_create_user_command(0, 'CsvAlign', function()
             require('decisive').align_csv({})
@@ -46,6 +45,9 @@ return {
   {
     'chrisbra/csv.vim',
     config = function()
+      -- set a default delimiter to suppress warnings
+      vim.g.csv_delim = ','
+
       vim.api.nvim_create_autocmd('BufWinEnter', {
         pattern = '*.csv',
         callback = function()
