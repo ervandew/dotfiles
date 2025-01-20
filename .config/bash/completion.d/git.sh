@@ -27,9 +27,9 @@ __git_aliased_command() {
   case "$1" in
     blog | blogin | blogout)
       echo "log" ; return ;;
-    dbranch | mergein | rebasesafe)
+    dbranch | mergein)
       echo "branch" ; return ;;
-    ghcompare | glcompare | glpullrequest | azurepullrequest | pullrequest | pr)
+    ghcompare | glcompare | pr)
       echo "branch" ; return ;;
   esac
 
