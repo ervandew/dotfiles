@@ -32,6 +32,12 @@ return {{
         end
       end,
     })
+
+    -- add ability to toggle whether matchup is enabled in the current buffer
+    -- (useful for files that cause matchup to take a long time)
+    vim.api.nvim_create_user_command('MatchupToggle', function()
+      vim.b.matchup_matchparen_enabled = vim.b.matchup_matchparen_enabled == nil and 0 or nil
+    end, { nargs = 0 })
   end,
   init = function()
 
