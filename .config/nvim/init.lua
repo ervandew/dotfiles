@@ -398,7 +398,7 @@ vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'FileType' }, {
     vim.schedule(function()
       -- don't show the colorcolumn for certain file types or files that can't be
       -- edited
-      local ignore_ft = { 'man', 'qf' }
+      local ignore_ft = { 'qf' }
       local ignore_bt = { 'prompt', 'terminal' }
       if not vim.list_contains(ignore_ft, vim.bo.ft) and
          not vim.list_contains(ignore_bt, vim.bo.bt) and
@@ -407,7 +407,9 @@ vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'FileType' }, {
         vim.opt.colorcolumn = '82'
       end
       if not vim.list_contains(ignore_bt, vim.bo.bt) then
-        vim.opt.number = true
+        if vim.bo.ft ~= 'man' then
+          vim.opt.number = true
+        end
         vim.opt.cursorline = true
       end
     end)
