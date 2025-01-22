@@ -505,7 +505,15 @@ vim.api.nvim_create_autocmd('TermOpen', {
 
 require('comment').init()
 require('diff').init()
-require('git').init()
+require('git').init({
+  branch_merge = 'mergein',
+  complete = {
+    blogin = 'branch',
+    blogout = 'branch',
+    mergein = 'branch',
+    pr = 'branch',
+  },
+})
 require('grep').init()
 require('indentdetect').init()
 require('maximize').init()

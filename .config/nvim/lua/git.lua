@@ -1,5 +1,6 @@
 M = {}
 
+local config
 local notify = function(msg, level, opts)
   opts = opts or {}
   opts.title = opts.title or 'git'
@@ -10,8 +11,9 @@ local error = function(msg, hl)
   vim.api.nvim_echo({{ msg, hl or 'Error' }}, true, {})
 end
 
-local confirm = function(...)
-  local ok, choice = pcall(vim.fn.confirm, ...)
+local confirm = function(msg, choices, default, type)
+  default = default or 0
+  local ok, choice = pcall(vim.fn.confirm, msg, choices, default, type)
   return (ok and choice ~= 0) and choice or nil
 end
 
@@ -58,7 +60,7 @@ local term = function(cmd, opts)
   end)
 end
 
-local window = function(name, open, opts)
+local window = function(name, open, lines, opts)
   opts = opts or {}
 
   local winnr = vim.fn.bufwinnr(name)
@@ -77,6 +79,11 @@ local window = function(name, open, opts)
       vim.cmd.doautocmd('WinEnter')
     end, { buffer = true })
 
+    if name:match('%.patch$') then
+      -- mimic standard pager scrolling
+      vim.keymap.set('n', '<space>', '<c-f>', { buffer = true, nowait = true })
+    end
+
     if type(opts.created) == 'function' then
       opts.created()
     end
@@ -91,54 +98,41 @@ local window = function(name, open, opts)
     end
   end
 
-  if opts.lines then
-    vim.bo.readonly = false
-    vim.bo.modifiable = true
-    vim.cmd('silent 1,$delete _')
-    vim.fn.append(1, opts.lines)
-    vim.cmd('silent 1,1delete _')
-    vim.fn.cursor(1, 1)
-    vim.bo.modified = false
-    vim.bo.readonly = true
-    vim.bo.modifiable = false
-    vim.bo.swapfile = false
-    vim.bo.buflisted = false
-    vim.bo.buftype = 'nofile'
-    vim.bo.bufhidden = 'wipe'
-    vim.cmd.doautocmd('BufReadPost')
+  vim.bo.readonly = false
+  vim.bo.modifiable = true
+  vim.cmd('silent 1,$delete _')
+  vim.fn.append(1, lines)
+  vim.cmd('silent 1,1delete _')
+  vim.fn.cursor(1, 1)
+  vim.bo.modifiable = false
+  vim.bo.swapfile = false
+  vim.bo.buflisted = false
+  vim.bo.buftype = 'nofile'
+  vim.bo.bufhidden = 'wipe'
+  vim.cmd.doautocmd('BufReadPost')
 
-    -- work around a possible vim bug where setting this buffer as
-    -- modifiable = false above affects all unnamed buffers, despite using
-    -- vim.bo and the fact that 'modifiable' is a local buffer only option.
-    -- Note: using 'vim.o' vs 'vim.bo' since 'vim.bo' doesn't seem to work,
-    -- again despite the docs noting that 'modifiable' is a buffer local only
-    -- option.
--- FIXME: needed?
---    autocmd! BufUnload <buffer> set modifiable
+  -- let nvim diff code attempt to sync the cursor position
+  if opts.diff_sync then
+    vim.cmd.diffthis()
+    vim.cmd.winc('p')
 
-    -- let nvim diff code attempt to sync the cursor position
-    if opts.diff_sync then
+    -- don't discrupt an existing diff
+    local other_diff = vim.wo.diff
+    if not other_diff then
       vim.cmd.diffthis()
-      vim.cmd.winc('p')
-
-      -- don't discrupt an existing diff
-      local other_diff = vim.wo.diff
-      if not other_diff then
-        vim.cmd.diffthis()
-      end
-
-      -- opening the diff folds seems to be necessary, at least of the original
-      -- cursor position is within one
-      vim.cmd('normal zR')
-
-      if not other_diff then
-        vim.cmd.diffoff()
-      else
-        vim.cmd('normal zM') -- close folds we opened
-      end
-      vim.cmd.winc('p')
-      vim.cmd.diffoff()
     end
+
+    -- opening the diff folds seems to be necessary, at least if the original
+    -- cursor position is within one
+    vim.cmd('normal zR')
+
+    if not other_diff then
+      vim.cmd.diffoff()
+    else
+      vim.cmd('normal zM') -- close folds we opened
+    end
+    vim.cmd.winc('p')
+    vim.cmd.diffoff()
   end
 end
 
@@ -479,7 +473,7 @@ local function annotate(opts)
     group = annotate_augroup,
     callback = annotate_info,
   })
-  if vim.bo.modifiable then
+  if vim.bo.buftype == '' then
     vim.api.nvim_create_autocmd('BufWritePost', {
       buffer = bufnr,
       group = annotate_augroup,
@@ -526,8 +520,7 @@ M.show = function(opts)
     file_revision,
     vim.fn.fnamemodify(path, ':t'),
   }, '_')
-  window(git_file, opts.open or 'new', {
-    lines = vim.fn.split(result, '\n'),
+  window(git_file, opts.open or 'new', vim.fn.split(result, '\n'), {
     diff_sync = opts.diff_sync or not opts.path,
   })
   set_info(root, path, target_revision)
@@ -632,7 +625,6 @@ local log_detail = function()
   end
 
   vim.bo.modifiable = true
-  vim.bo.readonly = false
   if line:match('^+') then
     local open = vim.fn.substitute(
       line, '+ \\(.\\{-})\\).*', '- \\1 ' .. details.date, ''
@@ -674,7 +666,6 @@ local log_detail = function()
     vim.fn.setpos('.', pos)
   end
   vim.bo.modifiable = false
-  vim.bo.readonly = true
 end
 
 local log_files = function()
@@ -683,7 +674,6 @@ local log_files = function()
   local revision = log_revision()
 
   vim.bo.modifiable = true
-  vim.bo.readonly = false
   if line:match('^%s+%+') then
     local results = M.git(
       'log -1 --name-status --pretty=tformat:"" ' .. revision
@@ -744,7 +734,6 @@ local log_files = function()
     end
   end
   vim.bo.modifiable = false
-  vim.bo.readonly = true
 end
 
 local log_open = function()
@@ -764,10 +753,7 @@ local log_patch = function()
   if not result then
     return
   end
-
-  window('git_' .. revision .. '.patch', 'modal', {
-    lines = vim.fn.split(result, '\n')
-  })
+  window('git_' .. revision .. '.patch', 'modal', vim.fn.split(result, '\n'))
 end
 
 local log_diff = function(path1, path2)
@@ -1064,7 +1050,7 @@ local log = function(opts)
   end
 
   local height = 15
-  window(log_name, 'botright ' .. height .. 'sview', { lines = lines })
+  window(log_name, 'botright ' .. height .. 'new', lines)
   vim.w.height = height -- for other plugins that may need to restore the height
   vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
   vim.wo.wrap = false
@@ -1176,129 +1162,157 @@ local status_term_exit = function(term_bufnr, exit_code)
   end
 end
 
-local status_branch = function()
-  local loaded, builtin = pcall(require, 'telescope.builtin')
-  if loaded and builtin then
-    local actions = require('telescope.actions')
-    local action_state = require('telescope.actions.state')
-    builtin.git_branches({
-      previewer = false,
-      show_remote_tracking_branches = false,
-      attach_mappings = function(prompt_bufnr, map)
-        actions.select_default:replace(function()
-          local selection = action_state.get_selected_entry()
-          if selection then
-            local name = selection.value
-            actions.close(prompt_bufnr)
-            if M.git('switch ' .. name) then
-              notify('Current branch: ' .. name)
-              pcall(vim.cmd.checktime) -- update existing buffers if necessary
-              status_term_update()
-            end
-          else
-            local picker = action_state.get_current_picker(prompt_bufnr)
-            local name = picker:_get_prompt()
-            local branch = M.git('rev-parse --abbrev-ref HEAD')
-            actions.close(prompt_bufnr)
-            local msg = 'Create new branch ' .. name .. ' from ' .. branch .. '?'
-            local result = confirm(msg, '&yes\n&no', 0)
-            if result == 1 then
-              if M.git('switch -c ' .. name) then
-                notify('Created new branch: ' .. name)
-                status_term_update()
-              end
-            end
-          end
-        end)
-        map({ 'i', 'n' }, '<c-r>', function()
-          local selection = action_state.get_selected_entry()
-          if selection then
-            local name = selection.value
-            local branch = M.git('rev-parse --abbrev-ref HEAD')
-            actions.close(prompt_bufnr)
-            local msg = 'Rebase branch ' .. branch .. ' against ' .. name .. '?'
-            local result = confirm(msg, '&yes\n&no', 0)
-            if result == 1 then
-              term('git rebase ' .. name, {
-                cwd = repo(),
-                on_exit = function()
-                  pcall(vim.cmd.checktime) -- update existing buffers if necessary
-                  status_term_update()
-                end,
-              })
-            end
-          end
-        end)
-        map({ 'i', 'n' }, '<c-g>', function()
-          local selection = action_state.get_selected_entry()
-          if selection then
-            local name = selection.value
-            local branch = M.git('rev-parse --abbrev-ref HEAD')
-            actions.close(prompt_bufnr)
-            local msg = 'Merge branch ' .. name .. ' into ' .. branch .. '?'
-            local result = confirm(msg, '&yes\n&no', 0)
-            if result == 1 then
-              -- custom alias!
-              term('git mergein ' .. name, {
-                cwd = repo(),
-                on_exit = function()
-                  pcall(vim.cmd.checktime) -- update existing buffers if necessary
-                  status_term_update()
-                end,
-              })
-            end
-          end
-        end)
-        map({ 'i', 'n' }, '<c-d>', function()
-          local selection = action_state.get_selected_entry()
-          if selection then
-            local branch = M.git('rev-parse --abbrev-ref HEAD')
-            local name = selection.value
-            if name == branch then
-              actions.close(prompt_bufnr)
-              vim.schedule(function()
-                error('Current branch cannot be deleted: ' .. name)
-              end)
-              return
-            end
-            actions.close(prompt_bufnr)
-            local msg = 'Delete branch? ' .. name
-            local result = confirm(msg, '&yes\n&force\n&no', 0)
-            vim.cmd.redraw()
-            if not result or result == 3 then
-              return
-            end
+local status_branch_switch = function(selection, prompt_text)
+  if selection then
+    local name = selection.value
+    if M.git('switch ' .. name) then
+      notify('Current branch: ' .. name)
+      pcall(vim.cmd.checktime) -- update existing buffers if necessary
+      status()
+    end
+  else
+    local name = prompt_text
+    local branch = M.git('rev-parse --abbrev-ref HEAD')
+    local msg = 'Create new branch ' .. name .. ' from ' .. branch .. '?'
+    local result = confirm(msg, '&yes\n&no')
+    if result == 1 then
+      if M.git('switch -c ' .. name) then
+        notify('Created new branch: ' .. name)
+        status()
+      end
+    end
+  end
+end
 
-            local remote = M.git(
-              'config get branch.' .. name .. '.remote',
-              { quiet = true }
-            )
-            local flag = result == 2 and ' -D ' or ' -d '
-            if M.git('branch' .. flag .. name) then
-              notify('Deleted local branch: ' .. name)
-              if remote then
-                msg = 'Delete remote? ' .. remote .. '/' .. name
-                result = confirm(msg, '&yes\n&no', 0)
-                vim.cmd.redraw()
-                if result == 1 then
-                  term('git push ' .. remote .. ' -d ' .. name, {
-                    cwd = repo(),
-                    echo = 'deleting ' .. remote .. '/' .. name .. '...',
-                  })
-                end
-              end
-            end
-          end
-        end)
-        return true
-      end,
-    })
+local status_branch_merge = function(selection)
+  if selection then
+    local name = selection.value
+    local branch = M.git('rev-parse --abbrev-ref HEAD')
+    local msg = 'Merge branch ' .. name .. ' into ' .. branch .. '?'
+    local result = confirm(msg, '&yes\n&no')
+    if result == 1 then
+      local cmd = config.branch_merge or 'merge'
+      if not cmd:match('^[-%w]+$') then
+        error('branch_merge must be a git command or alias')
+        return
+      end
+      term('git ' .. cmd .. ' ' .. name, {
+        cwd = repo(),
+        on_exit = function()
+          pcall(vim.cmd.checktime) -- update existing buffers if necessary
+          status_term_update()
+        end,
+      })
+    end
+  end
+end
+
+local status_branch_rebase = function(selection)
+  if selection then
+    local name = selection.value
+    local branch = M.git('rev-parse --abbrev-ref HEAD')
+    local msg = 'Rebase branch ' .. branch .. ' against ' .. name .. '?'
+    local result = confirm(msg, '&yes\n&no')
+    if result == 1 then
+      term('git rebase ' .. name, {
+        cwd = repo(),
+        on_exit = function()
+          pcall(vim.cmd.checktime) -- update existing buffers if necessary
+          status_term_update()
+        end,
+      })
+    end
+  end
+end
+
+local status_branch_delete = function(selection)
+  if selection then
+    local branch = M.git('rev-parse --abbrev-ref HEAD')
+    local name = selection.value
+    if name == branch then
+      vim.schedule(function()
+        error('Current branch cannot be deleted: ' .. name)
+      end)
+      return
+    end
+    local msg = 'Delete branch? ' .. name
+    local result = confirm(msg, '&yes\n&force\n&no')
+    vim.cmd.redraw()
+    if not result or result == 3 then
+      return
+    end
+
+    local remote = M.git(
+      'config get branch.' .. name .. '.remote',
+      { quiet = true }
+    )
+    local flag = result == 2 and ' -D ' or ' -d '
+    if M.git('branch' .. flag .. name) then
+      notify('Deleted local branch: ' .. name)
+      if remote then
+        msg = 'Delete remote? ' .. remote .. '/' .. name
+        result = confirm(msg, '&yes\n&no')
+        vim.cmd.redraw()
+        if result == 1 then
+          term('git push ' .. remote .. ' -d ' .. name, {
+            cwd = repo(),
+            echo = 'deleting ' .. remote .. '/' .. name .. '...',
+          })
+        end
+      end
+    end
+  end
+end
+
+local status_branch_cmd = function(cmd)
+  return function()
+    local loaded, builtin = pcall(require, 'telescope.builtin')
+    if loaded and builtin then
+      local actions = require('telescope.actions')
+      local action_state = require('telescope.actions.state')
+      local cmd_func
+      if cmd == 'switch' then
+        cmd_func = status_branch_switch
+      elseif cmd == 'merge' then
+        cmd_func = status_branch_merge
+      elseif cmd == 'rebase' then
+        cmd_func = status_branch_rebase
+      elseif cmd == 'delete' then
+        cmd_func = status_branch_delete
+      else
+        return
+      end
+
+      builtin.git_branches({
+        previewer = false,
+        prompt_title = 'Git branch: ' .. cmd,
+        show_remote_tracking_branches = false,
+        attach_mappings = function(prompt_bufnr, map)
+          actions.select_default:replace(function()
+            local selection = action_state.get_selected_entry()
+            local picker = action_state.get_current_picker(prompt_bufnr)
+            local prompt_text = picker:_get_prompt()
+            actions.close(prompt_bufnr)
+            cmd_func(selection, prompt_text)
+          end)
+          -- effectively remove the default mappings for this instance
+          local noop = function() end
+          map({ 'i', 'n' }, '<c-t>', noop)
+          map({ 'i', 'n' }, '<c-r>', noop)
+          map({ 'i', 'n' }, '<c-a>', noop)
+          map({ 'i', 'n' }, '<c-s>', noop)
+          map({ 'i', 'n' }, '<c-d>', noop)
+          map({ 'i', 'n' }, '<c-y>', noop)
+          return true
+        end,
+      })
+    end
   end
 end
 
 local status_pending_line = 1
 local status_head_line = 2
-local status_repo_actions_line = 3
+local status_repo_actions_line = 4
 local status_action = function()
   if vim.fn.mode() == 'V' then
     local pos1 = vim.fn.getpos('v')
@@ -1314,9 +1328,7 @@ local status_action = function()
       )
       local result = M.git('diff HEAD ' .. paths)
       if result then
-        window('git_HEAD.patch', 'modal', {
-          lines = vim.fn.split(result, '\n')
-        })
+        window('git_HEAD.patch', 'modal', vim.fn.split(result, '\n'))
       end
     end
 
@@ -1335,7 +1347,7 @@ local status_action = function()
       line, '^## \\([^[:space:]]\\{-}\\%.c\\)', '\\1', ''
     )
     if branch_match ~= line then
-      status_branch()
+      status_branch_cmd('switch')()
       return
     end
 
@@ -1356,8 +1368,7 @@ local status_action = function()
   if lnum == status_repo_actions_line then
     local word = vim.fn.expand('<cword>')
     if word == 'stashes' then
-      vim.o.modifiable = true
-      vim.o.readonly = false
+      vim.bo.modifiable = true
       if vim.fn.getline(lnum + 1):match('^## %-') then
         local pos = vim.fn.getpos('.')
         while vim.fn.getline(lnum + 1):match('^## %-') do
@@ -1376,8 +1387,7 @@ local status_action = function()
           status() -- if there aren't any commits, then we might be out of date
         end
       end
-      vim.o.modifiable = false
-      vim.o.readonly = true
+      vim.bo.modifiable = false
     end
   end
 
@@ -1392,9 +1402,7 @@ local status_action = function()
   if stash then
     local result = M.git('stash show -p ' .. stash)
     if result then
-      window('git_' .. stash .. '.patch', 'modal', {
-        lines = vim.fn.split(result, '\n')
-      })
+      window('git_' .. stash .. '.patch', 'modal', vim.fn.split(result, '\n'))
     end
   end
 
@@ -1403,9 +1411,14 @@ local status_action = function()
     return
   end
 
-  local status_bufnr = vim.fn.bufnr()
-  local path = line:sub(4)
   local col = vim.fn.col('.')
+  local status_bufnr = vim.fn.bufnr()
+
+  local path = line:sub(4)
+  -- handle renames
+  if path:match('%->') then
+    path = path:match('%->%s+(.*)')
+  end
 
   -- act on the status
   if col <= 2 then
@@ -1415,7 +1428,7 @@ local status_action = function()
       if not result then
         return
       end
-      window(path, 'modal', { lines = vim.fn.split(result, '\n') })
+      window(path, 'modal', vim.fn.split(result, '\n'))
     elseif status == 'D' then
       local revision = M.git(
         'rev-list --abbrev-commit -n 1 HEAD -- ' .. '"' .. path .. '"'
@@ -1432,9 +1445,7 @@ local status_action = function()
       if not result then
         return
       end
-      window(path .. '.patch', 'modal', {
-        lines = vim.fn.split(result, '\n'),
-      })
+      window(path .. '.patch', 'modal', vim.fn.split(result, '\n'))
     end
 
   -- open the file if it hasn't been deleted
@@ -1506,7 +1517,7 @@ local status_cmd = function(cmd, opts)
   if opts.confirm then
     local msg = opts.confirm(lines)
     if msg then
-      local result = confirm(msg, '&yes\n&no', 0)
+      local result = confirm(msg, '&yes\n&no')
       if result ~= 1 then
         return
       end
@@ -1514,7 +1525,13 @@ local status_cmd = function(cmd, opts)
   end
 
   local paths = vim.fn.join(
-    vim.tbl_map(function(l) return l:sub(4) end, lines),
+    vim.tbl_map(function(l)
+      local path = l:sub(4)
+      if path:match('%->') then
+        path = path:match('%->%s+(.*)')
+      end
+      return path
+    end, lines),
     ' '
   )
   if opts.term then
@@ -1538,8 +1555,9 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   local lines = vim.fn.split(result, '\n')
   local stashes = vim.fn.split(M.git('stash list') or '', '\n')
   local head = M.git('log -1 "--pretty=format:%h %an: %s"')
+  local branch_actions = 'gi(t) branch + [s]witch [m]erge [r]ebase [d]elete'
   local repo_actions = '(f)etch (c)ommit (a)mend'
-  local file_actions = '(s)tage (i)nteractive (u)nstage (r)estore'
+  local file_actions = '(s)tage (i)nteractive (u)nstage (r)estore (d)elete'
   local is_ahead = result:match('%[ahead %d+')
   local is_behind = result:match('[%[%s]behind %d+')
   local is_gone = result:match('%[gone%]') -- remote is set but doesn't exist
@@ -1561,6 +1579,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   lines = vim.list_extend({
     lines[1],
     '## HEAD: ' .. head,
+    '## ' .. branch_actions,
     '## ' .. repo_actions,
     '## ' .. file_actions,
   }, lines, 2)
@@ -1574,8 +1593,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end
 
   local height = 15
-  window(status_name, 'botright ' .. height .. 'sview', {
-    lines = lines,
+  window(status_name, 'botright ' .. height .. 'new', lines, {
     created = function()
       local nav = function(dir)
         -- if we are on the pending commits line, then reset our position
@@ -1648,6 +1666,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.cmd('syntax match GitStatusDeletedFile /\\(\\%1cD\\|\\%2cD\\)\\@<=.*/')
   vim.cmd('syntax match GitStatusModified /\\%2cM/')
   vim.cmd('syntax match GitStatusModifiedStaged /\\%1cM/')
+  vim.cmd('syntax match GitStatusRenamedStaged /\\%1cR/')
   vim.cmd('syntax match GitStatusStash /\\(^## - \\)\\@<=stash@{.*/')
   vim.cmd('syntax match GitStatusUntracked /^?.*/')
   -- same highlight groups as log, but different patterns
@@ -1656,26 +1675,39 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.cmd('syntax match GitMessage /\\(^## HEAD: \\w\\+ \\w.\\{-}:\\s\\)\\@<=.*/')
 
   local bufnr = vim.fn.bufnr()
-  vim.keymap.set({ 'n', 'x' }, '<cr>', status_action, { buffer = bufnr })
 
+  vim.keymap.set('n', 't', function()
+    local actions = { 'switch', 'merge', 'rebase', 'delete' }
+    local action = confirm(
+      'Choose a branch action:',
+      '&' .. vim.fn.join(actions, '\n&')
+    )
+    if action then
+      vim.cmd.normal('t' .. actions[action]:sub(1, 1))
+      vim.cmd.startinsert()
+    end
+  end, { buffer = bufnr })
+  vim.keymap.set('n', 'ts', status_branch_cmd('switch'), { buffer = bufnr })
+  vim.keymap.set('n', 'tm', status_branch_cmd('merge'),  { buffer = bufnr })
+  vim.keymap.set('n', 'tr', status_branch_cmd('rebase'), { buffer = bufnr })
+  vim.keymap.set('n', 'td', status_branch_cmd('delete'), { buffer = bufnr })
+
+  vim.keymap.set({ 'n', 'x' }, '<cr>', status_action, { buffer = bufnr })
   vim.keymap.set({ 'n', 'x' }, 's', function()
     status_cmd('stage')
   end, { buffer = bufnr })
-
   vim.keymap.set({ 'n', 'x' }, 'i', function()
     status_cmd('stage -p', {
       term = true,
       filter = function(line)
         -- only allow entries with unstaged changes
-        return line:match('^%sM')
+        return line:match('^.M')
       end,
     })
   end, { buffer = bufnr })
-
   vim.keymap.set({ 'n', 'x' }, 'u', function()
     status_cmd('restore --staged', { untracked = false })
   end, { buffer = bufnr })
-
   vim.keymap.set('n', 'r', function()
     status_cmd('restore', {
       confirm = function(selection)
@@ -1684,17 +1716,30 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
         end, selection)
         if #affected > 0 then
           return 'Are you sure you want to run: ' ..
-            'git restore on ' .. #selection .. ' file(s) ' ..
-            '(unstaged changes will be lost)?'
+            'git restore on ' .. #selection .. ' file(s)? ' ..
+            '(unstaged changes will be lost)'
         end
       end,
       filter = function(line)
         -- only allow entries with unstaged changes
-        return line:match('^%s[MD]')
+        return line:match('^.[MD]')
       end,
       untracked = false,
     })
     pcall(vim.cmd.checktime) -- update existing buffers if necessary
+  end, { buffer = bufnr })
+  vim.keymap.set({ 'n', 'x' }, 'd', function()
+    status_cmd('clean -f', {
+      confirm = function(selection)
+        return 'Are you sure you want to run: ' ..
+          'git clean -f on ' .. #selection .. ' file(s)? ' ..
+          '(this cannot be undone)'
+      end,
+      filter = function(line)
+        -- only allow untracked entries
+        return line:sub(1, 1) == '?'
+      end,
+    })
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'f', function()
@@ -1779,23 +1824,55 @@ local commands = {
   ['grep-files'] = grep_files,
 }
 
-local complete = function(_, cmdl, pos)
+local complete_filepath = function(compl_opts)
+  local arglead = compl_opts.arglead
+  local root = repo()
+  local results = vim.fn.glob(root .. arglead .. '*', nil, true)
+  results = vim.tbl_map(function(r)
+    local rel = r:sub(#root + 1)
+    if vim.fn.isdirectory(r) == 1 then
+      rel = rel .. '/'
+    end
+    return rel
+  end, results)
+  return compl_opts.match, results
+end
+
+local complete = function(arglead, cmdl, pos)
   local pre = string.sub(cmdl, 1, pos)
   local results = {}
-
+  local opts = { arglead = arglead, cmdl = cmdl, pos = pos}
   local completions = {
-    -- complete command name
-    ['^Git%s+([-%w]*)$'] = function(match)
-      return match, vim.tbl_keys(commands)
+    -- complete command names
+    ['^Git%s+([-%w]*)$'] = function(compl_opts)
+      local cmds = {}
+      local all = vim.fn.system(
+        'git help -a | grep "^\\s\\+\\w" | perl -pe "s|^\\s+(\\S+)\\s.*|\\1|"'
+      )
+      if vim.v.shell_error == 0 then
+        cmds = vim.fn.split(all, '\n')
+      end
+      for cmd, _ in pairs(commands) do
+        if not vim.list_contains(cmds, cmd) then
+          cmds[#cmds + 1] = cmd
+        end
+      end
+      return compl_opts.match, cmds
     end,
+    -- complete repo relative file paths for add, mv, and rm
+    ['^Git%s+add%s+.*([-/%w]*)$'] = complete_filepath,
+    ['^Git%s+mv%s+.*([-/%w]*)$'] = complete_filepath,
+    ['^Git%s+rm%s+.*([-/%w]*)$'] = complete_filepath,
     -- complete stash action
-    ['^Git%s+stash%s(%w*)$'] = function(match)
-      return match, {
-        'apply', 'branch', 'clear', 'create', 'drop', 'list', 'pop', 'push', 'show',
+    ['^Git%s+stash%s+(%w*)$'] = function(compl_opts)
+      return compl_opts.match, {
+        'apply', 'branch', 'clear', 'create',
+        'drop', 'list', 'pop', 'push', 'show',
       }
     end,
     -- complete stash references
-    ['^Git%s+stash%s(%w+%s%S*)'] = function(match)
+    ['^Git%s+stash%s+(%w+%s%S*)'] = function(compl_opts)
+      local match = compl_opts.match
       local actions = { 'apply', 'branch', 'drop', 'pop', 'show'}
       local action = match:match('^%w+')
       if vim.list_contains(actions, action) then
@@ -1811,11 +1888,26 @@ local complete = function(_, cmdl, pos)
     end,
   }
 
+  for _, alias in ipairs(vim.tbl_keys(config.complete or {})) do
+    completions['^Git%s+' .. alias .. '%s+([-/%w]*)$'] = function(compl_opts)
+      local compl = config.complete[alias]
+      local values
+      if compl == 'branch' then
+        local branches = M.git('branch -a --format="%(refname:short)"')
+        if branches then
+          values = vim.fn.split(branches, '\n')
+        end
+      end
+      return compl_opts.match, values
+    end
+  end
+
   for pattern, values in pairs(completions) do
     local match = pre:match(pattern)
     if match then
-      match = match:gsub('%-', '%%-')
-      local compl_pattern, compls = values(match)
+      opts.match = match:gsub('%-', '%%-')
+      local compl_pattern, compls = values(opts)
+      compls = compls or {}
       for _, value in ipairs(compls) do
         if value:match('^' .. compl_pattern) then
           results[#results + 1] = value
@@ -1829,7 +1921,8 @@ local complete = function(_, cmdl, pos)
   return results
 end
 
-M.init = function()
+M.init = function(init_opts)
+  config = init_opts or {}
   vim.api.nvim_create_user_command(
     'Git',
     function(opts)
@@ -1898,7 +1991,6 @@ M.init = function()
   vim.keymap.set('n', '<leader>ga', ':Git annotate<cr>', { silent = true })
   vim.keymap.set('n', '<leader>gl', ':Git log<cr>', { silent = true })
   vim.keymap.set('n', '<leader>gs', ':Git status<cr>', { silent = true })
-  vim.keymap.set('n', '<leader>gb', status_branch)
 end
 
 return M
