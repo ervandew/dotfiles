@@ -375,13 +375,16 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
 })
 
 -- disallow writing to read only files
--- autocmd BufNewFile,BufRead * :let &modifiable = !&readonly
-vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
+vim.api.nvim_create_autocmd('BufRead', {
   pattern = '*',
-  callback = function() vim.bo.modifiable = not vim.bo.readonly end
+  callback = function()
+    if vim.bo.readonly and vim.bo.buftype == '' then
+      vim.bo.modifiable = false
+    end
+  end
 })
 
--- only highlight cursor line / color column of the current window, making is
+-- only highlight cursor line / color column of the current window, making it
 -- easier to pick out which window has focus
 vim.api.nvim_create_autocmd('WinLeave', {
   pattern = '*',
