@@ -350,12 +350,21 @@ local function annotate(opts)
     vim.fn.sign_unplace('git_annotate')
     vim.b.git_annotations = nil
     vim.cmd.echo() -- clear any existing annotation info
-    return
+    if opts.range == 0 then -- don't return if a range is selected
+      return
+    end
   end
 
-  local wininfo = vim.fn.getwininfo(vim.fn.win_getid())[1]
-  local first = wininfo['topline']
-  local last = wininfo['botline']
+  local first, last
+  if opts.range ~= 0 then
+    first = opts.line1
+    last = opts.line2
+  else
+    local wininfo = vim.fn.getwininfo(vim.fn.win_getid())[1]
+    first = wininfo['topline']
+    last = wininfo['botline']
+  end
+
   local root, path, revision = file(opts.path)
   if not path then
     return
@@ -658,7 +667,8 @@ local log_detail = function()
   else
     local pos = vim.fn.getpos('.')
     vim.fn.setline(lnum, log_line(details))
-    local end_ = vim.fn.search('^[+-] \\w\\+', 'nW') - 1
+    -- look for the next log entry, or if diffs are rendered, then up to that.
+    local end_ = vim.fn.search('^\\([+-] \\w\\+\\|# \\)', 'nW') - 1
     if end_ == -1 then
       end_ = vim.fn.line('$')
     end
@@ -959,6 +969,11 @@ end
 
 local log_augroup = vim.api.nvim_create_augroup('git_log', {})
 local log = function(opts)
+  if opts.bang and opts.range ~= 0 then
+    error('Git! log cannot be used with a range.')
+    return
+  end
+
   local root, path
   local filename
 
@@ -1009,7 +1024,12 @@ local log = function(opts)
   end
 
   if path then
-    log_cmd = log_cmd .. ' --follow ' .. path
+    if opts.range ~= 0 then
+      log_cmd = log_cmd .. ' -L' .. opts.line1 .. ',' .. opts.line2 .. ':'
+    else
+      log_cmd = log_cmd .. ' --follow '
+    end
+    log_cmd = log_cmd .. path
   end
 
   local result = M.git(log_cmd, opts)
@@ -1027,15 +1047,32 @@ local log = function(opts)
   lines[#lines + 1] = ''
 
   local cursor = #lines + 1
+  local skipped = false
   for _, line in ipairs(vim.fn.split(result, '\n')) do
     local values = vim.fn.split(line, '|')
-    lines[#lines + 1] = log_line({
-      revision = values[1],
-      author = values[2],
-      age = values[3],
-      refs = values[4],
-      comment = values[5],
-    })
+    if #values == 5 then
+      lines[#lines + 1] = log_line({
+        revision = values[1],
+        author = values[2],
+        age = values[3],
+        refs = values[4],
+        comment = values[5],
+      })
+      skipped = false
+
+    -- when logging a range, skip the blank line before the diff output
+    elseif line == '' and not skipped then
+      skipped = true
+
+    else
+      -- skip these lines since thye are redundant
+      if not line:match('^diff %-%-git') and
+         not line:match('^%-%-%- a/') and
+         not line:match('^+++ b/')
+      then
+        lines[#lines + 1] = '# ' .. line
+      end
+    end
   end
 
   -- if the cursor is on an annotation line, then jump to that log entry
@@ -1071,6 +1108,9 @@ local log = function(opts)
   vim.cmd('syntax match GitLogHeader /^\\%<4l.\\{-}: .*/ contains=GitLogHeaderName,GitLogHeaderFile')
   vim.cmd('syntax match GitLogHeaderName /^\\%<4l.\\{-}:/')
   vim.cmd('syntax match GitLogHeaderFile /\\(\\%<4lfilename:\\s\\+\\)\\@<=.*/')
+  vim.cmd('syntax match GitLogDiff /^# .*/ contains=GitLogDiffAdd,GitLogDiffDelete')
+  vim.cmd('syntax match GitLogDiffAdd /\\(^# \\)\\@<=+.*/')
+  vim.cmd('syntax match GitLogDiffDelete /\\(^# \\)\\@<=-.*/')
 
   set_info(root, path, nil)
 
@@ -1859,6 +1899,10 @@ local complete = function(arglead, cmdl, pos)
       end
       return compl_opts.match, cmds
     end,
+    -- complete range command names
+    ["^'<,'>Git%s+([-%w]*)$"] = function(compl_opts)
+      return compl_opts.match, { 'annotate', 'log' }
+    end,
     -- complete repo relative file paths for add, mv, and rm
     ['^Git%s+add%s+.*([-/%w]*)$'] = complete_filepath,
     ['^Git%s+mv%s+.*([-/%w]*)$'] = complete_filepath,
@@ -1944,6 +1988,13 @@ M.init = function(init_opts)
       end, opts.fargs)
       opts.args = vim.fn.join(opts.fargs, ' ')
 
+      if opts.range ~= 0 and
+         (not command or (command ~= annotate and command ~= log))
+      then
+        error('Only Git annotate and log support a range.')
+        return
+      end
+
       if command then
         table.remove(opts.fargs, 1)
         opts.args = vim.fn.join(opts.fargs, ' ')
@@ -1972,6 +2023,7 @@ M.init = function(init_opts)
     {
       bang = true,
       nargs = '+',
+      range = true,
       complete = complete,
     }
   )
@@ -1980,9 +2032,13 @@ M.init = function(init_opts)
     local abbrev = 'git'
     local type = vim.fn.getcmdtype()
     local pos = vim.fn.getcmdpos()
+    local cmdl = vim.fn.getcmdline():sub(1, pos)
     ---@diagnostic disable-next-line: redundant-parameter
     local char = vim.fn.nr2char(vim.fn.getchar(1))
-    if type == ':' and pos == #abbrev + 1 and char:match('[%!%s\r]') then
+    if type == ':' and
+       char:match('[%!%s\r]') and
+       (cmdl == 'git' or cmdl == "'<,'>git")
+    then
       return 'Git'
     end
     return abbrev
