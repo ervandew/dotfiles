@@ -1,11 +1,12 @@
 local git = require('git')
 
-local window = function(name, lines)
+local window = function(name, lines, open)
   local winnr = vim.fn.bufwinnr(name)
   if winnr ~= -1 then
     vim.cmd(winnr .. 'winc w')
   else
-    vim.cmd('belowright new ' .. vim.fn.escape(name, ''))
+    open = open or 'belowright new'
+    vim.cmd(open .. ' ' .. vim.fn.escape(name, ''))
     vim.keymap.set('n', 'q', function()
       vim.cmd.quit()
       vim.cmd.doautocmd('WinEnter')
@@ -27,6 +28,7 @@ local window = function(name, lines)
   vim.bo.bufhidden = 'wipe'
 end
 
+local diff_augroup = vim.api.nvim_create_augroup('git_commit_diff', {})
 local view = function()
   local path
   local added = false
@@ -74,7 +76,7 @@ local view = function()
     git.show({
       path = path,
       revision = revision,
-      open = 'belowright sview',
+      open = 'belowright new',
     })
 
   elseif added then
@@ -84,13 +86,43 @@ local view = function()
     end
     window(path, vim.fn.split(result, '\n'))
 
-  else
-    local diff_cmd = 'diff ' .. (unstaged and '' or '--cached ')
-    local result = git.git(diff_cmd .. '"' .. path .. '"')
+  elseif unstaged then
+    local result = git.git('diff "' .. path .. '"')
     if not result then
       return
     end
     window(path .. '.patch', vim.fn.split(result, '\n'))
+  else
+    local staged = git.git('show ":' .. path .. '"')
+    if not staged then
+      return
+    end
+
+    window(
+      'git_staged_' .. vim.fn.fnamemodify(path, ':t'),
+      vim.fn.split(staged, '\n')
+    )
+    local bufnr = vim.fn.bufnr('%')
+    local shown = git.show({
+      path = path,
+      revision = revision,
+      open = 'rightbelow vnew',
+    })
+    if shown then
+      local diffbufnr = vim.fn.bufnr()
+      vim.cmd.diffthis()
+
+      vim.cmd.winc('p')
+      vim.cmd.diffthis()
+      vim.api.nvim_clear_autocmds({ buffer = bufnr, group = diff_augroup })
+      vim.api.nvim_create_autocmd('BufWinLeave', {
+        buffer = bufnr,
+        group = diff_augroup,
+        callback = function()
+          vim.cmd('silent! bdelete ' .. diffbufnr)
+        end,
+      })
+    end
   end
 
   vim.api.nvim_create_autocmd('BufEnter', {
