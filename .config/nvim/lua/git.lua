@@ -565,11 +565,9 @@ local diff = function(opts)
     open = 'below vertical new',
   })
   if shown then
-    vim.cmd.diffthis()
     local diffbufnr = vim.fn.bufnr()
-
     vim.b.git_filename = filename
-    vim.b.git_diff = true
+    vim.cmd.diffthis()
 
     vim.cmd.winc('p')
     vim.cmd.diffthis()
@@ -1899,6 +1897,10 @@ local complete = function(arglead, cmdl, pos)
       end
       return compl_opts.match, cmds
     end,
+    -- complete bang command names
+    ["^Git!%s+([-%w]*)$"] = function(compl_opts)
+      return compl_opts.match, { 'log' }
+    end,
     -- complete range command names
     ["^'<,'>Git%s+([-%w]*)$"] = function(compl_opts)
       return compl_opts.match, { 'annotate', 'log' }
@@ -1987,6 +1989,12 @@ M.init = function(init_opts)
         return a
       end, opts.fargs)
       opts.args = vim.fn.join(opts.fargs, ' ')
+
+      if opts.bang and (not command or command ~= log)
+      then
+        error('Only Git! log supports bang usage.')
+        return
+      end
 
       if opts.range ~= 0 and
          (not command or (command ~= annotate and command ~= log))
