@@ -213,12 +213,22 @@ local get_previous_revision = function(path, revision)
   -- NOTE: ideally this would use rev-list, but when limiting based on a
   -- previous revision, rev-list (and log) may skip some commits, and i'm
   -- unable to determine why, so the below is a bit more of a brute force method
-  return M.git(
-    'log --follow --pretty=tformat:%h -- ' ..
+  local cmd = 'log --follow --pretty=tformat:%h <revrange> -- ' ..
     '"' .. path .. '" |' ..
     'grep ' .. revision .. ' -A 1 | ' ..
     'tail -1'
-  )
+
+  -- first attempt against @{upstream so we can handle side by side diffs on
+  -- incomming commits
+  local result = M.git(cmd:gsub('<revrange>', '@{upstream}'), { quiet = true })
+
+  -- above may have failed if there is no upstream, so try again against just
+  -- HEAD
+  if not result then
+    result = M.git(cmd:gsub('<revrange>', 'HEAD'))
+  end
+
+  return result
 end
 
 local file = function(path)
