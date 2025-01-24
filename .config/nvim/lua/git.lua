@@ -1017,7 +1017,7 @@ local log = function(opts)
     ['in:([-%w]+)'] = {'incoming from <match>', '--right-only <branch>...<match>'},
     ['out:([-%w]+)'] = {'outgoing to <match>', '--left-only <branch>...<match>'},
   }
-  for i, arg in ipairs(opts.fargs) do
+  for i, arg in ipairs(opts.fargs or {}) do
     for pattern, expansion in pairs(expansions) do
       local match = arg:match(pattern)
       if match then
