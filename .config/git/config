@@ -49,7 +49,7 @@
   dlog = "!f() { R=HEAD; if [[ \"$1\" =~ ^[a-zA-Z0-9]+$ ]] ; then R=$1; shift; fi; git pick -t rev log -1 -p $R \"$@\"; }; f"
 
   # view the last committed version of a file, even if it has since been removed
-  view = "!f() { F=$1; if [[ ! \"$1\" == *:* ]] ; then F=$(git rev-list -n 1 HEAD -- $F)^:$F; fi; git show $F 2>&1 | $EDITOR - -c \"let g:lsp_disabled = v:true | doautocmd BufRead $1 | set nomod noma\"; }; f"
+  view = "!f() { F=$1; if [[ ! \"$1\" == *:* ]] ; then F=$(git rev-list -n 1 HEAD -- $F)^:$F; fi; git show $F 2>&1 | $EDITOR - -c \"let g:lsp_disabled = v:true | doautocmd BufRead $1 | set nomod noma bt=nofile | nmap <buffer> q :quit<cr>\"; }; f"
 
   omerge = !git merge @{upstream}
   orebase = "!f() { git rebase \"$@\" @{upstream}; }; f"
