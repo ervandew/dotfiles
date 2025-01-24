@@ -1013,9 +1013,9 @@ local log = function(opts)
 
   -- TODO: add completion of branch names
   local expansions = {
-    ['diff:([-%w]+)'] = {'diff between <match>', '<branch>...<match>'},
-    ['in:([-%w]+)'] = {'incoming from <match>', '--right-only <branch>...<match>'},
-    ['out:([-%w]+)'] = {'outgoing to <match>', '--left-only <branch>...<match>'},
+    ['diff:([-/@{}%w]+)'] = {'diff against <match>', '<branch>...<match>'},
+    ['in:([-/%w]+)'] = {'incoming from <match>', '--right-only <branch>...<match>'},
+    ['out:([-/%w]+)'] = {'outgoing to <match>', '--left-only <branch>...<match>'},
   }
   for i, arg in ipairs(opts.fargs or {}) do
     for pattern, expansion in pairs(expansions) do
@@ -1427,12 +1427,7 @@ local status_action = function()
       line, '.*\\(\\[.\\{-}\\%.c.\\{-}\\]\\)', '\\1', ''
     )
     if pending_match ~= line then
-      local pending = vim.fn.expand('<cword>')
-      if pending == 'ahead' then
-        log({ title = 'commits:      outbound', args = '@{upstream}..'})
-      elseif pending == 'behind' then
-        log({ title = 'commits:      inbound', args = '..@{upstream}'})
-      end
+      log({ fargs = { 'diff:@{upstream}' }})
       return
     end
   end
@@ -1634,7 +1629,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   local is_ahead = result:match('%[ahead %d+')
   local is_behind = result:match('[%[%s]behind %d+')
   local is_gone = result:match('%[gone%]') -- remote is set but doesn't exist
-  local can_amend = is_ahead or not is_protected(branch)
+  local can_amend = not is_behind and (is_ahead or not is_protected(branch))
   local can_commit = false
   for _, line in ipairs(lines) do
     if line:match('^[ADMR]') then
@@ -1652,12 +1647,14 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   if is_ahead then
     if is_behind and not is_protected(branch) then
       repo_actions = repo_actions .. ' (P)ush force'
-    else
+    elseif not is_behind then
       repo_actions = repo_actions .. ' (p)ush'
     end
-  elseif is_behind then
+  end
+  if is_behind then
     repo_actions = repo_actions .. ' (m)erge'
-  elseif is_gone then
+  end
+  if is_gone then
     repo_actions = repo_actions .. ' (p)ush'
   end
   if #stashes > 0 then
