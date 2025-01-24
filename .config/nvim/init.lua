@@ -512,6 +512,7 @@ require('git').init({
     blogout = 'branch',
     mergein = 'branch',
     pr = 'branch',
+    view = 'filepath',
   },
 })
 require('grep').init()

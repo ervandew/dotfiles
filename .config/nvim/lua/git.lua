@@ -23,7 +23,6 @@ local modal = function()
   local col = math.floor((vim.o.columns - width) / 2)
   local row = math.floor((vim.o.lines - height) / 2)
   local bufnr = vim.api.nvim_create_buf(false, true)
-  local winprev = vim.fn.winnr()
   vim.api.nvim_open_win(bufnr, true, {
     relative = 'editor',
     width = width,
@@ -33,7 +32,6 @@ local modal = function()
     style = 'minimal',
     border = 'rounded',
   })
-  vim.w.winprev = winprev
 end
 
 local term = function(cmd, opts)
@@ -54,11 +52,15 @@ local term = function(cmd, opts)
   })
   vim.schedule(function()
     vim.cmd.startinsert()
+    vim.api.nvim_create_autocmd('BufUnload', {
+      buffer = term_bufnr,
+      callback = function() vim.cmd(curwin .. 'winc w') end,
+    })
     vim.keymap.set('n', 'q', function()
       vim.cmd.quit()
       vim.cmd(curwin .. 'winc w')
       vim.cmd.doautocmd('WinEnter')
-    end, { buffer = true })
+    end, { buffer = term_bufnr })
   end)
 end
 
@@ -587,19 +589,20 @@ end
 
 local log_line = function(details)
   return vim.fn.printf(
-    '+ %s %s (%s)%s %s',
-    details.revision,
-    details.author, ---@diagnostic disable-line: redundant-parameter
-    details.age,    ---@diagnostic disable-line: redundant-parameter
-    details.refs,   ---@diagnostic disable-line: redundant-parameter
-    details.comment ---@diagnostic disable-line: redundant-parameter
+    '+ %s%s %s (%s)%s %s',
+    details.mark,
+    details.revision, ---@diagnostic disable-line: redundant-parameter
+    details.author,   ---@diagnostic disable-line: redundant-parameter
+    details.age,      ---@diagnostic disable-line: redundant-parameter
+    details.refs,     ---@diagnostic disable-line: redundant-parameter
+    details.comment   ---@diagnostic disable-line: redundant-parameter
   )
 end
 
 local log_revision = function()
-  local lnum = vim.fn.search('^[+-] \\w\\+', 'bcnW')
+  local lnum = vim.fn.search('^[+-] \\([<>-] \\)\\?\\w\\+', 'bcnW')
   local line = vim.fn.getline(lnum)
-  return vim.fn.substitute(line, '[+-] \\(\\w\\+\\) .*', '\\1', '')
+  return vim.fn.substitute(line, '[+-] \\([<>-] \\)\\?\\(\\w\\+\\) .*', '\\2', '')
 end
 
 local log_detail = function()
@@ -614,8 +617,10 @@ local log_detail = function()
     return
   end
 
+  local mark = line:match('^[+-] ([<>-] )') or ''
   local values = vim.fn.split(result, '|')
   local details = {
+    mark = mark,
     revision = values[1],
     author = values[2],
     age = values[3],
@@ -668,7 +673,7 @@ local log_detail = function()
     local pos = vim.fn.getpos('.')
     vim.fn.setline(lnum, log_line(details))
     -- look for the next log entry, or if diffs are rendered, then up to that.
-    local end_ = vim.fn.search('^\\([+-] \\w\\+\\|# \\)', 'nW') - 1
+    local end_ = vim.fn.search('^[+-]\\s', 'nW') - 1
     if end_ == -1 then
       end_ = vim.fn.line('$')
     end
@@ -731,7 +736,7 @@ local log_files = function()
     local close = vim.fn.substitute(line, '-', '+', '')
     vim.fn.setline(lnum, close)
     local start = lnum + 1
-    local end_ = vim.fn.search('^[+-] \\w\\+', 'cnW') - 1
+    local end_ = vim.fn.search('^[+-]\\s', 'cnW') - 1
     if end_ ~= lnum then
       if end_ == -1 then
         end_ = vim.fn.line('$')
@@ -813,7 +818,7 @@ local log_action = function()
     return
   end
 
-  if line:match('^[+-] %w+') then
+  if line:match('^[+-] [<>-]?%s*%w+') then
     log_detail()
     return
   end
@@ -991,7 +996,10 @@ local log = function(opts)
 
     else
       filename = vim.fn.expand('%:p')
-      if filename == '' or vim.fn.bufname() == status_name then
+      if filename == '' or
+         vim.fn.bufname() == log_name or
+         vim.fn.bufname() == status_name
+      then
         filename = nil
       end
     end
@@ -1003,7 +1011,32 @@ local log = function(opts)
     root = repo()
   end
 
-  local log_cmd = 'log --pretty=tformat:"%h|%an|%ar|%d|%s|"'
+  -- TODO: add completion of branch names
+  local expansions = {
+    ['diff:([-%w]+)'] = {'diff between <match>', '<branch>...<match>'},
+    ['in:([-%w]+)'] = {'incoming from <match>', '--right-only <branch>...<match>'},
+    ['out:([-%w]+)'] = {'outgoing to <match>', '--left-only <branch>...<match>'},
+  }
+  for i, arg in ipairs(opts.fargs) do
+    for pattern, expansion in pairs(expansions) do
+      local match = arg:match(pattern)
+      if match then
+        local branch = M.git('rev-parse --abbrev-ref HEAD')
+        if branch then
+          opts.fargs[i] = expansion[2]
+            :gsub('<branch>', branch)
+            :gsub('<match>', match)
+          opts.args = vim.fn.join(opts.fargs, ' ')
+          opts.title = 'filter:       ' .. expansion[1]
+            :gsub('<branch>', branch)
+            :gsub('<match>', match)
+        end
+        break
+      end
+    end
+  end
+
+  local log_cmd = 'log --pretty=tformat:"%m|%h|%an|%ar|%d|%s"'
   if opts.args and opts.args ~= '' then
     if opts.args:match('--graph') then
       term('git log ' .. opts.args, { cwd = repo() })
@@ -1050,13 +1083,16 @@ local log = function(opts)
   local skipped = false
   for _, line in ipairs(vim.fn.split(result, '\n')) do
     local values = vim.fn.split(line, '|')
-    if #values == 5 then
+    if #values == 6 then
       lines[#lines + 1] = log_line({
-        revision = values[1],
-        author = values[2],
-        age = values[3],
-        refs = values[4],
-        comment = values[5],
+        mark = (opts.title and opts.title:match('^filter:%s+diff')) and
+          (values[1] .. ' ') or
+          '',
+        revision = values[2],
+        author = values[3],
+        age = values[4],
+        refs = values[5],
+        comment = values[6],
       })
       skipped = false
 
@@ -1098,11 +1134,11 @@ local log = function(opts)
   vim.cmd.doautocmd('WinEnter')
 
   vim.bo.ft = 'git_log'
-  vim.cmd('syntax match GitRevision /\\(^[+-] \\)\\@<=\\w\\+/')
-  vim.cmd('syntax match GitAuthor /\\(^[+-] \\w\\+ \\)\\@<=.\\{-}\\( (\\)\\@=/')
-  vim.cmd('syntax match GitDate /\\(^[+-] \\w\\+ \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
-  vim.cmd('syntax match GitRefs /\\(^[+-] \\w\\+ \\w.\\{-} (\\d.\\{-}) \\)\\@<=(.\\{-})/')
-  vim.cmd('syntax match GitMessage /\\(^[+-] \\w\\+ \\w.\\{-} (\\d.\\{-})\\( (.\\{-})\\)\\?\\)\\@<=.*/ contains=GitRefs')
+  vim.cmd('syntax match GitRevision /\\(^[+-] \\([<>-] \\)\\?\\)\\@<=\\w\\+/')
+  vim.cmd('syntax match GitAuthor /\\(^[+-] \\([<>-] \\)\\?\\w\\+ \\)\\@<=.\\{-}\\( (\\)\\@=/')
+  vim.cmd('syntax match GitDate /\\(^[+-] \\([<>-] \\)\\?\\w\\+ \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
+  vim.cmd('syntax match GitRefs /\\(^[+-] \\([<>-] \\)\\?\\w\\+ \\w.\\{-} (\\d.\\{-}) \\)\\@<=(.\\{-})/')
+  vim.cmd('syntax match GitMessage /\\(^[+-] \\([<>-] \\)\\?\\w\\+ \\w.\\{-} (\\d.\\{-})\\( (.\\{-})\\)\\?\\)\\@<=.*/ contains=GitRefs')
   vim.cmd('syntax match GitLink /|\\S.\\{-}|/')
   vim.cmd('syntax match GitFiles /\\(^\\s\\+[+-] \\)\\@<=files\\>/')
   vim.cmd('syntax match GitLogHeader /^\\%<4l.\\{-}: .*/ contains=GitLogHeaderName,GitLogHeaderFile')
@@ -1111,6 +1147,8 @@ local log = function(opts)
   vim.cmd('syntax match GitLogDiff /^# .*/ contains=GitLogDiffAdd,GitLogDiffDelete')
   vim.cmd('syntax match GitLogDiffAdd /\\(^# \\)\\@<=+.*/')
   vim.cmd('syntax match GitLogDiffDelete /\\(^# \\)\\@<=-.*/')
+  vim.cmd('syntax match GitLogMarkerIn /\\(^[+-] \\)\\@<=>/')
+  vim.cmd('syntax match GitLogMarkerOut /\\(^[+-] \\)\\@<=</')
 
   set_info(root, path, nil)
 
@@ -1895,6 +1933,17 @@ local complete_filepath = function(compl_opts)
   return compl_opts.match, results
 end
 
+local complete_branch = function(prefix)
+  return function(compl_opts)
+    local branches = M.git('branch -a --format="%(refname:short)"') or ''
+    local results = vim.tbl_map(function(b)
+      return prefix and (prefix .. b) or b
+    end, vim.fn.split(branches, '\n'))
+    local match = prefix and (prefix .. compl_opts.match) or compl_opts.match
+    return match, results
+  end
+end
+
 local complete = function(arglead, cmdl, pos)
   local pre = string.sub(cmdl, 1, pos)
   local results = {}
@@ -1928,6 +1977,10 @@ local complete = function(arglead, cmdl, pos)
     ['^Git%s+add%s+.*([-/%w]*)$'] = complete_filepath,
     ['^Git%s+mv%s+.*([-/%w]*)$'] = complete_filepath,
     ['^Git%s+rm%s+.*([-/%w]*)$'] = complete_filepath,
+    -- complete branch name in log expansions
+    ['^Git%s+log%s+.*diff:([-/%w]*)'] = complete_branch('diff:'),
+    ['^Git%s+log%s+.*in:([-/%w]*)'] = complete_branch('in:'),
+    ['^Git%s+log%s+.*out:([-/%w]*)'] = complete_branch('out:'),
     -- complete stash action
     ['^Git%s+stash%s+(%w*)$'] = function(compl_opts)
       return compl_opts.match, {
@@ -1958,10 +2011,9 @@ local complete = function(arglead, cmdl, pos)
       local compl = config.complete[alias]
       local values
       if compl == 'branch' then
-        local branches = M.git('branch -a --format="%(refname:short)"')
-        if branches then
-          values = vim.fn.split(branches, '\n')
-        end
+        _, values = complete_branch()(opts)
+      elseif compl == 'filepath' then
+        _, values = complete_filepath(opts)
       end
       return compl_opts.match, values
     end
@@ -2041,10 +2093,6 @@ M.init = function(init_opts)
                 vim.cmd('BufferDelete')
                 vim.cmd(vim.fn.bufwinnr(term_bufnr) .. 'winc w')
               end)
-
-            -- return the the original window if possible
-            elseif vim.w.winprev then
-              vim.cmd(vim.w.winprev .. 'winc w')
             end
 
             if vim.fn.bufwinnr(status_name) ~= -1 then
