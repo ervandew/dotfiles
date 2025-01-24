@@ -751,17 +751,19 @@ local log_files = function()
     local pos = vim.fn.getpos('.')
     local close = vim.fn.substitute(line, '-', '+', '')
     vim.fn.setline(lnum, close)
-    local start = lnum + 1
-    local end_ = vim.fn.search('^[+-]\\s', 'cnW') - 1
-    if end_ ~= lnum then
-      if end_ == -1 then
-        end_ = vim.fn.line('$')
+    if lnum ~= vim.fn.line('$') then
+      local start = lnum + 1
+      local end_ = vim.fn.search('^[+-]\\s', 'cnW') - 1
+      if end_ ~= lnum then
+        if end_ == -1 then
+          end_ = vim.fn.line('$')
+        end
+        if end_ < start then
+          end_ = start
+        end
+        vim.cmd(start .. ',' .. end_ .. 'delete _')
+        vim.fn.setpos('.', pos)
       end
-      if end_ < start then
-        end_ = start
-      end
-      vim.cmd(start .. ',' .. end_ .. 'delete _')
-      vim.fn.setpos('.', pos)
     end
   end
   vim.bo.modifiable = false
@@ -774,6 +776,8 @@ local log_open = function()
     if winnr ~= -1 then
       vim.cmd(winnr .. 'winc w')
     end
+  elseif vim.fn.bufwinnr(status_name) == vim.fn.winnr() - 1 then
+    open = 'winc k | ' .. open
   end
   return open
 end
@@ -981,7 +985,7 @@ local log_action = function()
 
     local winnr = vim.fn.bufwinnr(filename)
     if winnr == -1 then
-      vim.cmd('above new ' .. filename)
+      vim.cmd(log_open() .. ' ' .. filename)
     else
       vim.cmd(winnr .. 'winc w')
     end
@@ -1192,7 +1196,9 @@ local log = function(opts)
       local winnr = vim.fn.bufwinnr(vim.b.git_filename or status_name)
       if winnr ~= -1 then
         vim.schedule(function()
-          vim.cmd(winnr .. 'winc w')
+          if winnr < vim.fn.winnr('$') then
+            vim.cmd(winnr .. 'winc w')
+          end
           vim.cmd.doautocmd('BufEnter')
         end)
       end
@@ -1535,7 +1541,11 @@ local status_action = function()
   elseif not line:gsub('^%s', ''):match('^D') then
     local winnr = vim.fn.bufwinnr(path)
     if winnr == -1 then
-      vim.cmd('above new ' .. path)
+      local open = 'above new'
+      if vim.fn.bufwinnr(log_name) == vim.fn.winnr() - 1 then
+        open = 'winc k | ' .. open
+      end
+      vim.cmd(open .. ' ' .. path)
     else
       vim.cmd(winnr .. 'winc w')
     end
