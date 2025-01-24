@@ -23,6 +23,7 @@ local modal = function()
   local col = math.floor((vim.o.columns - width) / 2)
   local row = math.floor((vim.o.lines - height) / 2)
   local bufnr = vim.api.nvim_create_buf(false, true)
+  local winprev = vim.fn.winnr()
   vim.api.nvim_open_win(bufnr, true, {
     relative = 'editor',
     width = width,
@@ -32,6 +33,7 @@ local modal = function()
     style = 'minimal',
     border = 'rounded',
   })
+  vim.w.winprev = winprev
 end
 
 local term = function(cmd, opts)
@@ -1179,12 +1181,6 @@ local grep_files = function(opts)
   log_grep('files', opts)
 end
 
-local status_term_update = function()
-  if vim.fn.bufwinnr(status_name) ~= -1 then
-    status({ focus = false })
-  end
-end
-
 local status_term_exit = function(term_bufnr, exit_code)
   local opts = { focus = true }
   -- only close the term window if the command completed successfully,
@@ -1238,7 +1234,7 @@ local status_branch_merge = function(selection)
         cwd = repo(),
         on_exit = function()
           pcall(vim.cmd.checktime) -- update existing buffers if necessary
-          status_term_update()
+          status_term_exit()
         end,
       })
     end
@@ -1256,7 +1252,7 @@ local status_branch_rebase = function(selection)
         cwd = repo(),
         on_exit = function()
           pcall(vim.cmd.checktime) -- update existing buffers if necessary
-          status_term_update()
+          status_term_exit()
         end,
       })
     end
@@ -1591,16 +1587,31 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end
 
   local lines = vim.fn.split(result, '\n')
+  local branch = M.git('rev-parse --abbrev-ref HEAD')
   local stashes = vim.fn.split(M.git('stash list') or '', '\n')
   local head = M.git('log -1 "--pretty=format:%h %an: %s"')
   local branch_actions = 'gi(t) branch + [s]witch [m]erge [r]ebase [d]elete'
-  local repo_actions = '(f)etch (c)ommit (a)mend'
+  local repo_actions = '(f)etch'
   local file_actions = '(s)tage (i)nteractive (u)nstage (r)estore (d)elete'
   local is_ahead = result:match('%[ahead %d+')
   local is_behind = result:match('[%[%s]behind %d+')
   local is_gone = result:match('%[gone%]') -- remote is set but doesn't exist
+  local can_amend = is_ahead or not is_protected(branch)
+  local can_commit = false
+  for _, line in ipairs(lines) do
+    if line:match('^[ADMR]') then
+      can_commit = true
+      break
+    end
+  end
+
+  if can_commit then
+    repo_actions = repo_actions .. ' (c)ommit'
+  end
+  if can_amend then
+    repo_actions = repo_actions .. ' (a)mend'
+  end
   if is_ahead then
-    local branch = M.git('rev-parse --abbrev-ref HEAD')
     if is_behind and not is_protected(branch) then
       repo_actions = repo_actions .. ' (P)ush force'
     else
@@ -1612,7 +1623,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     repo_actions = repo_actions .. ' (p)ush'
   end
   if #stashes > 0 then
-    repo_actions = repo_actions .. ' [stashes]'
+    repo_actions = repo_actions .. ' [stashes: ' .. #stashes .. ']'
   end
   lines = vim.list_extend({
     lines[1],
@@ -1662,7 +1673,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
 
   -- restore the state of our stashes
   if vim.b.git_stashes then
-    if vim.fn.search('\\[stashes\\]') ~= 0 then
+    if vim.fn.search('\\[stashes:') ~= 0 then
       vim.fn.cursor(0, vim.fn.col('.') + 1)
       status_action()
     end
@@ -1784,16 +1795,24 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     term('git fetch', {
       cwd = repo(),
       echo = 'fetching...',
-      on_exit = status_term_update,
+      on_exit = function()
+        -- call instead of supplying as on_exit, so that the term stays open
+        -- for review
+        status_term_exit()
+      end
     })
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'c', function()
-    term('git commit -e', { cwd = repo(), on_exit = status_term_exit })
+    if can_commit then
+      term('git commit -e', { cwd = repo(), on_exit = status_term_exit })
+    end
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'a', function()
-    term('git commit --amend', { cwd = repo(), on_exit = status_term_exit })
+    if can_amend then
+      term('git commit --amend', { cwd = repo(), on_exit = status_term_exit })
+    end
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'm', function()
@@ -1803,7 +1822,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
         echo = is_ahead and 'rebasing...' or 'merging...',
         on_exit = function()
           pcall(vim.cmd.checktime) -- update existing buffers if necessary
-          status_term_update()
+          status_term_exit()
         end
       })
     end
@@ -1814,7 +1833,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       term('git push', {
         cwd = repo(),
         echo = 'pushing...',
-        on_exit = status_term_update,
+        on_exit = status_term_exit,
       })
     end
   end, { buffer = bufnr })
@@ -1824,7 +1843,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       term('git push -f', {
         cwd = repo(),
         echo = 'force pushing...',
-        on_exit = status_term_update,
+        on_exit = status_term_exit,
       })
     end
   end, { buffer = bufnr })
@@ -2022,8 +2041,15 @@ M.init = function(init_opts)
                 vim.cmd('BufferDelete')
                 vim.cmd(vim.fn.bufwinnr(term_bufnr) .. 'winc w')
               end)
+
+            -- return the the original window if possible
+            elseif vim.w.winprev then
+              vim.cmd(vim.w.winprev .. 'winc w')
             end
-            status_term_update()
+
+            if vim.fn.bufwinnr(status_name) ~= -1 then
+              status({ focus = false })
+            end
           end
         })
       end
