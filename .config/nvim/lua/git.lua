@@ -733,7 +733,13 @@ local log_files = function()
         entry = entry_info.old .. ' -> ' .. entry
       else
         entry = entry_info.file
-        if vim.fn.filereadable(root .. entry_info.file) ~= 0 then
+
+        local incoming = vim.fn.getline(
+          vim.fn.search('^[+-] \\([<>-] \\)\\?\\w\\+', 'bcnW')
+        ):match('^- >') ---@diagnostic disable-line: param-type-mismatch
+        if not incoming and
+           vim.fn.filereadable(root .. entry_info.file) ~= 0
+        then
           entry = '|' .. entry_info.file .. '|'
         end
       end
