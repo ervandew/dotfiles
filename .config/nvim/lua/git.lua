@@ -218,14 +218,20 @@ local get_previous_revision = function(path, revision)
     'grep ' .. revision .. ' -A 1 | ' ..
     'tail -1'
 
-  -- first attempt against @{upstream so we can handle side by side diffs on
+  -- if we are viewing the bisect log, then upstream/HEAD won't work, so we
+  -- need to specify the first revision of our bisect
+  if vim.b.git_bisect_start then
+    return M.git(cmd:gsub('<revrange>', vim.b.git_bisect_start), {})
+  end
+
+  -- first attempt against @{upstream} so we can handle side by side diffs on
   -- incomming commits
   local result = M.git(cmd:gsub('<revrange>', '@{upstream}'), { quiet = true })
 
   -- above may have failed if there is no upstream, so try again against just
-  -- HEAD
+  -- HEAD (using empty string so this works in a detatched head, eg. bisect)
   if not result then
-    result = M.git(cmd:gsub('<revrange>', 'HEAD'))
+    result = M.git(cmd:gsub('<revrange>', ''), {})
   end
 
   return result
@@ -610,9 +616,9 @@ local log_line = function(details)
 end
 
 local log_revision = function()
-  local lnum = vim.fn.search('^[+-] \\([<>-] \\)\\?\\w\\+', 'bcnW')
+  local lnum = vim.fn.search('^[+-] \\(. \\)\\?\\w\\+', 'bcnW')
   local line = vim.fn.getline(lnum)
-  return vim.fn.substitute(line, '[+-] \\([<>-] \\)\\?\\(\\w\\+\\) .*', '\\2', '')
+  return vim.fn.substitute(line, '[+-] \\(. \\)\\?\\(\\w\\+\\) .*', '\\2', '')
 end
 
 local log_detail = function()
@@ -627,7 +633,7 @@ local log_detail = function()
     return
   end
 
-  local mark = line:match('^[+-] ([<>-] )') or ''
+  local mark = line:match('^[+-] (. )') or ''
   local values = vim.fn.split(result, '|')
   local details = {
     mark = mark,
@@ -735,7 +741,7 @@ local log_files = function()
         entry = entry_info.file
 
         local incoming = vim.fn.getline(
-          vim.fn.search('^[+-] \\([<>-] \\)\\?\\w\\+', 'bcnW')
+          vim.fn.search('^[+-] \\(. \\)\\?\\w\\+', 'bcnW')
         ):match('^- >') ---@diagnostic disable-line: param-type-mismatch
         if not incoming and
            vim.fn.filereadable(root .. entry_info.file) ~= 0
@@ -744,6 +750,9 @@ local log_files = function()
         end
       end
       lines[#lines + 1] = '\t\t|' .. entry_info.status .. '| ' .. entry
+    end
+    if #lines == 0 then
+      lines[1] = '\t\tno files'
     end
     vim.fn.append(lnum, lines)
     vim.cmd.retab()
@@ -838,7 +847,7 @@ local log_action = function()
     return
   end
 
-  if line:match('^[+-] [<>-]?%s*%w+') then
+  if line:match('^[+-] .?%s*%w+') then
     log_detail()
     return
   end
@@ -1005,7 +1014,7 @@ local log = function(opts)
   -- check if command is using % expansion
   local expanded = opts.fargs_orig and vim.list_contains(opts.fargs_orig, '%')
 
-  if not opts.bang or expanded then
+  if not (opts.bang or opts.bisect) or expanded then
     -- logging from the log window
     if vim.fn.bufname() == log_name and vim.b.git_filename then
       filename = vim.b.git_filename
@@ -1057,6 +1066,9 @@ local log = function(opts)
   end
 
   local log_cmd = 'log --pretty=tformat:"%m|%h|%an|%ar|%d|%s"'
+  if opts.bisect and #opts.bisect then
+    log_cmd = log_cmd .. ' ' .. opts.bisect[1] .. '...' .. opts.bisect[2]
+  end
   if opts.args and opts.args ~= '' then
     if opts.args:match('--graph') then
       term('git log ' .. opts.args, { cwd = repo() })
@@ -1104,7 +1116,7 @@ local log = function(opts)
   for _, line in ipairs(vim.fn.split(result, '\n')) do
     local values = vim.fn.split(line, '|')
     if #values == 6 then
-      lines[#lines + 1] = log_line({
+      local mapped = {
         mark = (opts.title and opts.title:match('^filter:%s+diff')) and
           (values[1] .. ' ') or
           '',
@@ -1113,7 +1125,11 @@ local log = function(opts)
         age = values[4],
         refs = values[5],
         comment = values[6],
-      })
+      }
+      if opts.map then
+        mapped = opts.map(mapped)
+      end
+      lines[#lines + 1] = log_line(mapped)
       skipped = false
 
     -- when logging a range, skip the blank line before the diff output
@@ -1154,11 +1170,11 @@ local log = function(opts)
   vim.cmd.doautocmd('WinEnter')
 
   vim.bo.ft = 'git_log'
-  vim.cmd('syntax match GitRevision /\\(^[+-] \\([<>-] \\)\\?\\)\\@<=\\w\\+/')
-  vim.cmd('syntax match GitAuthor /\\(^[+-] \\([<>-] \\)\\?\\w\\+ \\)\\@<=.\\{-}\\( (\\)\\@=/')
-  vim.cmd('syntax match GitDate /\\(^[+-] \\([<>-] \\)\\?\\w\\+ \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
-  vim.cmd('syntax match GitRefs /\\(^[+-] \\([<>-] \\)\\?\\w\\+ \\w.\\{-} (\\d.\\{-}) \\)\\@<=(.\\{-})/')
-  vim.cmd('syntax match GitMessage /\\(^[+-] \\([<>-] \\)\\?\\w\\+ \\w.\\{-} (\\d.\\{-})\\( (.\\{-})\\)\\?\\)\\@<=.*/ contains=GitRefs')
+  vim.cmd('syntax match GitRevision /\\(^[+-] \\(. \\)\\?\\)\\@<=\\w\\{2,}/')
+  vim.cmd('syntax match GitAuthor /\\(^[+-] \\(. \\)\\?\\w\\{2,} \\)\\@<=.\\{-}\\( (\\)\\@=/')
+  vim.cmd('syntax match GitDate /\\(^[+-] \\(. \\)\\?\\w\\{2,} \\w.\\{-}\\)\\@<=(\\d.\\{-})/')
+  vim.cmd('syntax match GitRefs /\\(^[+-] \\(. \\)\\?\\w\\{2,} \\w.\\{-} (\\d.\\{-}) \\)\\@<=(.\\{-})/')
+  vim.cmd('syntax match GitMessage /\\(^[+-] \\(. \\)\\?\\w\\{2,} \\w.\\{-} (\\d.\\{-})\\( (.\\{-})\\)\\?\\)\\@<=.*/ contains=GitRefs')
   vim.cmd('syntax match GitLink /|\\S.\\{-}|/')
   vim.cmd('syntax match GitFiles /\\(^\\s\\+[+-] \\)\\@<=files\\>/')
   vim.cmd('syntax match GitLogHeader /^\\%<4l.\\{-}: .*/ contains=GitLogHeaderName,GitLogHeaderFile')
@@ -1167,6 +1183,9 @@ local log = function(opts)
   vim.cmd('syntax match GitLogDiff /^# .*/ contains=GitLogDiffAdd,GitLogDiffDelete')
   vim.cmd('syntax match GitLogDiffAdd /\\(^# \\)\\@<=+.*/')
   vim.cmd('syntax match GitLogDiffDelete /\\(^# \\)\\@<=-.*/')
+  vim.cmd('syntax match GitLogBisectBad /\\(^[+-] \\)\\@<=x/')
+  vim.cmd('syntax match GitLogBisectBadFirst /\\(^[+-] \\)\\@<=X/')
+  vim.cmd('syntax match GitLogBisectGood /\\(^[+-] \\)\\@<=\\*/')
   vim.cmd('syntax match GitLogMarkerIn /\\(^[+-] \\)\\@<=>/')
   vim.cmd('syntax match GitLogMarkerOut /\\(^[+-] \\)\\@<=</')
 
@@ -1239,6 +1258,159 @@ end
 local grep_files = function(opts)
   opts.title = 'grep files:   '
   log_grep('files', opts)
+end
+
+local function bisect_active()
+  local result = vim.fn.system('git --no-pager bisect visualize --oneline')
+  if result == '' then
+    return false
+  end
+  return vim.v.shell_error == 0
+end
+
+local function bisect_log(opts)
+  opts = opts or {}
+  if opts.reset then
+    local log_winnr = vim.fn.bufwinnr(log_name)
+    if log_winnr ~= -1 and
+       vim.b[vim.fn.winbufnr(log_winnr)].git_bisect_start
+    then
+      vim.cmd(log_winnr .. 'winc w')
+      if vim.fn.search('^bisect: ', 'c') ~= 0 then
+        local header = vim.fn.getline('.'):gsub('log$', 'log (completed)')
+        vim.bo.modifiable = true
+        ---@diagnostic disable-next-line: param-type-mismatch
+        vim.fn.setline('.', header)
+        vim.bo.modifiable = false
+      end
+      vim.fn.search('^[+-] X ', 'c')
+    end
+    return
+  end
+
+  local rev_first_bad, rev_start, rev_end
+  local bisect_tbl = {}
+  for _, bl in ipairs(vim.fn.split(M.git('bisect log') or '', '\n')) do
+    local match_first = bl:match('^# first bad commit: %[(%w+)%]')
+    if match_first then
+      rev_first_bad = match_first
+    end
+    local status, rev = bl:match('^# (%w+): %[(%w+)%]')
+    if status and rev then
+      bisect_tbl[rev] = status
+      if not rev_start then
+        rev_start = rev
+      elseif not rev_end then
+        rev_end = rev
+      end
+    end
+  end
+  log({
+    bisect = { rev_start, rev_end },
+    title = 'bisect:       log',
+    map = function(mapped)
+      mapped.mark = '  '
+      if rev_first_bad and rev_first_bad:match('^' .. mapped.revision) then
+        mapped.mark = 'X '
+      else
+        for rev, status in pairs(bisect_tbl) do
+          if rev:match('^' .. mapped.revision) then
+            mapped.mark = (status == 'bad') and 'x ' or '* '
+          end
+        end
+      end
+      return mapped
+    end
+  })
+  vim.b.git_bisect_start = rev_start
+
+  -- jump to the first bad commit
+  vim.fn.search('^[+-] X ', 'c')
+end
+
+local function bisect(opts)
+  local cmd
+  local active = bisect_active()
+  if not active and #opts.fargs == 0 then
+    local good, bad
+    local branch = M.git('rev-parse --abbrev-ref HEAD')
+    local choice = confirm('HEAD (' .. branch .. ') is', '&good\n&bad')
+    if not choice then
+      return
+    end
+    local ok, result = pcall(
+      vim.fn.input,
+      (choice == 1 and 'bad' or 'good') .. ' revision/branch: '
+    )
+    if not ok then
+      return
+    end
+    vim.schedule(function()
+      vim.print('') -- clear the cmdline (redraw not working here)
+    end)
+
+    if choice == 1 then
+      good = 'HEAD'
+      bad = result
+    else
+      bad = 'HEAD'
+      good = result
+    end
+    cmd = 'git bisect start ' .. bad .. ' ' .. good
+  elseif active and opts.fargs[1] == 'test' then
+    local root = repo()
+    if not root then
+      return
+    end
+    local repo_name = vim.fn.fnamemodify(root, ':h:t')
+    local runtest = M.git('config runtest.' .. repo_name)
+    if not runtest then
+      error('git config required: runtest.' .. repo_name)
+      error('Eg:', 'Normal')
+      error('  [runtest]', 'Normal')
+      error('    ' .. repo_name .. ' = python -m unittest', 'Normal')
+      return
+    end
+    local runtest_args = vim.fn.join(vim.list_slice(opts.fargs, 2))
+    cmd = 'git bisect run ' .. runtest .. ' ' .. runtest_args
+  else
+    if not active and opts.fargs[1] ~= 'start' then
+      error('git bisect session has not been started yet.')
+      return
+    end
+    cmd = 'git bisect ' .. opts.args
+  end
+
+  if cmd then
+    term(cmd, {
+      echo = 'running: ' .. cmd .. ' ...\n',
+      on_exit = function(term_bufnr, exit_code)
+        if vim.fn.bufwinnr(status_name) ~= -1 then
+          status({ focus = false })
+        end
+
+        if exit_code ~= 0 then
+          return
+        end
+
+        local log_winnr = vim.fn.bufwinnr(log_name)
+        -- when starting a bisect session, open the log window
+        if #opts.fargs == 0 or opts.fargs[1] == 'start' then
+          bisect_log()
+
+        -- refresh the bisect log if open, but not on reset
+        elseif log_winnr ~= -1 and
+           vim.b[vim.fn.winbufnr(log_winnr)].git_bisect_start
+        then
+          bisect_log({ reset = opts.fargs[1] == 'reset' })
+        end
+
+        vim.schedule(function()
+          vim.cmd(vim.fn.bufwinnr(term_bufnr) .. 'winc w')
+        end)
+      end
+    })
+  end
 end
 
 local status_term_exit = function(term_bufnr, exit_code)
@@ -1449,7 +1621,13 @@ local status_action = function()
       line, '.*\\(\\[.\\{-}\\%.c.\\{-}\\]\\)', '\\1', ''
     )
     if pending_match ~= line then
-      log({ fargs = { 'diff:@{upstream}' }})
+      local word = vim.fn.expand('<cword>')
+      if word == ']' then return end
+      if word == 'bisect' then
+        bisect_log()
+      else
+        log({ fargs = { 'diff:@{upstream}' }})
+      end
       return
     end
   end
@@ -1685,6 +1863,10 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end
   if #stashes > 0 then
     repo_actions = repo_actions .. ' [stashes: ' .. #stashes .. ']'
+  end
+
+  if lines[1]:match('^## HEAD') and bisect_active() then
+    lines[1] = lines[1] .. ': [bisect]'
   end
   lines = vim.list_extend({
     lines[1],
@@ -1934,6 +2116,7 @@ end
 
 local commands = {
   annotate = annotate,
+  bisect = bisect,
   diff = diff,
   log = log,
   show = M.show,
