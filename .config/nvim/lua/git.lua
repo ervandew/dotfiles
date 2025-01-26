@@ -2122,7 +2122,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       vim.api.nvim_clear_autocmds({ group = status_augroup })
     end,
   })
-  vim.api.nvim_create_autocmd('BufWritePost', {
+  vim.api.nvim_create_autocmd({ 'BufWritePost', 'FocusGained' }, {
     pattern = '*',
     group = status_augroup,
     callback = function()
