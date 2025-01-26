@@ -1350,10 +1350,15 @@ local function bisect(opts)
   if not active and #opts.fargs == 0 then
     local good, bad
     local branch = M.git('rev-parse --abbrev-ref HEAD')
+    if not branch then
+      return
+    end
+
     local choice = confirm('HEAD (' .. branch .. ') is', '&good\n&bad')
     if not choice then
       return
     end
+
     local ok, result = pcall(
       vim.fn.input,
       (choice == 1 and 'bad' or 'good') .. ' revision/branch: '
