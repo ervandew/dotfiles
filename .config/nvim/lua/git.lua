@@ -2315,10 +2315,9 @@ M.init = function(init_opts)
                opts.fargs_orig[#opts.fargs_orig] == '%' and
                exit_code == 0
             then
-              vim.cmd.winc('p')
+              vim.cmd(vim.fn.bufwinnr(opts.fargs[#opts.fargs]) .. 'winc w')
               vim.schedule(function()
-                -- custom command!
-                vim.cmd('BufferDelete')
+                vim.cmd.bdelete()
                 vim.cmd(vim.fn.bufwinnr(term_bufnr) .. 'winc w')
               end)
             end
