@@ -1185,6 +1185,7 @@ local log = function(opts)
   vim.cmd('syntax match GitLogDiffDelete /\\(^# \\)\\@<=-.*/')
   vim.cmd('syntax match GitLogBisectBad /\\(^[+-] \\)\\@<=x/')
   vim.cmd('syntax match GitLogBisectBadFirst /\\(^[+-] \\)\\@<=X/')
+  vim.cmd('syntax match GitLogBisectCurrent /\\(^[+-] \\)\\@<=#/')
   vim.cmd('syntax match GitLogBisectGood /\\(^[+-] \\)\\@<=\\*/')
   vim.cmd('syntax match GitLogMarkerIn /\\(^[+-] \\)\\@<=>/')
   vim.cmd('syntax match GitLogMarkerOut /\\(^[+-] \\)\\@<=</')
@@ -1276,19 +1277,30 @@ local function bisect_log(opts)
        vim.b[vim.fn.winbufnr(log_winnr)].git_bisect_start
     then
       vim.cmd(log_winnr .. 'winc w')
+      vim.bo.modifiable = true
+
+      -- remove the current revision marker
+      if vim.fn.search('^[+-] # ', 'c') ~= 0 then
+        local curline = vim.fn.getline('.'):gsub('^([+-] )#', '%1 ')
+        ---@diagnostic disable-next-line: param-type-mismatch
+        vim.fn.setline('.', curline)
+      end
+
+      -- update the header to note that the bisect session is complete
       if vim.fn.search('^bisect: ', 'c') ~= 0 then
         local header = vim.fn.getline('.'):gsub('log$', 'log (completed)')
-        vim.bo.modifiable = true
         ---@diagnostic disable-next-line: param-type-mismatch
         vim.fn.setline('.', header)
-        vim.bo.modifiable = false
       end
+
+      vim.bo.modifiable = false
       vim.fn.search('^[+-] X ', 'c')
     end
     return
   end
 
   local rev_first_bad, rev_start, rev_end
+  local rev_current = M.git('rev-parse HEAD') or ''
   local bisect_tbl = {}
   for _, bl in ipairs(vim.fn.split(M.git('bisect log') or '', '\n')) do
     local match_first = bl:match('^# first bad commit: %[(%w+)%]')
@@ -1312,6 +1324,8 @@ local function bisect_log(opts)
       mapped.mark = '  '
       if rev_first_bad and rev_first_bad:match('^' .. mapped.revision) then
         mapped.mark = 'X '
+      elseif rev_current:match('^' .. mapped.revision) then
+        mapped.mark = '# '
       else
         for rev, status in pairs(bisect_tbl) do
           if rev:match('^' .. mapped.revision) then
@@ -1324,8 +1338,10 @@ local function bisect_log(opts)
   })
   vim.b.git_bisect_start = rev_start
 
-  -- jump to the first bad commit
-  vim.fn.search('^[+-] X ', 'c')
+  -- jump to the first bad commit or the current commit
+  if vim.fn.search('^[+-] X ', 'c') == 0 then
+    vim.fn.search('^[+-] # ', 'c')
+  end
 end
 
 local function bisect(opts)
@@ -1406,6 +1422,7 @@ local function bisect(opts)
         end
 
         vim.schedule(function()
+          pcall(vim.cmd.checktime) -- update existing buffers if necessary
           vim.cmd(vim.fn.bufwinnr(term_bufnr) .. 'winc w')
         end)
       end

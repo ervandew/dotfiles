@@ -140,6 +140,7 @@ return {{
     vim.api.nvim_set_hl(0, 'GitLink', { link = 'Label' })
     vim.api.nvim_set_hl(0, 'GitLogBisectBad', { fg = red })
     vim.api.nvim_set_hl(0, 'GitLogBisectBadFirst', { fg = red, bold = true })
+    vim.api.nvim_set_hl(0, 'GitLogBisectCurrent', { fg = yellow, bold = true })
     vim.api.nvim_set_hl(0, 'GitLogBisectGood', { fg = green })
     vim.api.nvim_set_hl(0, 'GitLogDiff', { fg = gray5 })
     vim.api.nvim_set_hl(0, 'GitLogDiffAdd', { fg = green })
