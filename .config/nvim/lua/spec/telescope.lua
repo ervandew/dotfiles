@@ -115,7 +115,7 @@ return {
       end -- }}}
 
       require('telescope').setup({ ---@diagnostic disable-line: undefined-field {{{
-        defaults = { -- {{{
+        defaults = {
           file_ignore_patterns = { '%.git/' },
           sorting_strategy = 'ascending',
           layout_strategy = 'vertical',
@@ -125,7 +125,7 @@ return {
             preview_height = .5,
             prompt_position = 'top',
           },
-          path_display = function(opts, path) -- {{{
+          path_display = function(opts, path)
             -- make the path relative if possible
             path = vim.fn.fnamemodify(path, ':.')
 
@@ -157,8 +157,8 @@ return {
               end
             end
             return path, style
-          end, -- }}}
-          mappings = { -- {{{
+          end,
+          mappings = {
             i = {
               ['<c-v>'] = function() vim.fn.feedkeys(vim.fn.getreg('+')) end,
               ['<tab>'] = actions.move_selection_next,
@@ -193,8 +193,8 @@ return {
                 })
               end,
             },
-          }, -- }}}
-          extensions = { -- {{{
+          },
+          extensions = {
             file_browser = {},
             fzf = {
               fuzzy = true,
@@ -202,7 +202,7 @@ return {
               override_file_sorter = true,
               case_mode = 'respect_case',
             }
-          }, -- }}}
+          },
         },
       }) -- }}}
 
