@@ -1898,6 +1898,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     '## ' .. file_actions,
   }, lines, 2)
 
+  local prevbufnr = vim.fn.bufnr()
   -- attempt to retain the cursor position when refreshing
   local pos
   local winnr = vim.fn.bufwinnr(status_name)
@@ -2132,7 +2133,10 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   opts = opts or {}
   local focus = opts.focus == nil and true or opts.focus
   if not focus then
-    vim.cmd.winc('p')
+    local bufwinnr = vim.fn.bufwinnr(prevbufnr)
+    if bufwinnr ~= -1 then
+      vim.cmd(bufwinnr .. 'winc w')
+    end
   end
 end
 
