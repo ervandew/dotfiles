@@ -398,10 +398,10 @@ local function annotate(opts)
     return
   end
 
-  -- only use an explicitly supplied revision or if viewing a show() buffer,
+  -- only use an explicitly supplied revision, or if viewing a show() buffer,
   -- then use the revision that is being shown
   local annotate_revision = opts.revision or (
-    vim.b.git_info and vim.b.git_info.revision
+    vim.bo.buftype ~= '' and vim.b.git_info and vim.b.git_info.revision
   )
   local result = M.git(
     'annotate "' .. path .. '"' ..
