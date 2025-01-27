@@ -140,8 +140,48 @@ local window = function(name, open, lines, opts)
   end
 end
 
+local set_info = function(root, path, revision)
+  vim.b.git_info = { root = root, path = path, revision = revision }
+end
+
+local repo = function()
+  if vim.b.git_info then
+    return vim.b.git_info.root
+  end
+
+  local root = vim.fn.system('git rev-parse --show-toplevel'):gsub('\n$', '')
+  if vim.v.shell_error ~= 0 or root:match('^fatal:') then
+    error(root)
+    return
+  end
+
+  -- ensure we have the full path ending in a path delimiter
+  return vim.fn.fnamemodify(root, ':p')
+end
+
+local repo_settings = function()
+  local root = repo()
+  if root then
+    -- escape dashes for matching
+    root = root:gsub('%-', '%%-')
+    for key, settings in pairs(vim.g.git_repo_settings) do
+      -- normalize the path by expanding to a full path ending in path delimiter
+      key = vim.fn.fnamemodify(vim.fn.expand(key), ':p')
+      if key:match('^' .. root .. '$') then
+        return settings
+      end
+    end
+  end
+  return {}
+end
+
 M.git = function(args, opts)
-  local cmd = 'git --no-pager ' .. args
+  local root = repo()
+  if not root then
+    return
+  end
+
+  local cmd = 'cd "' .. root .. '" ; git --no-pager ' .. args
   local result
   opts = opts or {}
   if opts.exec then
@@ -162,38 +202,6 @@ M.git = function(args, opts)
   end
 
   return result:gsub('\n$', '')
-end
-
-local set_info = function(root, path, revision)
-  vim.b.git_info = { root = root, path = path, revision = revision }
-end
-
-local repo = function()
-  if vim.b.git_info then
-    return vim.b.git_info.root
-  end
-  local root = M.git('rev-parse --show-toplevel')
-  if root then
-    -- ensure we have the full path ending in a path delimiter
-    root = vim.fn.fnamemodify(root, ':p')
-  end
-  return root
-end
-
-local repo_settings = function()
-  local root = repo()
-  if root then
-    -- escape dashes for matching
-    root = root:gsub('%-', '%%-')
-    for key, settings in pairs(vim.g.git_repo_settings) do
-      -- normalize the path by expanding to a full path ending in path delimiter
-      key = vim.fn.fnamemodify(vim.fn.expand(key), ':p')
-      if key:match('^' .. root .. '$') then
-        return settings
-      end
-    end
-  end
-  return {}
 end
 
 local is_protected = function(branch)
@@ -987,11 +995,7 @@ local log_action = function()
 
   -- file reference
   elseif vim.fn.filereadable(root .. link) ~= 0 then
-    local filename = root .. link
-
-    -- make relative if possible
-    filename = vim.fn.fnamemodify(filename, ':.')
-
+    local filename = vim.fn.fnamemodify(root .. link, ':.')
     local winnr = vim.fn.bufwinnr(filename)
     if winnr == -1 then
       vim.cmd(log_open() .. ' ' .. filename)
@@ -1739,13 +1743,15 @@ local status_action = function()
 
   -- open the file if it hasn't been deleted
   elseif not line:gsub('^%s', ''):match('^D') then
-    local winnr = vim.fn.bufwinnr(path)
+    local root = repo()
+    local filename = vim.fn.fnamemodify(root .. path, ':.')
+    local winnr = vim.fn.bufwinnr(filename)
     if winnr == -1 then
       local open = 'above new'
       if vim.fn.bufwinnr(log_name) == vim.fn.winnr() - 1 then
         open = 'winc k | ' .. open
       end
-      vim.cmd(open .. ' ' .. path)
+      vim.cmd(open .. ' ' .. filename)
     else
       vim.cmd(winnr .. 'winc w')
     end
@@ -2286,8 +2292,7 @@ M.init = function(init_opts)
       -- expand %
       opts.fargs = vim.tbl_map(function(a)
         if a == '%' then
-          local _, path = file()
-          return path and path or a
+          return vim.fn.expand('%')
         end
         return a
       end, opts.fargs)
