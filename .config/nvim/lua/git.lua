@@ -1,6 +1,10 @@
 M = {}
 
 local config
+local me = {}
+local log_name = 'git log'
+local status_name = 'git status'
+
 local notify = function(msg, level, opts)
   opts = opts or {}
   opts.title = opts.title or 'git'
@@ -23,7 +27,8 @@ local modal = function()
   local col = math.floor((vim.o.columns - width) / 2)
   local row = math.floor((vim.o.lines - height) / 2)
   local bufnr = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_open_win(bufnr, true, {
+  vim.bo[bufnr].bufhidden = 'wipe'
+  local window = vim.api.nvim_open_win(bufnr, true, {
     relative = 'editor',
     width = width,
     height = height,
@@ -32,6 +37,23 @@ local modal = function()
     style = 'minimal',
     border = 'rounded',
   })
+  -- add mapping to "sink" the modal as a horizontal split at the bottom or
+  -- above our status/log windows
+  vim.keymap.set('n', 'S', function()
+    local open = 'botright'
+    for _, name in ipairs({ status_name, log_name }) do
+      local winnr = vim.fn.bufwinnr(name)
+      if winnr ~= -1 then
+        vim.cmd(winnr .. 'winc w')
+        open = 'above'
+        break
+      end
+    end
+    vim.cmd(open .. ' new')
+    vim.cmd.buffer(bufnr)
+    vim.fn.win_gotoid(window)
+    vim.cmd.quit()
+  end, { buffer = bufnr })
 end
 
 local term = function(cmd, opts)
@@ -301,10 +323,6 @@ local file = function(path)
 
   return root, path, revision
 end
-
-local me = {}
-local log_name = 'git log'
-local status_name = 'git status'
 
 local annotate_info = function()
   if vim.fn.mode() ~= 'n' then
@@ -1922,15 +1940,18 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end
 
   local height = 15
-  window(status_name, 'botright ' .. height .. 'new', lines, {
+  local open = 'botright '
+  -- for a consistent layout, ensure we open the status window above the log
+  -- window, if it exists
+  local log_winnr = vim.fn.bufwinnr(log_name)
+  if log_winnr ~= -1 then
+    vim.cmd(log_winnr .. 'winc w')
+    open = 'above '
+  end
+  window(status_name, open .. height .. 'new', lines, {
     created = function()
       local nav = function(dir)
-        -- if we are on the pending commits line, then reset our position
-        if vim.fn.line('.') == status_pending_line then
-          vim.fn.cursor(0, 1)
-        end
         vim.cmd('normal! ' .. dir)
-
         local lnum = vim.fn.line('.')
         local line = vim.fn.getline(lnum)
         local col = vim.fn.col('.')
