@@ -2334,6 +2334,8 @@ M.init = function(init_opts)
             if vim.fn.bufwinnr(status_name) ~= -1 then
               status({ focus = false })
             end
+
+            pcall(vim.cmd.checktime) -- update existing buffers if necessary
           end
         })
       end
