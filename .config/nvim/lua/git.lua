@@ -1687,6 +1687,14 @@ local status_action = function()
   if lnum == status_head_line then
     if vim.fn.col('.') > 3 then
       log({ title = 'commits:      HEAD', args = '-1'})
+      -- expand the commit and its files
+      if vim.fn.search('^+ ') ~= 0 then
+        log_detail()
+        if vim.fn.search('+ files') ~= 0 then
+          log_files()
+          vim.fn.search('^- ')
+        end
+      end
     end
     return
   end
