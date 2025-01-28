@@ -1111,7 +1111,7 @@ local log = function(opts)
   end
 
   if path then
-    if opts.range ~= 0 then
+    if opts.range and opts.range ~= 0 then
       log_cmd = log_cmd .. ' -L' .. opts.line1 .. ',' .. opts.line2 .. ':'
     else
       log_cmd = log_cmd .. ' --follow '
