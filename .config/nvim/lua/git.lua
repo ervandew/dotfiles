@@ -1124,12 +1124,17 @@ local log = function(opts)
     return
   end
 
-  local lines = {
-    'repository:   ' .. vim.fn.fnamemodify(root, ':h:t'),
-    'branch:       ' .. M.git('rev-parse --abbrev-ref HEAD'),
-  }
-  if opts.title or path then
-    lines[#lines + 1] = opts.title or ('filename:     ' .. path)
+  local lines = { 'repository:   ' .. vim.fn.fnamemodify(root, ':h:t') }
+  if opts.title then
+    lines[#lines + 1] = opts.title
+  end
+  if opts.args == '' then
+    lines[#lines + 1] = 'branch:       ' .. M.git('rev-parse --abbrev-ref HEAD')
+  else
+    lines[#lines + 1] = 'log:          ' .. opts.args
+  end
+  if path then
+    lines[#lines + 1] = 'filename:     ' .. path
   end
   lines[#lines + 1] = ''
 
@@ -1199,9 +1204,9 @@ local log = function(opts)
   vim.cmd('syntax match GitMessage /\\(^[+-] \\(. \\)\\?\\w\\{2,} \\w.\\{-} (\\d.\\{-})\\( (.\\{-})\\)\\?\\)\\@<=.*/ contains=GitRefs')
   vim.cmd('syntax match GitLink /|\\S.\\{-}|/')
   vim.cmd('syntax match GitFiles /\\(^\\s\\+[+-] \\)\\@<=files\\>/')
-  vim.cmd('syntax match GitLogHeader /^\\%<4l.\\{-}: .*/ contains=GitLogHeaderName,GitLogHeaderFile')
-  vim.cmd('syntax match GitLogHeaderName /^\\%<4l.\\{-}:/')
-  vim.cmd('syntax match GitLogHeaderFile /\\(\\%<4lfilename:\\s\\+\\)\\@<=.*/')
+  vim.cmd('syntax match GitLogHeader /^\\%<5l.\\{-}: .*/ contains=GitLogHeaderName,GitLogHeaderFile')
+  vim.cmd('syntax match GitLogHeaderName /^\\%<5l.\\{-}:/')
+  vim.cmd('syntax match GitLogHeaderFile /\\(\\%<5lfilename:\\s\\+\\)\\@<=.*/')
   vim.cmd('syntax match GitLogDiff /^# .*/ contains=GitLogDiffAdd,GitLogDiffDelete')
   vim.cmd('syntax match GitLogDiffAdd /\\(^# \\)\\@<=+.*/')
   vim.cmd('syntax match GitLogDiffDelete /\\(^# \\)\\@<=-.*/')
