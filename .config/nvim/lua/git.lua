@@ -1927,6 +1927,11 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
 
   if lines[1]:match('^## HEAD') and bisect_active() then
     lines[1] = lines[1] .. ': [bisect]'
+  elseif is_protected(branch) then
+    local desc = M.git('describe', { quiet = true })
+    if desc then
+      lines[1] = lines[1] .. ' (desc: ' .. desc .. ')'
+    end
   end
   lines = vim.list_extend({
     lines[1],
