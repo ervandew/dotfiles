@@ -1101,7 +1101,6 @@ local log = function(opts)
     -- if command is using % expansion then prevent adding the path to the args
     -- a second time below
     if filename and expanded then
-      opts.title = ('filename:     ' .. path)
       path = nil
     end
   end
@@ -1130,11 +1129,9 @@ local log = function(opts)
   end
   if opts.args == '' then
     lines[#lines + 1] = 'branch:       ' .. M.git('rev-parse --abbrev-ref HEAD')
-  else
-    lines[#lines + 1] = 'log:          ' .. opts.args
   end
-  if path then
-    lines[#lines + 1] = 'filename:     ' .. path
+  if not opts.bisect then
+    lines[#lines + 1] = 'cmd:          ' .. log_cmd:gsub('%-%-pretty=.-" ', '')
   end
   lines[#lines + 1] = ''
 
@@ -1204,9 +1201,8 @@ local log = function(opts)
   vim.cmd('syntax match GitMessage /\\(^[+-] \\(. \\)\\?\\w\\{2,} \\w.\\{-} (\\d.\\{-})\\( (.\\{-})\\)\\?\\)\\@<=.*/ contains=GitRefs')
   vim.cmd('syntax match GitLink /|\\S.\\{-}|/')
   vim.cmd('syntax match GitFiles /\\(^\\s\\+[+-] \\)\\@<=files\\>/')
-  vim.cmd('syntax match GitLogHeader /^\\%<5l.\\{-}: .*/ contains=GitLogHeaderName,GitLogHeaderFile')
-  vim.cmd('syntax match GitLogHeaderName /^\\%<5l.\\{-}:/')
-  vim.cmd('syntax match GitLogHeaderFile /\\(\\%<5lfilename:\\s\\+\\)\\@<=.*/')
+  vim.cmd('syntax match GitLogHeader /^\\%<4l.\\{-}: .*/ contains=GitLogHeaderName')
+  vim.cmd('syntax match GitLogHeaderName /^\\%<4l.\\{-}:/')
   vim.cmd('syntax match GitLogDiff /^# .*/ contains=GitLogDiffAdd,GitLogDiffDelete')
   vim.cmd('syntax match GitLogDiffAdd /\\(^# \\)\\@<=+.*/')
   vim.cmd('syntax match GitLogDiffDelete /\\(^# \\)\\@<=-.*/')
@@ -1369,6 +1365,10 @@ local function bisect_log(opts)
   -- jump to the first bad commit or the current commit
   if vim.fn.search('^[+-] X ', 'c') == 0 then
     vim.fn.search('^[+-] # ', 'c')
+  else
+    if vim.fn.getline('.'):match('^+') then
+      log_detail()
+    end
   end
 end
 

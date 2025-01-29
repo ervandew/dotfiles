@@ -147,7 +147,6 @@ return {{
     vim.api.nvim_set_hl(0, 'GitLogDiffDelete', { fg = red })
     vim.api.nvim_set_hl(0, 'GitLogHeader', { fg = gray9 })
     vim.api.nvim_set_hl(0, 'GitLogHeaderName', { fg = gray6 })
-    vim.api.nvim_set_hl(0, 'GitLogHeaderFile', { fg = yellow_mid })
     vim.api.nvim_set_hl(0, 'GitLogMarkerIn', { fg = red, bold = true })
     vim.api.nvim_set_hl(0, 'GitLogMarkerOut', { fg = green, bold = true })
     vim.api.nvim_set_hl(0, 'GitMessage', { fg = gray11 })
