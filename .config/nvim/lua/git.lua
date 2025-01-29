@@ -1025,7 +1025,7 @@ end
 
 local log_augroup = vim.api.nvim_create_augroup('git_log', {})
 local log = function(opts)
-  if opts.bang and opts.range ~= 0 then
+  if opts.bang and opts.range and opts.range ~= 0 then
     error('Git! log cannot be used with a range.')
     return
   end
@@ -1272,6 +1272,7 @@ local log_grep = function(type, opts)
   end
 
   log({
+    bang = opts.bang,
     args = log_args,
     title = opts.title .. args,
     exec = type == 'files',
@@ -2332,8 +2333,10 @@ M.init = function(init_opts)
       end, opts.fargs)
       opts.args = vim.fn.join(opts.fargs, ' ')
 
-      if opts.bang and (not command or command ~= log)
-      then
+      if opts.bang and (
+        not command or
+        not vim.list_contains({ log, grep_commits, grep_files }, command)
+      ) then
         error('Only Git! log supports bang usage.')
         return
       end
