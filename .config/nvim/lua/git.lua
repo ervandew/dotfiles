@@ -1224,8 +1224,12 @@ local log = function(opts)
       local sample_hash = vim.fn.getline(sample_line):match('^[+-] (%w+)')
       revision = revision:sub(1, #sample_hash)
     end
-    vim.fn.search('^[+-] ' .. revision)
-    vim.cmd('normal! z') -- move line to top of the log window
+    if vim.fn.search('^[+-] ' .. revision) ~= 0 then
+      if vim.fn.getline('.'):match('^+') then
+        log_detail()
+      end
+      vim.cmd('normal! z') -- move line to top of the log window
+    end
   end
 
   local bufnr = vim.fn.bufnr()
