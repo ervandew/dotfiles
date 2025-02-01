@@ -93,15 +93,23 @@ local window = function(name, open, lines, opts)
   if winnr ~= -1 then
     vim.cmd(winnr .. 'winc w')
   else
+    local lastwinid = vim.fn.win_getid()
     if open == 'modal' then
       modal()
       vim.cmd.file(name)
     else
-      vim.cmd(open .. ' ' .. vim.fn.escape(name, ''))
+      vim.cmd(open .. ' ' .. name)
     end
 
     vim.keymap.set('n', 'q', function()
       vim.cmd.quit()
+
+      -- ensure that we return the original window, if it still exists
+      local lastwinnr = vim.fn.win_id2win(lastwinid)
+      if lastwinnr ~= 0 then
+        vim.cmd(lastwinnr .. 'winc w')
+      end
+
       vim.cmd.doautocmd('WinEnter')
     end, { buffer = true })
 
