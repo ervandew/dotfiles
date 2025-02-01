@@ -445,6 +445,10 @@ return {
             }
           }
         },
+        -- helps limit how often changes are sent to the lsp.
+        -- setting a really high value since it doesn't seem to
+        -- to use the full interval, but does greatly reduce the chatter
+        flags = { debounce_text_changes = 5000 },
       }) -- }}}
 
       -- }}}
