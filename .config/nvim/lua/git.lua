@@ -2073,11 +2073,11 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.keymap.set({ 'n', 'x' }, 'u', function()
     status_cmd('restore --staged', { untracked = false })
   end, { buffer = bufnr })
-  vim.keymap.set('n', 'r', function()
+  vim.keymap.set({ 'n', 'x' }, 'r', function()
     status_cmd('restore', {
       confirm = function(selection)
         local affected = vim.tbl_filter(function(l)
-          return l:match('^%sM') and true or false
+          return l:match('^.M') and true or false
         end, selection)
         if #affected > 0 then
           return 'Are you sure you want to run: ' ..
