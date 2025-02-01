@@ -2256,9 +2256,11 @@ local complete = function(arglead, cmdl, pos)
       return compl_opts.match, { 'annotate', 'log' }
     end,
     -- complete repo relative file paths for add, mv, and rm
-    ['^Git%s+add%s+.*([-/%w]*)$'] = complete_filepath,
-    ['^Git%s+mv%s+.*([-/%w]*)$'] = complete_filepath,
-    ['^Git%s+rm%s+.*([-/%w]*)$'] = complete_filepath,
+    ['^Git%s+add%s+.-([-/%w]*)$'] = complete_filepath,
+    ['^Git%s+mv%s+.-([-/%w]*)$'] = complete_filepath,
+    ['^Git%s+rm%s+.-([-/%w]*)$'] = complete_filepath,
+    -- complete branch name for switch command
+    ['^Git%s+switch%s+.-([-/%w]*)'] = complete_branch(),
     -- complete branch name in log expansions
     ['^Git%s+log%s+.*diff:([-/%w]*)'] = complete_branch('diff:'),
     ['^Git%s+log%s+.*in:([-/%w]*)'] = complete_branch('in:'),
