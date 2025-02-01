@@ -389,8 +389,8 @@ vim.api.nvim_create_autocmd('BufRead', {
 vim.api.nvim_create_autocmd('WinLeave', {
   pattern = '*',
   callback = function()
-    vim.opt.cursorline = false
-    vim.opt.colorcolumn = ''
+    vim.wo.cursorline = false
+    vim.wo.colorcolumn = ''
   end
 })
 vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'FileType' }, {
@@ -402,18 +402,20 @@ vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'FileType' }, {
       -- don't show the colorcolumn for certain file types or files that can't be
       -- edited
       local ignore_ft = { 'qf' }
-      local ignore_bt = { 'prompt', 'terminal' }
       if not vim.list_contains(ignore_ft, vim.bo.ft) and
-         not vim.list_contains(ignore_bt, vim.bo.bt) and
-         not vim.bo.readonly
+         not vim.bo.readonly and
+         vim.bo.modifiable and
+         vim.bo.buftype == ''
       then
-        vim.opt.colorcolumn = '82'
+        vim.wo.colorcolumn = '82'
       end
-      if not vim.list_contains(ignore_bt, vim.bo.bt) then
+
+      local ignore_bt = { 'prompt', 'terminal' }
+      if not vim.list_contains(ignore_bt, vim.bo.buftype) then
         if vim.bo.ft ~= 'man' then
-          vim.opt.number = true
+          vim.wo.number = true
         end
-        vim.opt.cursorline = true
+        vim.wo.cursorline = true
       end
     end)
   end
