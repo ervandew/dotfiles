@@ -816,10 +816,10 @@ return {
           local winid = vim.fn.win_getid(winnr)
           -- exclude any floating windows, quickfix windows, or windows with a
           -- fixed height or width, as these are most likely some sort of tool
-          -- window (tag list, etc)
+          -- window
           if not (
-            vim.w[winid].winfixheight or
-            vim.w[winid].winfixwidth or
+            vim.wo[winid].winfixheight or
+            vim.wo[winid].winfixwidth or
             vim.api.nvim_win_get_config(winid).zindex or
             vim.fn.getwininfo(winid)[1].quickfix == 1
           ) then
