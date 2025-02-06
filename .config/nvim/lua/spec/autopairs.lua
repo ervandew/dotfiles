@@ -387,7 +387,7 @@ return {{
       --
       local col = vim.fn.col('.')
       -- note: breaks repeat :/
-      local pos = vim.fn.searchpos('\\s\\|$', 'z', vim.fn.line('.'))
+      local pos = vim.fn.searchpos('\\s\\|$', 'cz', vim.fn.line('.'))
 
       if pos[2] > col then
         -- if we skipped over any indentkeys, then re-indent the line
