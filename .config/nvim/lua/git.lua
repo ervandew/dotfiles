@@ -2127,15 +2127,23 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     })
   end, { buffer = bufnr })
 
-  vim.keymap.set('n', 'c', function()
+  vim.keymap.set({ 'n', 'x' }, 'c', function()
     if can_commit then
-      term('git commit -e', { cwd = repo(), on_exit = status_term_exit })
+      if vim.fn.mode() == 'V' then
+        status_cmd('commit -e', { term = true })
+      else
+        term('git commit -e', { cwd = repo(), on_exit = status_term_exit })
+      end
     end
   end, { buffer = bufnr })
 
-  vim.keymap.set('n', 'a', function()
+  vim.keymap.set({ 'n', 'x' }, 'a', function()
     if can_amend then
-      term('git commit --amend', { cwd = repo(), on_exit = status_term_exit })
+      if vim.fn.mode() == 'V' then
+        status_cmd('commit --amend', { term = true })
+      else
+        term('git commit --amend', { cwd = repo(), on_exit = status_term_exit })
+      end
     end
   end, { buffer = bufnr })
 
