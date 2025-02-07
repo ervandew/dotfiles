@@ -1172,7 +1172,8 @@ local log = function(opts)
       -- skip these lines since thye are redundant
       if not line:match('^diff %-%-git') and
          not line:match('^%-%-%- a/') and
-         not line:match('^+++ b/')
+         not line:match('^+++ b/') and
+         not line:match('^%-%-%- /dev/null')
       then
         lines[#lines + 1] = '# ' .. line
       end
@@ -2428,9 +2429,9 @@ M.init = function(init_opts)
     return abbrev
   end, { expr = true })
 
-  vim.keymap.set('n', '<leader>ga', ':Git annotate<cr>', { silent = true })
-  vim.keymap.set('n', '<leader>gl', ':Git log<cr>', { silent = true })
   vim.keymap.set('n', '<leader>gs', ':Git status<cr>', { silent = true })
+  vim.keymap.set({ 'n', 'x' }, '<leader>gl', ':Git log<cr>', { silent = true })
+  vim.keymap.set({ 'n', 'x' }, '<leader>ga', ':Git annotate<cr>', { silent = true })
 end
 
 return M
