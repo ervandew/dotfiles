@@ -2,7 +2,9 @@ M = {}
 
 local config
 local me = {}
+local log_height = 15
 local log_name = 'git log'
+local status_height = 15
 local status_name = 'git status'
 
 local notify = function(msg, level, opts)
@@ -103,6 +105,28 @@ local window = function(name, open, lines, opts)
 
     vim.keymap.set('n', 'q', function()
       vim.cmd.quit()
+
+      -- check if the only windows open are git windows
+      local status_winnr = vim.fn.bufwinnr(status_name)
+      local log_winnr = vim.fn.bufwinnr(log_name)
+      if vim.fn.winnr('$') == 1 and (
+         status_winnr ~= -1 or
+         log_winnr ~= -1
+      ) then
+        vim.cmd('above new')
+        if status_winnr ~= -1 then
+          vim.cmd((status_winnr + 1) .. 'resize ' .. status_height)
+        elseif log_winnr ~= -1 then
+          vim.cmd((log_winnr + 1) .. 'resize ' .. log_height)
+        end
+      elseif vim.fn.winnr('$') == 2 and
+         status_winnr ~= -1 and
+         log_winnr ~= -1
+      then
+        vim.cmd('above new')
+        vim.cmd((log_winnr + 1) .. 'resize ' .. log_height)
+        vim.cmd((status_winnr + 1) .. 'resize ' .. status_height)
+      end
 
       -- ensure that we return the original window, if it still exists
       local lastwinnr = vim.fn.win_id2win(lastwinid)
@@ -817,14 +841,29 @@ end
 
 local log_open = function()
   local open = 'above new'
+  local winnr = vim.fn.winnr()
   if vim.b.git_filename then
-    local winnr = vim.fn.bufwinnr(vim.b.git_filename)
-    if winnr ~= -1 then
-      vim.cmd(winnr .. 'winc w')
+    local bufwinnr = vim.fn.bufwinnr(vim.b.git_filename)
+    if bufwinnr ~= -1 then
+      vim.cmd(bufwinnr .. 'winc w')
     end
-  elseif vim.fn.bufwinnr(status_name) == vim.fn.winnr() - 1 then
+  elseif vim.fn.bufwinnr(status_name) == winnr - 1 then
     open = 'winc k | ' .. open
+    winnr = winnr - 1
   end
+
+  local above_buf = vim.fn.getbufinfo(vim.fn.winbufnr(winnr - 1))[1]
+  if above_buf.name == '' and     ---@diagnostic disable-line: undefined-field
+     above_buf.linecount == 1 and ---@diagnostic disable-line: undefined-field
+     above_buf.changed == 0       ---@diagnostic disable-line: undefined-field
+  then
+    if open:match('^winc k') then
+      open = '2winc k | edit'
+    else
+      open = 'winc k | edit'
+    end
+  end
+
   return open
 end
 
@@ -1194,14 +1233,13 @@ local log = function(opts)
     end
   end
 
-  local height = 15
-  window(log_name, 'botright ' .. height .. 'new', lines)
-  vim.w.height = height -- for other plugins that may need to restore the height
+  window(log_name, 'botright new', lines)
+  vim.w.height = log_height -- for other plugins that may need to restore the height
   vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
   vim.wo.wrap = false
   vim.wo.winfixheight = true
   vim.fn.cursor(cursor, 1)
-  vim.cmd.resize(height)
+  vim.cmd.resize(log_height)
   vim.cmd.doautocmd('WinNew')
   vim.cmd.doautocmd('WinEnter')
 
@@ -1796,8 +1834,12 @@ local status_action = function()
     local winnr = vim.fn.bufwinnr(filename)
     if winnr == -1 then
       local open = 'above new'
-      if vim.fn.bufwinnr(log_name) == vim.fn.winnr() - 1 then
-        open = 'winc k | ' .. open
+      local above_buf = vim.fn.getbufinfo(vim.fn.winbufnr(vim.fn.winnr() - 1))[1]
+      if above_buf.name == '' and     ---@diagnostic disable-line: undefined-field
+         above_buf.linecount == 1 and ---@diagnostic disable-line: undefined-field
+         above_buf.changed == 0       ---@diagnostic disable-line: undefined-field
+      then
+        open = 'winc k | edit'
       end
       vim.cmd(open .. ' ' .. filename)
     else
@@ -1966,7 +2008,6 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     pos = vim.fn.getpos('.')
   end
 
-  local height = 15
   local open = 'botright '
   -- for a consistent layout, ensure we open the status window above the log
   -- window, if it exists
@@ -1975,7 +2016,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     vim.cmd(log_winnr .. 'winc w')
     open = 'above '
   end
-  window(status_name, open .. height .. 'new', lines, {
+  window(status_name, open .. 'new', lines, {
     created = function()
       local nav = function(dir)
         vim.cmd('normal! ' .. dir)
@@ -2016,11 +2057,11 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     end
   end
 
-  vim.w.height = height -- for other plugins that may need to restore the height
+  vim.w.height = status_height -- for other plugins that may need to restore the height
   vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
   vim.wo.wrap = false
   vim.wo.winfixheight = true
-  vim.cmd.resize(height)
+  vim.cmd.resize(status_height)
 
   vim.bo.ft = 'git_status'
   vim.cmd('syntax match GitStatusAdded /\\%1cA/')
