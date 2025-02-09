@@ -224,13 +224,7 @@ return {
       vim.keymap.set('n', '<leader>ff', function() -- find_files {{{
         local cwd, cwd_display = search_path()
         builtin.find_files({
-          attach_mappings = function(prompt_bufnr, map)
-            attach_mappings_file(prompt_bufnr)
-            map('i', '<c-f>', function() -- switch to live_grep
-              vim.api.nvim_feedkeys(esc .. vim.g.mapleader .. 'fg', 'm', false)
-            end)
-            return true
-          end,
+          attach_mappings = attach_mappings_file,
           cwd = cwd,
           hidden = true,
           default_text = current_prompt_text(),
@@ -457,9 +451,6 @@ return {
               vim.fn.cursor(selection.lnum, selection.col + 1)
               -- open folds (z0), center the cursor line (zz)
               vim.cmd('silent! normal! zOzz')
-            end)
-            map('i', '<c-f>', function() -- switch to find_files
-              vim.api.nvim_feedkeys(esc .. vim.g.mapleader .. 'ff', 'm', false)
             end)
             return true
           end,
@@ -925,13 +916,7 @@ return {
         local lga_actions = require('telescope-live-grep-args.actions')
         ---@diagnostic disable-next-line: undefined-field
         require('telescope').extensions.live_grep_args.live_grep_args({
-          attach_mappings = function(prompt_bufnr, map)
-            attach_mappings_file(prompt_bufnr)
-            map('i', '<c-f>', function() -- switch to find_files
-              vim.api.nvim_feedkeys(esc .. vim.g.mapleader .. 'ff', 'm', false)
-            end)
-            return true
-          end,
+          attach_mappings = attach_mappings_file,
           cwd = cwd,
           default_text = default_text,
           prompt_title = 'Live Grep: ' .. cwd_display,
