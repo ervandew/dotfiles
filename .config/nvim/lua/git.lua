@@ -410,7 +410,7 @@ local function annotate(opts)
   end
 
   local first, last
-  if opts.range ~= 0 then
+  if opts.range and opts.range ~= 0 then
     first = opts.line1
     last = opts.line2
   else
@@ -434,6 +434,7 @@ local function annotate(opts)
     (annotate_revision and (' ' .. annotate_revision) or '') ..
     ' -L ' .. first .. ',' .. last
   )
+  vim.b.git_annotations_range = { line1 = first, line2 = last }
   if not result then
     return
   end
@@ -541,8 +542,10 @@ local function annotate(opts)
       buffer = bufnr,
       group = annotate_augroup,
       callback = function()
-        annotate() -- clear existing
-        annotate() -- apply updated
+        local lines = vim.b.git_annotations_range
+        annotate({ range = 0 }) -- clear existing
+        -- apply updated
+        annotate({ range = 1, line1 = lines.line1, line2 = lines.line2 })
       end,
     })
   end
