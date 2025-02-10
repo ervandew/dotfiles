@@ -1691,7 +1691,7 @@ local status_action = function()
       -- ignore comment lines and untracked files
       return not (l:sub(1, 1) == '#' or l:sub(1, 1) == '?')
     end, vim.fn.getregion(pos1, pos2, { type = 'V' }))
-    if #lines then
+    if #lines ~= 0 then
       local paths = vim.fn.join(
         vim.tbl_map(function(l) return l:sub(4) end, lines),
         ' '
