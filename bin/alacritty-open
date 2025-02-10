@@ -8,28 +8,58 @@
 # another.
 ##
 
+function _success(){
+  _message "#[fg=#222222,bg=green,fill=green,bold]$1"
+}
+
+function _error(){
+  _message "#[fg=#222222,bg=red,fill=red,bold]$1"
+}
+
+function _message(){
+  # FIXME: display messages in alacritty (like their config errors)
+  window=$(xdotool getactivewindow)
+  class=$(xprop -id $window | grep WM_CLASS)
+  if [[ $class == *"Alacritty"* ]]; then
+    pid=$(xprop -id $window | grep _NET_WM_PID | grep -oP "\d+")
+    bid=$(ps -ef | grep $pid | grep "bash" | tr -s ' ' | cut -d' ' -f2)
+    tid=$(ps -ef | grep $bid | grep "tmux" | perl -pe 's/.*tmux -L (.*?) .*/\1/')
+    if [ -n "$tid" ] ; then
+      tmux -L $tid display-message -d 2000 "$1"
+    fi
+  fi
+}
+
 # strip any leading spaces from the supplied target
 target=$(echo $1 | perl -pe 's/^\s*//')
 
 # Open a url {{{
 if [[ $target =~ ^https?:// ]] ; then
+  _success "Opening $target ..."
   xdg-open "$target"
 fi # }}}
 
 # Open a file in an existing nvim instance. {{{
 function _nvim(){
-  pid=$(
+  pids=$(
     ps -ef |
       grep "$(whoami) .*[n]vim --embed" |
       grep -v "macros/less.vim" |
       tr -s ' ' |
-      cut -d' ' -f2 |
-      head -1
+      cut -d' ' -f2
   )
-  server=$(ls -1tr /run/user/$(id -u)/nvim.$pid.0)
-  if [ -n "$server" ]; then
-    nvim --server $server --remote-send "<c-\><c-n>:split $1<cr>"
-  fi
+  for pid in $pids ; do
+    # use the first instance that isn't running inside of TMUX
+    if ! cat /proc/$pid/environ | grep TMUX &> /dev/null ; then
+      server=$(ls -1tr /run/user/$(id -u)/nvim.$pid.0)
+      if [ -n "$server" ]; then
+        nvim --server $server --remote-send "<c-\><c-n>:top new $1<cr>"
+        _success "Opened $1"
+        return
+      fi
+    fi
+  done
+  _error "No eligible nvim instance found."
 }
 
 # absolute file:line reference
@@ -109,10 +139,16 @@ if [[ ${target,,} =~ ^(fixes|refs|resolves|bos-) ]] ; then
     match=$(echo "$target" | perl -pe "s|.*${pattern}.*|\1| || exit 1")
     if [ "$?" -eq 0 ] ; then
       url=$(echo "$url" | perl -pe "s|\\\1|$match|")
+      _success "Opening $url ..."
       xdg-open "$url"
+      opened=1
       break
     fi
   done
+
+  if [ -z "$opened" ] ; then
+    _error "No matching ticket pattern found."
+  fi
 fi # }}}
 
 # vim:fdm=marker
