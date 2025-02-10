@@ -467,7 +467,7 @@ local function annotate(opts)
   annotations = vim.tbl_map(
     function(t)
       local rev, author, timestamp, lnum = t:match(
-        '^(%w+)\t%(%s*([%w%s]+)\t([-+0-9%s:]+)\t(%d+)%).*'
+        '^(.-)\t%(%s*(.-)\t([-+0-9%s:]+)\t(%d+)%).*'
       )
       local mapped = {
         lnum = tonumber(lnum),
