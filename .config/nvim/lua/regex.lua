@@ -342,6 +342,18 @@ end
 
 M.init = function()
   vim.api.nvim_create_user_command('Regex', open, { nargs = '?' })
+  vim.keymap.set('ca', 'regex', function()
+    local abbrev = 'regex'
+    local type = vim.fn.getcmdtype()
+    local pos = vim.fn.getcmdpos()
+    local cmdl = vim.fn.getcmdline():sub(1, pos)
+    ---@diagnostic disable-next-line: redundant-parameter
+    local char = vim.fn.nr2char(vim.fn.getchar(1))
+    if type == ':' and char:match('[%s\r]') and cmdl == abbrev then
+      return 'Regex'
+    end
+    return abbrev
+  end, { expr = true })
 end
 
 return M
