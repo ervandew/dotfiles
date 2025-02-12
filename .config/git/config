@@ -109,8 +109,6 @@
   glcompare = "!f() { B=${1}; A=${2-$(git brname)}; $(git config web.open) \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/compare/$B...$A\"; }; f"
   glpullrequest = "!f() { set -e; if [ $# -lt 1 ]; then echo \"abort: target branch name required\"; return 1; fi; B=${1}; A=${2-$(git brname)}; echo \"creating gitlab pull request $A -> $B...\"; if ! $(git pushed $A) ; then git push ; fi; $(git config web.open) \"https://$(git remote -v | grep '^origin\\>.*(push)' | perl -pe 's|.*@(.*):(.*)\\.git .*|\\1/\\2|')/merge_requests/new?merge_request[source_branch]=$A&merge_request[target_branch]=$B&merge_request[title]=$A\"; }; f"
 
-  azurepullrequest = "!f() { set -e; if [ $# -lt 1 ]; then echo \"abort: target branch name required\"; return 1; fi; B=${1}; A=${2-$(git brname)}; echo \"creating ado pull request $A -> $B...\"; if ! $(git pushed $A) ; then git push ; fi; $(git config web.open) \"$(git config azure.url)/pullrequestcreate?sourceRef=$A&targetRef=$B&sourceRepositoryId=$(git config azure.repoid)&targetRepositoryId=$(git config azure.repoid)\"; }; f"
-
 [branch]
   autosetupmerge = true
   autosetuprebase = always
