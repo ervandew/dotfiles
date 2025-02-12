@@ -1721,6 +1721,7 @@ local status_action = function()
       return
     end
 
+    -- view commits ahead/behind upstream
     local pending_match = vim.fn.substitute(
       line, '.*\\(\\[.\\{-}\\%.c.\\{-}\\]\\)', '\\1', ''
     )
@@ -1733,6 +1734,20 @@ local status_action = function()
         log({ fargs = { 'diff:@{upstream}' }})
       end
       return
+    end
+
+    -- view commits since the last tag
+    local desc_ahead_match = vim.fn.substitute(
+      line, '.*(desc: \\(.*-\\d*\\%.c\\d\\+-g[0-9a-f]\\+\\))', '\\1', ''
+    )
+    if desc_ahead_match ~= line then
+      local tag, count = desc_ahead_match:match('^(.*)-(%d+)%-g[0-9a-f]+$')
+      if count then
+        log({
+          title = 'commits:      since ' .. tag .. ': ' .. count,
+          args = '-' .. count,
+        })
+      end
     end
   end
 
@@ -2069,6 +2084,8 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.cmd('syntax match GitStatusBehind /\\(\\%1l.*[\\[\\|,[:space:]]\\)\\@<=behind \\d\\+/')
   vim.cmd('syntax match GitStatusBranchLocal /\\(\\%1l## \\)\\@<=.\\{-}\\(\\.\\.\\.\\|$\\)/')
   vim.cmd('syntax match GitStatusBranchRemote /\\(\\%1l## .*\\.\\.\\.\\)\\@<=.\\{-}\\(\\s\\|$\\)/')
+  vim.cmd('syntax match GitStatusBranchDescAhead /\\(\\%1l## .* (desc: .*-\\)\\@<=\\(\\d\\+\\)\\ze\\(-g[0-9a-f]\\+)\\)/')
+  vim.cmd('syntax match GitStatusBranchDescTag /\\(\\%1l## .* (desc: \\)\\@<=.*\\ze\\(-\\d\\+-g[0-9a-f]\\+)\\)/')
   vim.cmd('syntax match GitStatusComment /^#.*/ contains=' ..
     'GitAuthor,' ..
     'GitMessage,' ..
@@ -2077,6 +2094,8 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     'GitStatusBehind,' ..
     'GitStatusBranchLocal,' ..
     'GitStatusBranchRemote,' ..
+    'GitStatusBranchDescAhead,' ..
+    'GitStatusBranchDescTag,' ..
     'GitStatusStash'
   )
   vim.cmd('syntax match GitStatusDeleted /\\%2cD/')
