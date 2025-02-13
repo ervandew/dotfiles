@@ -50,7 +50,7 @@ function tmux_window_title() {
     # remove path info
     # remove all but the first part of the command
     title=$(echo $title |
-      perl -pe 's|\s-.?\s| |' |
+      perl -pe 's|\s--?.?.?\s| |' |
       perl -pe 's|^sudo\s|#|' |
       perl -pe 's|^ssh\s|@|' |
       perl -pe 's|\S*/||g' |
