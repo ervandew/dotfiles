@@ -39,9 +39,9 @@ alias mv="mv -i"
 export EDITOR=vim
 
 MULTIPLEXER=$(which tmux 2> /dev/null)
-if [ -n "$MULTIPLEXER" ] ; then
+if [ "$SSH_TTY" == '/dev/pts/0' -a -n "$MULTIPLEXER" ] ; then
   IN_TMUX=$(echo "$TERM" | grep "^tmux")
-  if [ -n "$MULTIPLEXER" -a -z "$SUDO_USER" -a -n "$SSH_TTY" -a -z "$IN_TMUX" ] ; then
+  if [ -z "$SUDO_USER" -a -n "$SSH_TTY" -a -z "$IN_TMUX" ] ; then
     name=$(hostname)
     tmux -L "$name" new-session -s "$name" -A
   fi
