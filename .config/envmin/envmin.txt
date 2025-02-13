@@ -8,9 +8,10 @@ includes -----------------------
 [[ -f ~/.bashrc ]] && . ~/.bashrc
 
 .bashrc ------------------------
-# If not running interactively, don't do anything
-[ -z "$PS1" ] && return
+# exit if not running interactively or via an ssh command (top level shell)
+[[ -z "$PS1" && -z "$SSH_CLIENT" && "$SHLVL" != '1' ]] && return
 
+shopt -s expand_aliases # allow aliases to be used over ssh
 shopt -s checkwinsize
 shopt -s cmdhist
 shopt -s histappend
