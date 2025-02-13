@@ -1566,8 +1566,10 @@ local status_branch_merge = function(selection)
         error('branch_merge must be a git command or alias')
         return
       end
-      term('git ' .. cmd .. ' ' .. name, {
+      cmd = 'git ' .. cmd .. ' ' .. name
+      term(cmd, {
         cwd = repo(),
+        echo = 'running: ' .. cmd .. '\n',
         on_exit = function()
           pcall(vim.cmd.checktime) -- update existing buffers if necessary
           status_term_exit()

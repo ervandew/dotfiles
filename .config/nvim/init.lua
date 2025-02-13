@@ -510,10 +510,11 @@ vim.api.nvim_create_autocmd('TermOpen', {
 require('comment').init()
 require('diff').init()
 require('git').init({
-  branch_merge = 'mergein',
+  branch_merge = 'complete',
   complete = {
     blogin = 'branch',
     blogout = 'branch',
+    cp = 'branch',
     mergein = 'branch',
     pr = 'branch',
     view = 'filepath',
