@@ -842,6 +842,7 @@ return {
         -- attempting to jump to the entry.
         vim.api.nvim_buf_delete(bufnr, { force = opts.bang, unload = true })
         vim.cmd('redraw') -- force tabline to update
+        vim.cmd.doautocmd('WinEnter')
       end, { bang = true, nargs = 0 })
     -- }}}
 
