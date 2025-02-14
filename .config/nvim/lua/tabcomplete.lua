@@ -13,7 +13,13 @@ local key = function(dir)
   end
 
   -- already in completion mode, so just return the key to nav up/down the list
-  if vim.fn.pumvisible() ~= 0 then
+  local compl = vim.fn.complete_info()
+  if compl.pum_visible == 1 then
+    -- for keyword completion, the most likely completions tend to be at the
+    -- bottom, so reverse the direction
+    if compl.mode == 'keyword' then
+      dir = dir == 'n' and 'p' or 'n'
+    end
     return termcodes('<c-' .. dir .. '>')
   end
 
