@@ -1968,7 +1968,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   local is_ahead = result:match('%[ahead %d+')
   local is_behind = result:match('[%[%s]behind %d+')
   local is_gone = result:match('%[gone%]') -- remote is set but doesn't exist
-  local can_amend = not is_behind and (is_ahead or not is_protected(branch))
+  local can_amend = is_ahead or not is_protected(branch)
   local can_commit = false
   for _, line in ipairs(lines) do
     if line:match('^[ADMR]') then
