@@ -51,7 +51,7 @@
   # view the last committed version of a file, even if it has since been removed
   view = "!f() { F=$1; if [[ ! \"$1\" == *:* ]] ; then F=$(git rev-list -n 1 HEAD -- $F)^:$F; fi; git show $F 2>&1 | $EDITOR - -c \"let g:lsp_disabled = v:true | doautocmd BufRead $1 | set nomod noma bt=nofile | nmap <buffer> q :quit<cr>\"; }; f"
 
-  omerge = !git merge @{upstream}
+  omerge = merge @{upstream}
   orebase = "!f() { git rebase \"$@\" @{upstream}; }; f"
 
   dbranch = "!f() { B=$1; if git config get push.force.protected | grep \"\\b${B}\\b\" &> /dev/null ; then echo \"cannot delete protected branch: $B\"; else git branch -d ${B} && if [ -n \"$(git remote)\" ] ; then git push origin :heads/${B}; fi; fi; }; f"
@@ -70,21 +70,21 @@
   # log commits that differ between the current branch and the supplied target
   blog = "!f() { ARGS=\"\"; while [[ \"$1\" =~ ^- ]] ; do ARGS=\"$ARGS $1\"; shift; done; B1=$(git brname); if [ $# -gt 1 ]; then B1=$1; shift; fi; B2=$1; echo \"$B1...$B2\"; echo \"  < $B1\"; echo \"  > $B2\"; git log $ARGS --pretty=blog $B1...$B2; }; f"
   # log commits that are found in the target branch that are not in the current branch
-  blogin = !git blog --right-only
+  blogin = blog --right-only
   # log commits that are found in the current branch that are not in the target branch
-  blogout = !git blog --left-only
+  blogout = blog --left-only
   # unified diff between branches
   # $ git bdiff staging
   # $ git bdiff staging...topic-branch
-  bdiff = !git diff --left-only
+  bdiff = diff --left-only
 
-  in = !git log --pretty=simple ..@{upstream}
-  din = !git log -p ..@{upstream}
-  fin = !git in --name-status
+  in = log --pretty=simple ..@{upstream}
+  din = log -p ..@{upstream}
+  fin = in --name-status
 
-  out = !git -c color.ui=always log --pretty=simple @{upstream}.. | git pick -t rev '^(?:.*\\dm)?(\\w+) .*'
-  dout = !git log -p @{upstream}..
-  fout = !git log --pretty=simple @{upstream}.. --name-status
+  out = log --pretty=simple @{upstream}..
+  dout = log -p @{upstream}..
+  fout = log --pretty=simple @{upstream}.. --name-status
 
   dstash = stash show -p
   # FIXME: will this work if there was a conflict?
