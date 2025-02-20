@@ -4,6 +4,9 @@
 ; eg function M.foo
 (function_declaration name: (dot_index_expression) @func)
 
+; eg function Foo:bar()
+(function_declaration name: (method_index_expression) @func)
+
 ; eg: foo = function(...)
 (assignment_statement
   (variable_list name: (identifier)) @func
