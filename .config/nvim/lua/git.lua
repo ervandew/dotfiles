@@ -23,11 +23,12 @@ local confirm = function(msg, choices, default, type)
   return (ok and choice ~= 0) and choice or nil
 end
 
-local modal = function()
-  local width = math.floor(vim.o.columns * 0.75)
-  local height = math.floor(vim.o.lines * 0.75)
-  local col = math.floor((vim.o.columns - width) / 2)
-  local row = math.floor((vim.o.lines - height) / 2)
+local modal = function(opts)
+  opts = opts or {}
+  local width = opts.full and vim.o.columns or math.floor(vim.o.columns * 0.75)
+  local height = opts.full and (vim.o.lines - 4) or math.floor(vim.o.lines * 0.75)
+  local col = opts.full and 0 or math.floor((vim.o.columns - width) / 2)
+  local row = opts.full and 0 or math.floor((vim.o.lines - height) / 2)
   local bufnr = vim.api.nvim_create_buf(false, true)
   vim.bo[bufnr].bufhidden = 'wipe'
   local window = vim.api.nvim_open_win(bufnr, true, {
@@ -53,6 +54,11 @@ local modal = function()
     end
     vim.cmd(open .. ' new')
     vim.cmd.buffer(bufnr)
+    if vim.fn.bufname():match('%.patch$') then
+      -- remove our <space> scrolling mapping
+      pcall(vim.keymap.del, 'n', '<space>', { buffer = true })
+    end
+
     vim.fn.win_gotoid(window)
     vim.cmd.quit()
   end, { buffer = bufnr })
@@ -60,7 +66,7 @@ end
 
 local term = function(cmd, opts)
   local curwin = vim.fn.winnr()
-  modal()
+  modal(opts)
   vim.wo.cursorline = false
   vim.wo.cursorcolumn = false
   vim.wo.number = false
@@ -1842,6 +1848,16 @@ local status_action = function()
         return
       end
       window(path .. '.patch', 'modal', vim.fn.split(result, '\n'))
+    elseif status == 'U' then
+      local cmd = 'git mergetool ' .. path
+      term(cmd, {
+        full = true,
+        echo = 'running: ' .. cmd .. ' ...\n',
+        on_exit = function()
+          pcall(vim.cmd.checktime) -- update existing buffers if necessary
+          status_term_exit()
+        end,
+      })
     end
 
   -- open the file if it hasn't been deleted
@@ -2100,6 +2116,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     'GitStatusBranchDescTag,' ..
     'GitStatusStash'
   )
+  vim.cmd('syntax match GitStatusConflict /\\(\\%1c\\|\\%2c\\)U/')
   vim.cmd('syntax match GitStatusDeleted /\\%2cD/')
   vim.cmd('syntax match GitStatusDeletedStaged /\\%1cD/')
   vim.cmd('syntax match GitStatusDeletedFile /\\(\\%1cD\\|\\%2cD\\)\\@<=.*/')
