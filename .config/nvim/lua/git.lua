@@ -1776,6 +1776,7 @@ local status_action = function()
           vim.fn.append(lnum, vim.tbl_map(function(s)
             return '## - ' .. s
           end, vim.fn.split(stashes, '\n')))
+          vim.fn.append(lnum, '## - (a)pply (p)op (d)rop b(r)anch')
           vim.b.git_stashes = true
         else
           status() -- if there aren't any commits, then we might be out of date
@@ -1965,6 +1966,32 @@ local status_cmd = function(cmd, opts)
     M.git(cmd .. ' ' .. paths)
     status()
   end
+end
+
+local status_cmd_stash = function(action)
+  local stash = vim.fn.getline('.'):match('^## %- (stash@{%d+}):')
+  if stash then
+    local cmd = 'stash ' .. action
+    if action == 'branch' then
+      local ok, name = pcall(vim.fn.input, 'branch name: ')
+      if not ok then
+        return
+      end
+      cmd = cmd .. ' ' .. name
+    elseif action == 'drop' then
+      local msg = 'Are you sure you want to drop ' .. stash .. '?'
+      local result = confirm(msg, '&yes\n&no')
+      if result ~= 1 then
+        return
+      end
+    end
+
+    M.git(cmd .. ' ' .. stash)
+    pcall(vim.cmd.checktime) -- update existing buffers if necessary
+    status()
+    return true
+  end
+  return false
 end
 
 local status_augroup = vim.api.nvim_create_augroup('git_status', {})
@@ -2165,6 +2192,10 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     status_cmd('restore --staged', { untracked = false })
   end, { buffer = bufnr })
   vim.keymap.set({ 'n', 'x' }, 'r', function()
+    if status_cmd_stash('branch') then
+      return
+    end
+
     status_cmd('restore', {
       confirm = function(selection)
         local affected = vim.tbl_filter(function(l)
@@ -2185,6 +2216,10 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     pcall(vim.cmd.checktime) -- update existing buffers if necessary
   end, { buffer = bufnr })
   vim.keymap.set({ 'n', 'x' }, 'd', function()
+    if status_cmd_stash('drop') then
+      return
+    end
+
     status_cmd('clean -f', {
       confirm = function(selection)
         return 'Are you sure you want to run: ' ..
@@ -2221,6 +2256,10 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end, { buffer = bufnr })
 
   vim.keymap.set({ 'n', 'x' }, 'a', function()
+    if status_cmd_stash('apply') then
+      return
+    end
+
     if can_amend then
       if vim.fn.mode() == 'V' then
         status_cmd('commit --amend', { term = true })
@@ -2244,6 +2283,10 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'p', function()
+    if status_cmd_stash('pop') then
+      return
+    end
+
     if is_ahead then
       term('git push', {
         cwd = repo(),
