@@ -1665,6 +1665,9 @@ local status_branch_cmd = function(cmd)
         previewer = false,
         prompt_title = 'Git branch: ' .. cmd,
         show_remote_tracking_branches = false,
+--          if entry.name:match('^origin/') then
+--            return
+--          end
         attach_mappings = function(prompt_bufnr, map)
           actions.select_default:replace(function()
             local selection = action_state.get_selected_entry()
@@ -2013,7 +2016,6 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   local is_gone = result:match('%[gone%]') -- remote is set but doesn't exist
   local can_amend = is_ahead or not is_protected(branch)
   local can_commit = false
-  local can_unset_upstream = false
   for _, line in ipairs(lines) do
     if line:match('^[ADMR]') then
       can_commit = true
@@ -2050,12 +2052,6 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     local desc = M.git('describe', { quiet = true })
     if desc then
       lines[1] = lines[1] .. ' (desc: ' .. desc .. ')'
-    end
-  elseif lines[1]:match('%.%.%.origin/') then
-    local remote = lines[1]:match('%.%.%.origin/(.*)')
-    if remote ~= branch then
-      can_unset_upstream = true
-      lines[1] = lines[1] .. ' (U)nset upstream'
     end
   end
   lines = vim.list_extend({
@@ -2181,13 +2177,6 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.keymap.set('n', 'tm', status_branch_cmd('merge'),  { buffer = bufnr })
   vim.keymap.set('n', 'tr', status_branch_cmd('rebase'), { buffer = bufnr })
   vim.keymap.set('n', 'td', status_branch_cmd('delete'), { buffer = bufnr })
-
-  vim.keymap.set('n', 'U', function()
-    if vim.fn.line('.') == 1 and can_unset_upstream then
-      M.git('branch --unset-upstream')
-      status()
-    end
-  end, { buffer = bufnr })
 
   vim.keymap.set({ 'n', 'x' }, '<cr>', status_action, { buffer = bufnr })
   vim.keymap.set({ 'n', 'x' }, 's', function()
