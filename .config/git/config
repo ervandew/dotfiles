@@ -3,12 +3,16 @@
   desc = describe
   brname = rev-parse --abbrev-ref HEAD
   brexists = "!f() { git show-ref --verify --quiet refs/heads/$1; }; f"
+  upstream = "!f() { git branch -vv | grep ${1:-$(git rev-parse --abbrev-ref HEAD)} | perl -pe 's/.*?\\[(.*?)(:\\s|\\]).*/\\1/ || exit 0' ; } ; f"
   root = rev-parse --show-toplevel
   # returns: <repo_name>:<branch_info>
   # branch_info is typically the current branch name, but if a rebase is in
   # progress it will be "rebase" and if a specific commit has been checked out,
   # it will display the result of git describe.
   repo = "!f() { branch=$(git brname 2> /dev/null); if [ -n \"$branch\" ] ; then if [ \"$branch\" == \"HEAD\" ] ; then if git status | grep 'rebase in progress' > /dev/null ; then branch='rebase'; else branch=$(git describe --always); fi; fi; echo $(basename $(git rev-parse --show-toplevel)):$branch; else exit 1; fi; }; f"
+
+  # determines if the supplied or current branch is protected
+  protected = "!f() { B=${1:-$(git rev-parse --abbrev-ref HEAD)} ; if git config get push.force.protected | grep \"\\b${B}\\b\" &> /dev/null ; then echo \"this operation is not supported on a protected branch: $B\" ; exit 1 ; fi ; } ; f"
 
   # determines if the current branch has been pushed or not
   pushed = "!f() { [[ \"$(git show-ref refs/heads/$(git brname) | cut '-d ' -f1)\" = \"$(git show-ref refs/remotes/origin/$(git brname) | cut '-d ' -f1)\" ]]; }; f"
@@ -54,7 +58,7 @@
   omerge = merge @{upstream}
   orebase = "!f() { git rebase \"$@\" @{upstream}; }; f"
 
-  dbranch = "!f() { B=$1; if git config get push.force.protected | grep \"\\b${B}\\b\" &> /dev/null ; then echo \"cannot delete protected branch: $B\"; else git branch -d ${B} && if [ -n \"$(git remote)\" ] ; then git push origin :heads/${B}; fi; fi; }; f"
+  dbranch = "!f() { set -e ; git protected $1 ; git branch -d $1 && UPSTREAM=$(git upstream) && if [ -n \"$UPSTREAM\" ] ; then echo \"deleting upstream: $UPSTREAM\" ; git push origin -d $(echo $UPSTREAM | perl -pe 's|^origin/||') ; fi ; }; f"
 
   # $ git mergein <target branch>
   #   - rebase the target branch against the current branch
