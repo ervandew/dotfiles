@@ -1187,7 +1187,8 @@ local log = function(opts)
     lines[#lines + 1] = 'branch:       ' .. M.git('rev-parse --abbrev-ref HEAD')
   end
   if not opts.bisect then
-    lines[#lines + 1] = 'cmd:          ' .. log_cmd:gsub('%-%-pretty=.-" ', '')
+    local cmd_header = log_cmd:gsub('%-%-pretty=tformat:".-"%s?', '')
+    lines[#lines + 1] = 'cmd:          ' .. cmd_header
   end
   lines[#lines + 1] = ''
 
