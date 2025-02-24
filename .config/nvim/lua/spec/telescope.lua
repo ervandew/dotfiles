@@ -24,7 +24,6 @@ return {
       local pickers = require('telescope.pickers')
       local state = require('telescope.state')
       local utils = require('telescope.utils')
-      local esc = vim.api.nvim_replace_termcodes('<esc>', true, false, true)
 
       ---@diagnostic disable-next-line: undefined-field
       local extensions = require('telescope').extensions
@@ -166,6 +165,14 @@ return {
               ['<c-j>'] = actions.preview_scrolling_down,
               ['<c-k>'] = actions.preview_scrolling_up,
               ['<a-bs>'] = function()
+                local col = vim.fn.col('.')
+                local line = vim.fn.getline('.')
+                local char = line:sub(col - 1, col - 1)
+                if char == '.' then
+                  vim.fn.feedkeys(
+                    vim.api.nvim_replace_termcodes('<bs>', true, false, true)
+                  )
+                end
                 vim.fn.feedkeys(
                   vim.api.nvim_replace_termcodes('<c-w>', true, false, true)
                 )
@@ -444,7 +451,7 @@ return {
             end,
           }),
 
-          attach_mappings = function(prompt_bufnr, map)
+          attach_mappings = function(prompt_bufnr)
             actions.select_default:replace(function()
               actions.close(prompt_bufnr)
               local selection = action_state.get_selected_entry()
