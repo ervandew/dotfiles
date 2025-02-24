@@ -9,6 +9,9 @@ tab: complete
 # use vi for everything! :)
 set editing-mode vi
 
+# map alt-backspace to kill previous word
+"\e\177": shell-backward-kill-word
+
 $if mode=vi
   # update the cursor based on vi mode
   set show-mode-in-prompt on
