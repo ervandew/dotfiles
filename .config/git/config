@@ -58,7 +58,7 @@
   omerge = merge @{upstream}
   orebase = "!f() { git rebase \"$@\" @{upstream}; }; f"
 
-  dbranch = "!f() { set -e ; git protected $1 ; git branch -d $1 && UPSTREAM=$(git upstream) && if [ -n \"$UPSTREAM\" ] ; then echo \"deleting upstream: $UPSTREAM\" ; git push origin -d $(echo $UPSTREAM | perl -pe 's|^origin/||') ; fi ; }; f"
+  dbranch = "!f() { set -e ; git protected $1 ; UPSTREAM=$(git upstream $1) ; git branch -d $1 ; if [ -n \"$UPSTREAM\" ] ; then echo \"deleting upstream: $UPSTREAM\" ; git push origin -d $(echo $UPSTREAM | perl -pe 's|^origin/||') ; fi ; }; f"
 
   # $ git mergein <target branch>
   #   - rebase the target branch against the current branch
