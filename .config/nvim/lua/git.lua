@@ -2411,6 +2411,12 @@ local complete = function(arglead, cmdl, pos)
     ['^Git%s+log%s+.*diff:([-/%w]*)'] = complete_branch('diff:'),
     ['^Git%s+log%s+.*in:([-/%w]*)'] = complete_branch('in:'),
     ['^Git%s+log%s+.*out:([-/%w]*)'] = complete_branch('out:'),
+    -- complete bisect action
+    ['^Git%s+bisect%s+(%w*)$'] = function(compl_opts)
+      return compl_opts.match, {
+        'bad', 'good', 'reset', 'run', 'skip', 'start', 'test'
+      }
+    end,
     -- complete stash action
     ['^Git%s+stash%s+(%w*)$'] = function(compl_opts)
       return compl_opts.match, {
