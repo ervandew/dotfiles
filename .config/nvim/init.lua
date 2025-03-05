@@ -514,6 +514,7 @@ require('git').init({
   complete = {
     blogin = 'branch',
     blogout = 'branch',
+    ['branch-hotfix'] = 'branch',
     cp = 'branch',
     mergein = 'branch',
     pr = 'branch',

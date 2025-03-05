@@ -2443,7 +2443,8 @@ local complete = function(arglead, cmdl, pos)
   }
 
   for _, alias in ipairs(vim.tbl_keys(config.complete or {})) do
-    completions['^Git%s+' .. alias .. '%s+([-/%w]*)$'] = function(compl_opts)
+    local pattern = alias:gsub('%-', '%%-')
+    completions['^Git%s+' .. pattern .. '%s+([-/%w]*)$'] = function(compl_opts)
       local compl = config.complete[alias]
       local values
       if compl == 'branch' then
