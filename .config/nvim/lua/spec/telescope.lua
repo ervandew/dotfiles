@@ -552,6 +552,7 @@ return {
             local dir = vim.fn.fnamemodify(name, ':p:h')
             result[#result + 1] = {
               bufnr = buffer_id,
+              buftype = vim.bo[buffer_id].buftype,
               hidden = vim.fn.bufwinid(buffer_id) == -1,
               modified = vim.bo[buffer_id].modified,
               dir = vim.fn.fnamemodify(dir, ':.'),
@@ -706,7 +707,7 @@ return {
             end
           end
 
-          vim.api.nvim_buf_delete(bufnr, { unload = true })
+          vim.api.nvim_buf_delete(bufnr, { force = true, unload = true })
 
           if loadnext then
             local delete_bufnr = vim.fn.bufnr()
@@ -719,7 +720,10 @@ return {
 
         map({ 'i', 'n' }, '<c-o>', function()
           for _, buffer in ipairs(get_buffers()) do
-            if buffer.hidden and not vim.bo[buffer.bufnr].modified then
+            if buffer.hidden and
+               buffer.buftype ~= 'terminal' and
+               not buffer.modified
+            then
               vim.api.nvim_buf_delete(buffer.bufnr, { unload = true })
             end
           end
