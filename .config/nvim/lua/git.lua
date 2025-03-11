@@ -1196,7 +1196,9 @@ local log = function(opts)
   local skipped = false
   for _, line in ipairs(vim.fn.split(result, '\n')) do
     local values = vim.fn.split(line, '|')
-    if #values == 6 then
+    -- checking for length of 5 as well to account for log entries with no
+    -- commit message
+    if #values == 6 or #values == 5 then
       local mapped = {
         mark = (opts.title and opts.title:match('^filter:%s+diff')) and
           (values[1] .. ' ') or
@@ -1205,7 +1207,7 @@ local log = function(opts)
         author = values[3],
         age = values[4],
         refs = values[5],
-        comment = values[6],
+        comment = values[6] or '',
       }
       if opts.map then
         mapped = opts.map(mapped)
