@@ -110,4 +110,7 @@ def _request_latest(package):
   return json['info']['version']
 
 if __name__ == '__main__':
-  main()
+  try:
+    main()
+  except KeyboardInterrupt:
+    print()
