@@ -1,7 +1,8 @@
 ---Straight copy of neovim's _coomment.lua, with the following changes:
 --- Mod: replaced all 'vim._comment' references with 'comment'
---- Mod: updated get_comment_parts() to trim the left comment string to remove
----      the extra space between the comment operator and the string
+--- Mod: updated get_comment_parts() to add option to trim the left comment
+---      string to remove the extra space between the comment operator and the
+---      string
 --- Mod: added align arg to operator()/toggle_lines() to determine if the left
 ---      comment operator should be aligned with the existing code or inserted
 ---      at the very start of the line (no indent). Add 'operator_align()' for
@@ -65,7 +66,7 @@ end
 --- Compute comment parts from 'commentstring'
 ---@param ref_position integer[]
 ---@return comment.Parts
-local function get_comment_parts(ref_position)
+local function get_comment_parts(ref_position, opts)
   local cs = get_commentstring(ref_position)
 
   if cs == nil or cs == '' then
@@ -79,7 +80,10 @@ local function get_comment_parts(ref_position)
 
   -- Structure of 'commentstring': <left part> <%s> <right part>
   local left, right = cs:match('^(.-)%%s(.-)$')
-  return { left = vim.trim(left), right = right }
+  if opts and opts.trim then
+    left = vim.trim(left)
+  end
+  return { left = left, right = right }
 end
 
 --- Make a function that checks if a line is commented
@@ -193,15 +197,16 @@ end
 ---@param line_start integer
 ---@param line_end integer
 ---@param ref_position? integer[]
-local function toggle_lines(line_start, line_end, ref_position, align)
+local function toggle_lines(line_start, line_end, ref_position, opts)
+  opts = opts or { align = false, trim = true }
   ref_position = ref_position or { line_start, 0 }
-  local parts = get_comment_parts(ref_position)
+  local parts = get_comment_parts(ref_position, opts)
   local lines = vim.api.nvim_buf_get_lines(0, line_start - 1, line_end, false)
   local indent, is_comment = get_lines_info(lines, parts)
 
   local f = is_comment and
     make_uncomment_function(parts) or
-    make_comment_function(parts, align and indent or '')
+    make_comment_function(parts, opts.align and indent or '')
 
   -- Direct `nvim_buf_set_lines()` essentially removes both regular and
   -- extended marks  (squashes to empty range at either side of the region)
@@ -226,13 +231,20 @@ end
 ---|"'line'"
 ---|"'char'"
 ---|"'block'"
-local function operator(mode, align)
+local function operator(mode, opts)
+  opts = opts or { align = false, trim = false }
   -- Used without arguments as part of expression mapping. Otherwise it is
   -- called as 'operatorfunc'.
   if mode == nil then
-    vim.o.operatorfunc = align and
-      "v:lua.require'comment'.operator_align" or
-      "v:lua.require'comment'.operator"
+    if opts.align and opts.trim then
+      vim.o.operatorfunc = "v:lua.require'comment'.operator_align_trim"
+    elseif opts.align then
+      vim.o.operatorfunc = "v:lua.require'comment'.operator_align"
+    elseif opts.trim then
+      vim.o.operatorfunc = "v:lua.require'comment'.operator_trim"
+    else
+      vim.o.operatorfunc = "v:lua.require'comment'.operator"
+    end
     return 'g@'
   end
 
@@ -249,36 +261,44 @@ local function operator(mode, align)
   -- NOTE: use cursor position as reference for possibly computing local
   -- tree-sitter-based 'commentstring'. Recompute every time for a proper
   -- dot-repeat. In Visual and sometimes Normal mode it uses start position.
-  toggle_lines(lnum_from, lnum_to, vim.api.nvim_win_get_cursor(0), align)
+  toggle_lines(lnum_from, lnum_to, vim.api.nvim_win_get_cursor(0), opts)
   return ''
 end
 
 -- added for use with operatorfunc for align mappings
 local function operator_align(mode)
-  return operator(mode, true)
+  return operator(mode, { align = true, trim = false })
+end
+local function operator_align_trim(mode)
+  return operator(mode, { align = true, trim = true })
+end
+local function operator_trim(mode)
+  return operator(mode, { align = false, trim = true })
 end
 
 local function init()
   vim.keymap.del('n', 'gcc')
 
   vim.keymap.set({ 'x' }, 'gc', function()
-    return require('comment').operator(nil, false)
+    return require('comment').operator(nil, { align = false, trim = true })
   end, { expr = true, desc = 'Toggle comment' })
 
   vim.keymap.set({ 'x' }, 'gC', function()
-    return require('comment').operator(nil, true)
+    return require('comment').operator(nil, { align = true, trim = true })
   end, { expr = true, desc = 'Toggle comment' })
 
   vim.keymap.set('n', 'gc', function()
-    return require('comment').operator(nil, false) .. '_'
+    return require('comment').operator(nil, { align = false, trim = true }) .. '_'
   end, { expr = true, desc = 'Toggle comment line' })
   vim.keymap.set('n', 'gC', function()
-    return require('comment').operator(nil, true) .. '_'
+    return require('comment').operator(nil, { align = true, trim = true }) .. '_'
   end, { expr = true, desc = 'Toggle comment line' })
 end
 
 return {
   operator = operator,
   operator_align = operator_align,
+  operator_align_trim = operator_align_trim,
+  operator_trim = operator_trim,
   init = init,
 }
