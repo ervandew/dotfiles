@@ -56,12 +56,6 @@ return {
         orig_set(namespace, bufnr, filtered, opts)
       end
 
-      -- update the sign symbols
-      for _, name in ipairs({'Error', 'Warn', 'Info', 'Hint'}) do
-        local hl = 'DiagnosticSign' .. name
-        vim.fn.sign_define(hl, { text = '>', texthl = hl, numhl = hl })
-      end
-
       local orig_signs_handler = vim.diagnostic.handlers.signs
       ---@diagnostic disable-next-line: inject-field
       vim.diagnostic.handlers.signs = {
@@ -234,7 +228,22 @@ return {
       }) -- }}}
 
       vim.diagnostic.config({
-        signs = true,
+        signs = {
+          -- remove the use of a sign char
+          text = {
+            [vim.diagnostic.severity.ERROR] = '',
+            [vim.diagnostic.severity.HINT] = '',
+            [vim.diagnostic.severity.INFO] = '',
+            [vim.diagnostic.severity.WARN] = '',
+          },
+          -- highlight the line number based on the severity
+          numhl = {
+            [vim.diagnostic.severity.ERROR] = 'DiagnosticSignError',
+            [vim.diagnostic.severity.HINT] = 'DiagnosticSignHint',
+            [vim.diagnostic.severity.INFO] = 'DiagnosticSignInfo',
+            [vim.diagnostic.severity.WARN] = 'DiagnosticSignWarn',
+          },
+        },
         underline = true, -- using italic instead in colorscheme
         virtual_text = false,
         update_in_insert = true,

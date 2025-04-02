@@ -171,7 +171,8 @@ return {{
         parent, bufnr, 0, -1, { max_start_depth = 0 }
       ) do
         --- @cast match table<integer,TSNode>
-        for id, node in pairs(match) do
+        for id, nodes in pairs(match) do
+          local node = nodes[#nodes]
           local line, col = node:start()
           if line < lnum and query.captures[id] == 'context' then
             vim.fn.sign_place(
@@ -181,13 +182,12 @@ return {{
               bufnr,
               { lnum = line + 1 }
             )
-            vim.api.nvim_buf_add_highlight(
+            vim.hl.range(
               bufnr,
               hl_ns,
               'TreesitterContextVisible',
-              line,
-              0,
-              -1
+              {line, 0},
+              {line, -1}
             )
             if #contexts == 0 or contexts[#contexts]['line'] ~= line then
               contexts[#contexts + 1] = { line = line, col = col }
