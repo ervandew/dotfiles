@@ -36,7 +36,7 @@ return {{
           local context = contexts[#contexts + 1 - i]
           vim.api.nvim_buf_set_extmark(0, ext_ns, context['line'], 0, {
             virt_text_pos = 'overlay',
-            virt_text = { { tostring(i), 'MatchParen' } }
+            virt_text = { { tostring(i - 1), 'MatchParen' } }
           })
         end
 
@@ -51,28 +51,38 @@ return {{
               index = index + 1
               vim.api.nvim_buf_set_extmark(contextbuf, ext_ns, lnum - 1, 0, {
                 virt_text_pos = 'overlay',
-                virt_text = { { tostring(index), 'TreesitterContextLineNumber' } }
+                virt_text = {
+                  { tostring(index - 1), 'TreesitterContextLineNumber' }
+                }
               })
             end
             break
           end
         end
 
-        -- only one place to go, so go
+        -- no place to go
         if index == 0 then
           vim.api.nvim_echo({{ 'No contexts found.', 'Error' }}, false, {})
+
+        -- only one place to go, so go
         elseif index == 1 then
           _jump(1)
+
         else
-          vim.cmd('redraw')
-          local ok, choice = pcall(
-            vim.fn.input,
-            'context [' .. 1 .. '-' .. index .. ']: '
-          )
-          if ok and choice:match('^%d+$') then
-            local loc = tonumber(choice)
-            if 1 <= loc and loc <= index then
-              _jump(loc)
+          vim.cmd.redraw()
+          local choices = ''
+          for i = 0, index - 1 do
+            if choices ~= '' then
+              choices = choices .. '\n'
+            elseif i >= 10 then
+              break
+            end
+            choices = choices .. '&' .. i
+          end
+          local ok, choice = pcall(vim.fn.confirm, '', 'context: ' .. choices, -1)
+          if ok and choice >= 0 then
+            if 1 <= choice and choice <= index then
+              _jump(choice)
             end
           end
         end
