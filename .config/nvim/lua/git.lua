@@ -583,9 +583,37 @@ local function annotate(opts)
 end
 
 M.show = function(opts)
-  opts.revision = opts.revision or (opts.fargs and opts.fargs[1]) or 'HEAD'
+  if not opts.revision then
+    if opts.fargs then
+      local arg = opts.fargs[1]
+      if vim.fn.filereadable(arg) == 1 then
+        opts.path = arg
+        opts.revision = 'HEAD'
+      elseif arg:match('^.+:.+') then
+        local revision, path = arg:match('^(.+):(.+)')
+        opts.revision = revision
+        opts.path = path
+      elseif arg == 'prev' or
+         arg == 'HEAD' or
+         arg:match('^[a-f0-9]+$') or
+         arg:match('^origin/')
+      then
+        opts.revision = arg
+      elseif arg:match('/') then
+        opts.path = arg
+        local last_revision = M.git('rev-list -n 1 HEAD -- "' .. arg .. '"')
+        opts.revision = M.git(
+          'rev-list --abbrev-commit -n 1 ' .. last_revision .. '^'
+        )
+      else
+        opts.revision = arg
+      end
+    else
+      opts.revision = 'HEAD'
+    end
+  end
 
-  local root, path, revision = file(opts.path)
+  local root, path, revision = file(opts.path or '.')
   if not path or not revision then
     error('Unable to determine file info.')
     return
@@ -602,7 +630,11 @@ M.show = function(opts)
     return
   end
 
-  local result = M.git('show "' .. target_revision .. ':' .. path .. '"')
+  local rev_path = target_revision
+  if path ~= '.' then
+    rev_path = target_revision .. ':' .. path
+  end
+  local result = M.git('show "' .. rev_path .. '"')
   if not result then
     return
   end
@@ -2404,10 +2436,11 @@ local complete = function(arglead, cmdl, pos)
     ["^'<,'>Git%s+([-%w]*)$"] = function(compl_opts)
       return compl_opts.match, { 'annotate', 'log' }
     end,
-    -- complete repo relative file paths for add, mv, and rm
-    ['^Git%s+add%s+.-([-/%w]*)$'] = complete_filepath,
-    ['^Git%s+mv%s+.-([-/%w]*)$'] = complete_filepath,
-    ['^Git%s+rm%s+.-([-/%w]*)$'] = complete_filepath,
+    -- complete repo relative file paths for add, mv, rm, etc
+    ['^Git%s+add%s+.-([.-/%w]*)$'] = complete_filepath,
+    ['^Git%s+mv%s+.-([.-/%w]*)$'] = complete_filepath,
+    ['^Git%s+rm%s+.-([.-/%w]*)$'] = complete_filepath,
+    ['^Git%s+show%s+.-([.-/%w]*)$'] = complete_filepath,
     -- complete branch name for switch command
     ['^Git%s+switch%s+.-([-/%w]*)'] = complete_branch(),
     -- complete branch name in log expansions
