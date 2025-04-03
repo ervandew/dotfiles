@@ -19,7 +19,7 @@ end
 
 local confirm = function(msg, choices, default, type)
   default = default or 0
-  local ok, choice = pcall(vim.fn.confirm, msg, choices, default, type)
+  local ok, choice = pcall(vim.fn.confirm, '', msg .. ': ' .. choices, default, type)
   return (ok and choice ~= 0) and choice or nil
 end
 
@@ -74,11 +74,12 @@ local term = function(cmd, opts)
   if opts.echo then
     cmd = 'echo \\"' .. opts.echo .. '\\" ; ' .. cmd
   end
-  vim.fn.termopen(vim.o.shell .. ' -c "' .. cmd .. '"', {
+  vim.fn.jobstart(vim.o.shell .. ' -c "' .. cmd .. '"', {
     cwd = opts.cwd,
     on_exit = opts.on_exit and function(_, exit_code)
       opts.on_exit(term_bufnr, exit_code)
-    end or nil
+    end or nil,
+    term = true,
   })
   vim.schedule(function()
     vim.cmd.startinsert()
@@ -2489,7 +2490,7 @@ M.init = function(init_opts)
 
       local command = commands[opts.fargs[1]]
       -- store a copy of the original args
-      opts.fargs_orig = vim.list_slice(opts.fargs, 1, #opts.fargs)
+      opts['fargs_orig'] = vim.list_slice(opts.fargs, 1, #opts.fargs)
       -- expand %
       opts.fargs = vim.tbl_map(function(a)
         if a == '%' then
@@ -2556,7 +2557,7 @@ M.init = function(init_opts)
     local type = vim.fn.getcmdtype()
     local pos = vim.fn.getcmdpos()
     local cmdl = vim.fn.getcmdline():sub(1, pos)
-    ---@diagnostic disable-next-line: redundant-parameter
+    ---@diagnostic disable-next-line: param-type-mismatch
     local char = vim.fn.nr2char(vim.fn.getchar(1))
     if type == ':' and
        char:match('[%!%s\r]') and
