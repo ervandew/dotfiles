@@ -61,6 +61,7 @@ return {{
     vim.api.nvim_set_hl(0, 'DiffAdd', { fg = green, bg = background })
     vim.api.nvim_set_hl(0, 'DiffChange', { fg = yellow_mid, bg = '#232323' })
     vim.api.nvim_set_hl(0, 'DiffDelete', { fg = '#870000', bg = '#2f0000' })
+    vim.api.nvim_set_hl(0, 'DiffRemoved', { link = '@diff.minus' })
     vim.api.nvim_set_hl(0, 'DiffText', { fg = yellow, bg = '#404040' })
     vim.api.nvim_set_hl(0, 'EndOfBuffer', { fg = gray4 })
     vim.api.nvim_set_hl(0, 'Error', { fg = error, bg = 'none' })
