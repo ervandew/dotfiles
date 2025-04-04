@@ -1576,21 +1576,44 @@ end
 
 local status_branch_switch = function(selection, prompt_text)
   if selection then
+    local msg = 'Current branch: '
     local name = selection.value
+    if name:match('^origin/') then
+      msg = 'Created new branch: '
+      name = name:match('^origin/(.*)$')
+    end
+
     if M.git('switch ' .. name) then
-      notify('Current branch: ' .. name)
+      notify(msg .. name)
       pcall(vim.cmd.checktime) -- update existing buffers if necessary
       status()
     end
   else
-    local name = prompt_text
-    local branch = M.git('rev-parse --abbrev-ref HEAD')
-    local msg = 'Create new branch ' .. name .. ' from ' .. branch .. '?'
-    local result = confirm(msg, '&yes\n&no')
-    if result == 1 then
-      if M.git('switch -c ' .. name) then
-        notify('Created new branch: ' .. name)
-        status()
+    -- remove the default prefix used to filter out remotes by default
+    local name = prompt_text:gsub('^!/ ', '')
+    local remote =
+      name:match('^origin/.*$') or
+      M.git('branch -r | grep "^\\s*origin/' .. name .. '$" || true')
+    if remote ~= '' then
+      remote = remote:gsub('^%s+', '')
+      local msg = 'Create branch based on existing remote ' .. remote .. '?'
+      local result = confirm(msg, '&yes\n&no')
+      if result == 1 then
+        if M.git('switch ' .. name) then
+          notify('Created new branch: ' .. name)
+          pcall(vim.cmd.checktime) -- update existing buffers if necessary
+          status()
+        end
+      end
+    else
+      local branch = M.git('rev-parse --abbrev-ref HEAD')
+      local msg = 'Create new branch ' .. name .. ' from ' .. branch .. '?'
+      local result = confirm(msg, '&yes\n&no')
+      if result == 1 then
+        if M.git('switch -c ' .. name) then
+          notify('Created new branch: ' .. name)
+          status()
+        end
       end
     end
   end
@@ -1682,11 +1705,16 @@ local status_branch_cmd = function(cmd)
   return function()
     local loaded, builtin = pcall(require, 'telescope.builtin')
     if loaded and builtin then
+      local show_remote_tracking_branches = false
       local actions = require('telescope.actions')
       local action_state = require('telescope.actions.state')
       local cmd_func
+      local default_text
       if cmd == 'switch' then
         cmd_func = status_branch_switch
+        show_remote_tracking_branches = true
+        -- filter out the remote branches by default
+        default_text = '!/ '
       elseif cmd == 'merge' then
         cmd_func = status_branch_merge
       elseif cmd == 'rebase' then
@@ -1700,10 +1728,8 @@ local status_branch_cmd = function(cmd)
       builtin.git_branches({
         previewer = false,
         prompt_title = 'Git branch: ' .. cmd,
-        show_remote_tracking_branches = false,
---          if entry.name:match('^origin/') then
---            return
---          end
+        default_text = default_text,
+        show_remote_tracking_branches = show_remote_tracking_branches,
         attach_mappings = function(prompt_bufnr, map)
           actions.select_default:replace(function()
             local selection = action_state.get_selected_entry()
