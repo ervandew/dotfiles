@@ -503,6 +503,43 @@ vim.api.nvim_create_autocmd('TermOpen', {
   end
 })
 
+-- setup floating windows to resize with nvim
+-- (currently assumes there will be just one)
+local resize_floating_group = vim.api.nvim_create_augroup('resize_floating', {})
+vim.api.nvim_create_autocmd('WinNew', {
+  callback = function()
+    local ratios = function(config)
+      local width_ratio = config.width / vim.o.columns
+      local height_ratio = config.height / vim.o.lines
+      return { width = width_ratio, height = height_ratio}
+    end
+
+    local winid = vim.fn.win_getid()
+    local config = vim.api.nvim_win_get_config(winid)
+    if config.zindex then
+      vim.w[winid].size_ratios = ratios(config)
+      vim.api.nvim_clear_autocmds({ group = resize_floating_group })
+      vim.api.nvim_create_autocmd('VimResized', {
+        group = resize_floating_group,
+        callback = function()
+          if not vim.api.nvim_win_is_valid(winid) then
+            vim.api.nvim_clear_autocmds({ group = resize_floating_group })
+            return
+          end
+
+          local size_ratios = vim.w[winid].size_ratios
+          local winnr = vim.api.nvim_win_get_number(winid)
+          local width = math.floor(vim.o.columns * size_ratios.width)
+          local height = math.floor(vim.o.lines * size_ratios.height)
+          vim.cmd('vertical ' .. winnr .. 'resize ' .. width)
+          vim.cmd(winnr .. 'resize ' .. height)
+          vim.w[winid].size_ratios = ratios(vim.api.nvim_win_get_config(winid))
+        end
+      })
+    end
+  end
+})
+
 -- }}}
 
 -- plugins {{{
