@@ -297,9 +297,12 @@ local get_previous_revision = function(path, revision)
   -- incomming commits
   local result = M.git(cmd:gsub('<revrange>', '@{upstream}'), { quiet = true })
 
-  -- above may have failed if there is no upstream, so try again against just
-  -- HEAD (using empty string so this works in a detatched head, eg. bisect)
-  if not result then
+  -- above may have failed if there is no upstream, or we may get back an empty
+  -- result if we are attempting to get the previous revision of a commit that
+  -- is ahead of the upstream (eg. an amended commit), so try again against
+  -- just HEAD
+  -- (using empty string so this works in a detatched head, eg. bisect)
+  if not result or result == '' then
     result = M.git(cmd:gsub('<revrange>', ''), {})
   end
 
