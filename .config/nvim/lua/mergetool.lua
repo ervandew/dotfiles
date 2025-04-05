@@ -59,6 +59,15 @@ M.setup = function()
 
   local merge = vim.fn.bufname(4)
   vim.cmd('bot split ' .. merge)
+
+  -- quit when closing the main file window
+  local bufnr = vim.fn.bufnr('%')
+  vim.api.nvim_create_autocmd('BufWinLeave', {
+    buffer = bufnr,
+    callback = function()
+      vim.schedule(vim.cmd.quitall)
+    end,
+  })
 end
 
 M.init = function()
