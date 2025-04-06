@@ -52,14 +52,12 @@ shape = 'block'
 
 [keyboard]
 bindings = [
+  { key = 'v', mods = 'control', action = 'Paste' },
   { key = 's', mods = 'alt', action = 'ToggleViMode' },
   { key = 'y', mode = 'Vi', action = 'Copy' },
   { key = 'y', mode = 'Vi', action = 'ClearSelection' },
   { key = 'Enter', mode = 'Vi', action = 'ToggleViMode' },
   { key = 'Escape', mode = 'Vi', action = 'ToggleViMode' },
-  # NOTE: ~Alt disables this binding in nvim, and unfortuantely tmux as well,
-  # so a separate binding for ctrl-v can be found in .tmux.conf
-  { key = 'v', mods = 'control', mode = '~Alt|~Vi', action = 'Paste' },
 
   # allow ctrl-<number> (ctrl-0, ctrl-1, etc) to be passed to tmux
   { key = 'Key0', mods = 'Control', chars = "\u001b[48;5u" },
