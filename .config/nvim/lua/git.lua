@@ -2005,35 +2005,37 @@ local status_cmd = function(cmd, opts)
     return
   end
 
-  if opts.confirm then
-    local msg = opts.confirm(lines)
-    if msg then
-      local result = confirm(msg, '&yes\n&no')
-      if result ~= 1 then
-        return
+  vim.schedule(function()
+    if opts.confirm then
+      local msg = opts.confirm(lines)
+      if msg then
+        local result = confirm(msg, '&yes\n&no')
+        if result ~= 1 then
+          return
+        end
       end
     end
-  end
 
-  local paths = vim.fn.join(
-    vim.tbl_map(function(l)
-      local path = l:sub(4)
-      if path:match('%->') then
-        path = path:match('%->%s+(.*)')
-      end
-      return path
-    end, lines),
-    ' '
-  )
-  if opts.term then
-    term('git ' .. cmd .. ' ' .. paths, {
-      cwd = repo(),
-      on_exit = status_term_exit,
-    })
-  else
-    M.git(cmd .. ' ' .. paths)
-    status()
-  end
+    local paths = vim.fn.join(
+      vim.tbl_map(function(l)
+        local path = l:sub(4)
+        if path:match('%->') then
+          path = path:match('%->%s+(.*)')
+        end
+        return path
+      end, lines),
+      ' '
+    )
+    if opts.term then
+      term('git ' .. cmd .. ' ' .. paths, {
+        cwd = repo(),
+        on_exit = status_term_exit,
+      })
+    else
+      M.git(cmd .. ' ' .. paths)
+      status()
+    end
+  end)
 end
 
 local status_cmd_stash = function(action)
