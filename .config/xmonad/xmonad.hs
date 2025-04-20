@@ -64,6 +64,7 @@ main = do
   spawn "hsetroot -solid '#333333'"
   spawn "xmodmap ~/.config/xinit/xmodmap"
   spawn "pkill keynav ; keynav &"
+  spawn "pkill warpd ; warpd &"
   spawn "pkill xcompmgr ; xcompmgr -c -r0 &"
   spawn "pkill -9 unclutter ; sleep 0.3 ; unclutter --timeout 2 &"
   config <-

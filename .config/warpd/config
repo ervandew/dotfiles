@@ -1,0 +1,9 @@
+activation_key: A-F
+buttons: space m r
+cursor_color: #673f67
+cursor_size: 18
+hint: A-f
+hint_activation_key: A-f
+hint_size: 12
+scroll_down: C-j
+scroll_up: C-k
