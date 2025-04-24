@@ -97,12 +97,6 @@ if os.path.exists(styles):
     '%s/%s' % (styles, f) for f in os.listdir(styles)
   ]
 
-### M$ Teams BS
-# hint that will work for switching between chats
-# (team channels already work by default)
-c.hints.selectors['all'].append('.chatListItem_mainMedia')
-###
-
 ### Example setting user agent when needed (spoofing osx here)
 #c.content.headers.user_agent = \
 #  'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_3_1) ' \
