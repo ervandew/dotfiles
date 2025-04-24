@@ -909,13 +909,59 @@ local log_open = function()
   return open
 end
 
+local log_patch_goto_mapping = function()
+  -- mapping that attempts to open the current file at the cursor line
+  -- (goto line)
+  -- NOTE: pretty naive implementation that expects that the line to go to is
+  -- still at the location determined from the patch info
+  vim.keymap.set('n', 'gl', function()
+    local lnum_file = vim.fn.search('^+++ b/', 'bnW')
+    local lnum_block = vim.fn.search('^@@ .* @@', 'bnW')
+    if lnum_file == 0 or lnum_block == 0 then
+      return
+    end
+
+    local root = vim.b.git_info.root
+    local filename = vim.fn.fnamemodify(
+      root .. vim.fn.getline(lnum_file):match('^%+%+%+ b/(.*)'),
+      ':.'
+    )
+    local block = tonumber(
+      vim.fn.getline(lnum_block):match('@@ %-%d+,%d+ %+(%d+),%d+ @@.*')
+    )
+    local lnum = block + (vim.fn.line('.') - lnum_block) - 1
+    local col = vim.fn.col('.') - 1
+    while true do
+      local removed = vim.fn.search('^-', 'b')
+      if removed == 0 or removed < lnum_block then
+        break
+      end
+      lnum = lnum - 1
+    end
+
+    vim.cmd.quit()
+
+    local winnr = vim.fn.bufwinnr(filename)
+    if winnr == -1 then
+      vim.cmd(log_open() .. ' ' .. filename)
+    else
+      vim.cmd(winnr .. 'winc w')
+    end
+    vim.fn.cursor(lnum, col)
+  end, { buffer = true })
+end
+
 local log_patch = function()
+  local root = vim.b.git_info.root
   local revision = log_revision()
   local result = M.git('log -1 -p ' .. revision)
   if not result then
     return
   end
   window('git_' .. revision .. '.patch', 'modal', vim.fn.split(result, '\n'))
+
+  set_info(root, nil, revision)
+  log_patch_goto_mapping()
 end
 
 local log_diff = function(path1, path2)
@@ -952,6 +998,22 @@ local log_diff = function(path1, path2)
       vim.cmd('silent! bdelete ' .. buf1)
     end,
   })
+
+  -- mapping that attempts to open the current file at the cursor line (goto line)
+  vim.keymap.set('n', 'gl', function()
+    local pos = vim.fn.getpos('.')
+    local root = vim.b.git_info.root
+    local filename = vim.fn.fnamemodify(root .. path1.path, ':.')
+    local winnr = vim.fn.bufwinnr(filename)
+    if winnr == -1 then
+      vim.cmd(log_open() .. ' ' .. filename)
+    else
+      vim.cmd(winnr .. 'winc w')
+    end
+    vim.fn.setpos('.', pos)
+    vim.cmd('silent! bdelete ' .. buf1)
+    vim.cmd('silent! bdelete ' .. buf2)
+  end, { buffer = buf1 })
 end
 
 local log_action = function()
@@ -1768,6 +1830,7 @@ local status_action = function()
       return not (l:sub(1, 1) == '#' or l:sub(1, 1) == '?')
     end, vim.fn.getregion(pos1, pos2, { type = 'V' }))
     if #lines ~= 0 then
+      local root = vim.b.git_info.root
       local paths = vim.fn.join(
         vim.tbl_map(function(l) return l:sub(4) end, lines),
         ' '
@@ -1775,6 +1838,8 @@ local status_action = function()
       local result = M.git('diff HEAD ' .. paths)
       if result then
         window('git_HEAD.patch', 'modal', vim.fn.split(result, '\n'))
+        set_info(root, nil, 'HEAD')
+        log_patch_goto_mapping()
       end
     end
 
