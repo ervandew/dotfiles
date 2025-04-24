@@ -1893,8 +1893,10 @@ local status_action = function()
   end
 
   if lnum == status_repo_actions_line then
-    local word = vim.fn.expand('<cword>')
-    if word == 'stashes' then
+    local pending_match = vim.fn.substitute(
+      line, '.*\\(\\[.\\{-}\\%.c.\\{-}\\]\\)', '\\1', ''
+    )
+    if pending_match:match('^%[stashes: %d+%]') then
       vim.bo.modifiable = true
       if vim.fn.getline(lnum + 1):match('^## %-') then
         local pos = vim.fn.getpos('.')
