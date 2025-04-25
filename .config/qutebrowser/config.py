@@ -171,9 +171,15 @@ config.bind(';T', 'hint links fill :open -t {hint-url}')
 config.bind(';O', 'hint links fill :open {hint-url}')
 config.bind(';y', 'hint links yank-primary')
 config.bind(';i', 'hint inputs')
+config.bind(';m', 'hint media')
 # open url via xdg-open (useful when using dedicated qutebrowser instance for a
 # single web app, but you want the option to open links in your main browser)
 config.bind(';x', 'hint links spawn xdg-open {hint-url}')
+
+# remove img tag from general hints list
+# (still accessible via media or img tab hinst: ;m ;I)
+if 'img' in c.hints.selectors['all']:
+  c.hints.selectors['all'].remove('img')
 
 # yank selected content
 config.bind('yy', 'yank url')
