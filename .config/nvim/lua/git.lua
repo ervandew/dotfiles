@@ -1640,6 +1640,19 @@ local status_term_exit = function(term_bufnr, exit_code)
 end
 
 local status_branch_switch = function(selection, prompt_text)
+  -- remove the default prefix used to filter out remotes by default
+  local name = prompt_text:gsub('^!/ ', '')
+
+  -- handle switching to previous branch
+  if name == '-' then
+    if M.git('switch ' .. name) then
+      notify('Current branch: ' .. M.git('rev-parse --abbrev-ref HEAD'))
+      pcall(vim.cmd.checktime) -- update existing buffers if necessary
+      status()
+    end
+    return
+  end
+
   if selection then
     local msg = 'Current branch: '
     local name = selection.value
@@ -1654,8 +1667,6 @@ local status_branch_switch = function(selection, prompt_text)
       status()
     end
   else
-    -- remove the default prefix used to filter out remotes by default
-    local name = prompt_text:gsub('^!/ ', '')
     local remote =
       name:match('^origin/.*$') or
       M.git('branch -r | grep "^\\s*origin/' .. name .. '$" || true')
