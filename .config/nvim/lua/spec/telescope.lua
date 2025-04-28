@@ -937,7 +937,7 @@ return {
               -- Examples of common args to add to the pattern:
               --   limit file types:  -t py
               --   limit to dir glob: -g **/path/**
-              ['<c-k>'] = lga_actions.quote_prompt(),
+              ['<c-k>'] = lga_actions.quote_prompt({ postfix = ' --glob *' }),
               -- Send all results to the quickfix list and jump to first result
               ['<c-q>'] = function(prompt_bufnr)
                 actions.send_to_qflist(prompt_bufnr)
