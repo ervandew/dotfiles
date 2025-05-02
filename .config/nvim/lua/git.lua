@@ -1655,14 +1655,14 @@ local status_branch_switch = function(selection, prompt_text)
 
   if selection then
     local msg = 'Current branch: '
-    local name = selection.value
-    if name:match('^origin/') then
+    local selected = selection.value
+    if selected:match('^origin/') then
       msg = 'Created new branch: '
-      name = name:match('^origin/(.*)$')
+      selected = selected:match('^origin/(.*)$')
     end
 
-    if M.git('switch ' .. name) then
-      notify(msg .. name)
+    if M.git('switch ' .. selected) then
+      notify(msg .. selected)
       pcall(vim.cmd.checktime) -- update existing buffers if necessary
       status()
     end
