@@ -2539,7 +2539,7 @@ local complete = function(arglead, cmdl, pos)
     end,
     -- complete bang command names
     ["^Git!%s+([-%w]*)$"] = function(compl_opts)
-      return compl_opts.match, { 'log' }
+      return compl_opts.match, { 'grep-commits', 'grep-files', 'log' }
     end,
     -- complete range command names
     ["^'<,'>Git%s+([-%w]*)$"] = function(compl_opts)
