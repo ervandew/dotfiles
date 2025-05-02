@@ -1969,16 +1969,12 @@ local status_action = function()
     path = path:match('%->%s+(.*)')
   end
 
+  local root = repo()
+
   -- act on the status
-  if col <= 2 then
+  if col <= 2 and not line:match('^%?') and not line:match('^A') then
     local status = line:sub(col, col)
-    if status == 'A' then
-      local result = M.git('show ":' .. path .. '"')
-      if not result then
-        return
-      end
-      window(path, 'modal', vim.fn.split(result, '\n'))
-    elseif status == 'D' then
+    if status == 'D' then
       local revision = M.git(
         'rev-list --abbrev-commit -n 1 HEAD -- ' .. '"' .. path .. '"'
       )
@@ -1995,6 +1991,8 @@ local status_action = function()
         return
       end
       window(path .. '.patch', 'modal', vim.fn.split(result, '\n'))
+      set_info(root, nil, nil)
+      log_patch_goto_mapping()
     elseif status == 'U' then
       local cmd = 'git mergetool ' .. path
       term(cmd, {
@@ -2009,7 +2007,6 @@ local status_action = function()
 
   -- open the file if it hasn't been deleted
   elseif not line:gsub('^%s', ''):match('^D') then
-    local root = repo()
     local filename = vim.fn.fnamemodify(root .. path, ':.')
     local winnr = vim.fn.bufwinnr(filename)
     if winnr == -1 then
