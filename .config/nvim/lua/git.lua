@@ -616,7 +616,9 @@ M.show = function(opts)
     end
   end
 
-  local root, path, revision = file(opts.path or '.')
+  local root, path, revision = file(
+    opts.path or vim.fn.fnamemodify(vim.fn.expand('%:p'), ':.')
+  )
   if not path or not revision then
     error('Unable to determine file info.')
     return
@@ -1179,84 +1181,60 @@ end
 
 local log_augroup = vim.api.nvim_create_augroup('git_log', {})
 local log = function(opts)
-  if opts.bang and opts.range and opts.range ~= 0 then
-    error('Git! log cannot be used with a range.')
-    return
-  end
-
   local root, path
-  local filename
-
-  -- check if command is using % expansion
-  local expanded = opts.fargs_orig and vim.list_contains(opts.fargs_orig, '%')
-
-  if not (opts.bang or opts.bisect) or expanded then
-    -- logging from the log window
-    if vim.fn.bufname() == log_name and vim.b.git_filename then
-      filename = vim.b.git_filename
-
-    -- logging from a show() buffer (eg. :Git show prev, then annotate)
-    elseif vim.b.git_info and vim.b.git_info.path then
-      filename = vim.b.git_info.path
-
-    else
-      filename = vim.fn.expand('%:p')
-      if filename == '' or
-         vim.fn.bufname() == log_name or
-         vim.fn.bufname() == status_name
-      then
-        filename = nil
-      end
-    end
-  end
-
-  if filename then
-    root, path, _ = file(filename)
-  else
-    root = repo()
-  end
-
-  -- TODO: add completion of branch names
+  local replaced
+  local args = opts.args
   local expansions = {
     ['diff:([-/@{}%w]+)'] = {'diff against <match>', '<branch>...<match>'},
     ['in:([-/%w]+)'] = {'incoming from <match>', '--right-only <branch>...<match>'},
     ['out:([-/%w]+)'] = {'outgoing to <match>', '--left-only <branch>...<match>'},
   }
-  for i, arg in ipairs(opts.fargs or {}) do
-    for pattern, expansion in pairs(expansions) do
-      local match = arg:match(pattern)
-      if match then
-        local branch = M.git('rev-parse --abbrev-ref HEAD')
-        if branch then
-          opts.fargs[i] = expansion[2]
-            :gsub('<branch>', branch)
-            :gsub('<match>', match)
-          opts.args = vim.fn.join(opts.fargs, ' ')
-          opts.title = 'filter:       ' .. expansion[1]
-            :gsub('<branch>', branch)
-            :gsub('<match>', match)
+  for i, arg in ipairs(opts.fargs_orig or opts.fargs or {}) do
+    if arg == '%' then
+      root, path, _ = file(opts.fargs[i])
+      args, replaced = args:gsub(' ' .. path, '')
+      if replaced == 0 then
+        args = args:gsub(path, '')
+      end
+    else
+      for pattern, expansion in pairs(expansions) do
+        local match = arg:match(pattern)
+        if match then
+          local branch = M.git('rev-parse --abbrev-ref HEAD')
+          if branch then
+            opts.fargs[i] = expansion[2]
+              :gsub('<branch>', branch)
+              :gsub('<match>', match)
+            opts.title = 'filter:       ' .. expansion[1]
+              :gsub('<branch>', branch)
+              :gsub('<match>', match)
+            args = vim.fn.join(opts.fargs, ' ')
+          end
+          break
         end
-        break
       end
     end
+  end
+
+  -- handle range case where current file name or '%' wasn't supplied
+  if not path and opts.range and opts.range ~= 0 then
+    root, path, _ = file(vim.fn.fnamemodify(vim.fn.expand('%:p'), ':.'))
+  end
+
+  if not root then
+    root = repo()
   end
 
   local log_cmd = 'log --pretty=tformat:"%m|%h|%an|%ar|%d|%s"'
   if opts.bisect and #opts.bisect then
     log_cmd = log_cmd .. ' ' .. opts.bisect[1] .. '...' .. opts.bisect[2]
   end
-  if opts.args and opts.args ~= '' then
-    if opts.args:match('--graph') then
-      term('git log ' .. opts.args, { cwd = repo() })
+  if args and args ~= '' then
+    if args:match('--graph') then
+      term('git log ' .. args, { cwd = repo() })
       return
     end
-    log_cmd = log_cmd .. ' ' .. opts.args
-
-    -- if command is using % expansion then prevent adding the path to the args
-    -- a second time below
-    if filename and expanded then
-      path = nil
-    end
+    log_cmd = log_cmd .. ' ' .. args
   end
 
   if not root then
@@ -1281,7 +1259,7 @@ local log = function(opts)
   if opts.title then
     lines[#lines + 1] = opts.title
   end
-  if opts.args == '' then
+  if args == '' then
     lines[#lines + 1] = 'branch:       ' .. M.git('rev-parse --abbrev-ref HEAD')
   end
   if not opts.bisect then
@@ -1392,7 +1370,7 @@ local log = function(opts)
   local bufnr = vim.fn.bufnr()
   vim.keymap.set('n', '<cr>', log_action, { buffer = bufnr })
   vim.api.nvim_clear_autocmds({ group = log_augroup })
-  vim.b.git_filename = filename
+  vim.b.git_filename = path
   vim.api.nvim_create_autocmd('BufWinLeave', {
     buffer = bufnr,
     group = log_augroup,
@@ -1411,29 +1389,53 @@ local log = function(opts)
 end
 
 local log_grep = function(type, opts)
-  local log_args
-  if not opts.args or opts.args:match('^%s*$') then
+  local args = opts.args
+
+  -- check if % was supplied so we don't include it as part of the pattern
+  local filename
+  local replaced
+  for i, arg in ipairs(opts.fargs_orig) do
+    if arg == '%' then
+      filename = opts.fargs[i]
+      args, replaced = args:gsub(' ' .. filename, '')
+      if replaced == 0 then
+        args = args:gsub(filename, '')
+      end
+      break
+    end
+  end
+
+  if not args or args:match('^%s*$') then
     error('Please supply a pattern to search for.', 'WarningMsg')
     return
   end
 
-  local args = vim.fn.escape(opts.args, '"')
+  local log_args
+  local pattern_args = vim.fn.escape(args, '"')
   if type == 'commits' then
-    log_args = '-E "--grep=' .. args .. '"'
+    log_args = '-E "--grep=' .. pattern_args .. '"'
   elseif type == 'files' then
-    log_args = '--pickaxe-regex "-S' .. args .. '"'
+    log_args = '--pickaxe-regex "-S' .. pattern_args .. '"'
   end
 
   if not log_args then
     return
   end
 
+  if filename then
+    args = args .. ' ' .. filename
+    log_args = log_args .. ' "' .. filename .. '"'
+  end
+
   log({
-    bang = opts.bang,
     args = log_args,
     title = opts.title .. args,
     exec = type == 'files',
   })
+
+  if filename then
+    vim.b.git_filename = filename
+  end
 end
 
 local grep_commits = function(opts)
@@ -2534,10 +2536,6 @@ local complete = function(arglead, cmdl, pos)
       end
       return compl_opts.match, cmds
     end,
-    -- complete bang command names
-    ["^Git!%s+([-%w]*)$"] = function(compl_opts)
-      return compl_opts.match, { 'grep-commits', 'grep-files', 'log' }
-    end,
     -- complete range command names
     ["^'<,'>Git%s+([-%w]*)$"] = function(compl_opts)
       return compl_opts.match, { 'annotate', 'log' }
@@ -2617,6 +2615,34 @@ local complete = function(arglead, cmdl, pos)
   return results
 end
 
+local expand_filename = function()
+  local filename
+
+  -- from the log window
+  if vim.fn.bufname() == log_name and vim.b.git_filename then
+    filename = vim.b.git_filename
+
+  -- from a show() buffer (eg. :Git show prev, then annotate)
+  elseif vim.b.git_info and vim.b.git_info.path then
+    filename = vim.b.git_info.path
+
+  else
+    filename = vim.fn.expand('%:p')
+    if filename == '' or
+       vim.fn.bufname() == log_name or
+       vim.fn.bufname() == status_name
+    then
+      filename = nil
+    end
+  end
+
+  if filename then
+    filename = vim.fn.fnamemodify(filename, ':.')
+  end
+
+  return filename
+end
+
 M.init = function(init_opts)
   config = init_opts or {}
   vim.api.nvim_create_user_command(
@@ -2633,19 +2659,11 @@ M.init = function(init_opts)
       -- expand %
       opts.fargs = vim.tbl_map(function(a)
         if a == '%' then
-          return vim.fn.expand('%')
+          return expand_filename() or '%'
         end
         return a
       end, opts.fargs)
       opts.args = vim.fn.join(opts.fargs, ' ')
-
-      if opts.bang and (
-        not command or
-        not vim.list_contains({ log, grep_commits, grep_files }, command)
-      ) then
-        error('Only Git! log supports bang usage.')
-        return
-      end
 
       if opts.range ~= 0 and
          (not command or (command ~= annotate and command ~= log))
@@ -2656,6 +2674,7 @@ M.init = function(init_opts)
 
       if command then
         table.remove(opts.fargs, 1)
+        table.remove(opts.fargs_orig, 1)
         opts.args = vim.fn.join(opts.fargs, ' ')
         command(opts)
       else
@@ -2684,7 +2703,6 @@ M.init = function(init_opts)
       end
     end,
     {
-      bang = true,
       nargs = '+',
       range = true,
       complete = complete,
@@ -2708,7 +2726,7 @@ M.init = function(init_opts)
   end, { expr = true })
 
   vim.keymap.set('n', '<leader>gs', ':Git status<cr>', { silent = true })
-  vim.keymap.set({ 'n', 'x' }, '<leader>gl', ':Git log<cr>', { silent = true })
+  vim.keymap.set({ 'n', 'x' }, '<leader>gl', ':Git log %<cr>', { silent = true })
   vim.keymap.set({ 'n', 'x' }, '<leader>ga', ':Git annotate<cr>', { silent = true })
 end
 
