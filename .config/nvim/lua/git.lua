@@ -1974,8 +1974,8 @@ local status_action = function()
   local root = repo()
 
   -- act on the status
-  if col <= 2 and not line:match('^%?') and not line:match('^A') then
-    local status = line:sub(col, col)
+  local status = line:sub(col, col)
+  if col <= 2 and status ~= '?' and status ~= 'A' then
     if status == 'D' then
       local revision = M.git(
         'rev-list --abbrev-commit -n 1 HEAD -- ' .. '"' .. path .. '"'
