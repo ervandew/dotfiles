@@ -35,7 +35,9 @@ local view = function()
   local deleted = false
   local unstaged = false
   local line = vim.fn.getline('.')
-  if line:match('^#%s*modified:.*') then
+  if line:match('^# Changes to be committed:') then
+    path = 'git_patch'
+  elseif line:match('^#%s*modified:.*') then
     path = line:match('^#%s*modified:%s+(.*)%s*')
     local section_lnum = vim.fn.search('#\\s\\+Change[sd]\\>.*:$', 'bnW')
     if section_lnum ~= 0 then
@@ -64,10 +66,27 @@ local view = function()
     end
   end
 
-  local revision = git.git(
-    'rev-list --abbrev-commit -n 1 HEAD -- ' .. '"' .. path .. '"'
-  )
-  if deleted then
+  if path == 'git_patch' then
+    -- NOTE: this may not always work as the nested level of processes could
+    -- change
+    local amend = vim.fn.system(
+      'ps -ocommand= -p $(ps -oppid= -p $(ps -oppid= -p $PPID)) | ' ..
+      'grep -e "--amend"'
+    ) ~= ''
+    vim.print({'amend:', amend})
+    local result = git.git('diff --cached')
+    if amend then
+      result = '# Amendment #\n' .. result .. '\n\n# Amending #\n' .. git.git('log -1 -p')
+    end
+    if not result then
+      vim.api.nvim_echo({{ 'Unable to generate a patch', 'Error' }}, true, {})
+      return
+    end
+    window('git_commit.patch', vim.fn.split(result, '\n'))
+  elseif deleted then
+    local revision = git.git(
+      'rev-list --abbrev-commit -n 1 HEAD -- ' .. '"' .. path .. '"'
+    )
     if not revision then
       vim.api.nvim_echo({{ 'Unable to find a revision.', 'Error' }}, true, {})
       return
@@ -95,6 +114,14 @@ local view = function()
   else
     local staged = git.git('show ":' .. path .. '"')
     if not staged then
+      return
+    end
+
+    local revision = git.git(
+      'rev-list --abbrev-commit -n 1 HEAD -- ' .. '"' .. path .. '"'
+    )
+    if not revision then
+      vim.api.nvim_echo({{ 'Unable to find a revision.', 'Error' }}, true, {})
       return
     end
 
