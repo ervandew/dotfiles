@@ -24,6 +24,7 @@ return {{
 
     local blue = '#708090'
     local green = '#789978'
+    local green_dark = '#587958'
     local purple = '#875f87'
     local red = '#964848'
     local red_dark = '#624646'
@@ -137,7 +138,6 @@ return {{
     vim.api.nvim_set_hl(0, 'GitAnnotateUncommitted', { fg = green })
     vim.api.nvim_set_hl(0, 'GitAuthor', { fg = gray9 })
     vim.api.nvim_set_hl(0, 'GitDate', { link = 'String' })
-    vim.api.nvim_set_hl(0, 'GitFiles', { link = 'Comment' })
     vim.api.nvim_set_hl(0, 'GitLink', { link = 'Label' })
     vim.api.nvim_set_hl(0, 'GitLogBisectBad', { fg = red })
     vim.api.nvim_set_hl(0, 'GitLogBisectBadFirst', { fg = red, bold = true })
@@ -146,10 +146,14 @@ return {{
     vim.api.nvim_set_hl(0, 'GitLogDiff', { fg = gray5 })
     vim.api.nvim_set_hl(0, 'GitLogDiffAdd', { fg = green })
     vim.api.nvim_set_hl(0, 'GitLogDiffDelete', { fg = red })
+    vim.api.nvim_set_hl(0, 'GitLogFiles', { link = 'Comment' })
     vim.api.nvim_set_hl(0, 'GitLogHeader', { fg = gray9 })
     vim.api.nvim_set_hl(0, 'GitLogHeaderName', { fg = gray6 })
     vim.api.nvim_set_hl(0, 'GitLogMarkerIn', { fg = red, bold = true })
     vim.api.nvim_set_hl(0, 'GitLogMarkerOut', { fg = green, bold = true })
+    vim.api.nvim_set_hl(0, 'GitLogStatsChanged', { fg = yellow_dark })
+    vim.api.nvim_set_hl(0, 'GitLogStatsInserted', { fg = green_dark })
+    vim.api.nvim_set_hl(0, 'GitLogStatsDeleted', { fg = red_dark })
     vim.api.nvim_set_hl(0, 'GitMessage', { fg = gray11 })
     vim.api.nvim_set_hl(0, 'GitRefs', { fg = gray7 })
     vim.api.nvim_set_hl(0, 'GitRevision', { fg = red_dark })

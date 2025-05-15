@@ -737,6 +737,8 @@ local log_detail = function()
   if not result then
     return
   end
+  local stats = M.git('show --stat ' .. revision)
+  stats = stats and stats:match('.*\n(.*)') or ''
 
   local mark = line:match('^[+-] (. )') or ''
   local values = vim.fn.split(result, '|')
@@ -787,7 +789,7 @@ local log_detail = function()
     )
     vim.list_extend(lines, desc_lines)
     lines[#lines + 1] = ''
-    lines[#lines + 1] = '\t+ files |view patch|'
+    lines[#lines + 1] = '\t+ files |view patch|' .. stats
     vim.fn.append(lnum, lines)
     vim.cmd.retab()
   else
@@ -1024,7 +1026,7 @@ local log_action = function()
     line, '.*|\\(.\\{-}\\%.c.\\{-}\\)|.*', '\\1', ''
   )
 
-  if link == line and line:match('^%s+[+-] files |view patch|$') then
+  if link == line and line:match('^%s+[+-] files |view patch|') then
     log_files()
     return
   end
@@ -1335,9 +1337,9 @@ local log = function(opts)
   vim.cmd('syntax match GitRefs /\\(^[+-] \\(. \\)\\?\\w\\{2,} \\w.\\{-} (\\d.\\{-}) \\)\\@<=(.\\{-})\\ze\\( .*\\)/')
   vim.cmd('syntax match GitMessage /\\(^[+-] \\(. \\)\\?\\w\\{2,} \\w.\\{-} (\\d.\\{-})\\( (.\\{-})\\)\\?\\)\\@<=.*/ contains=GitRefs')
   vim.cmd('syntax match GitLink /|\\S.\\{-}|/')
-  vim.cmd('syntax match GitFiles /\\(^\\s\\+[+-] \\)\\@<=files\\>/')
   vim.cmd('syntax match GitLogHeader /^\\%<4l.\\{-}: .*/ contains=GitLogHeaderName')
   vim.cmd('syntax match GitLogHeaderName /^\\%<4l.\\{-}:/')
+  vim.cmd('syntax match GitLogFiles /\\(^\\s\\+[+-] \\)\\@<=files\\>.*/ contains=GitLogStatsChanged,GitLogStatsInserted,GitLogStatsDeleted')
   vim.cmd('syntax match GitLogDiff /^# .*/ contains=GitLogDiffAdd,GitLogDiffDelete')
   vim.cmd('syntax match GitLogDiffAdd /\\(^# \\)\\@<=+.*/')
   vim.cmd('syntax match GitLogDiffDelete /\\(^# \\)\\@<=-.*/')
@@ -1347,6 +1349,9 @@ local log = function(opts)
   vim.cmd('syntax match GitLogBisectGood /\\(^[+-] \\)\\@<=\\*/')
   vim.cmd('syntax match GitLogMarkerIn /\\(^[+-] \\)\\@<=>/')
   vim.cmd('syntax match GitLogMarkerOut /\\(^[+-] \\)\\@<=</')
+  vim.cmd('syntax match GitLogStatsChanged /\\(^\\s\\+[+-] files .*\\)\\@<=\\d\\+ files\\? changed/')
+  vim.cmd('syntax match GitLogStatsInserted /\\(^\\s\\+[+-] files .*\\)\\@<=\\d\\+ insertions\\?(+)/')
+  vim.cmd('syntax match GitLogStatsDeleted /\\(^\\s\\+[+-] files .*\\)\\@<=\\d\\+ deletions\\?(-)/')
 
   set_info(root, path, nil)
 
