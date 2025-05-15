@@ -142,6 +142,7 @@ config.bind('gH', 'tab-move -')
 config.bind('gL', 'tab-move +')
 for i in range(10):
   config.bind('<ctrl-%s>' % i, 'tab-focus %s' % i)
+config.bind('<ctrl-w>', 'tab-focus last')
 # tmux like bindings, for when muscle memory takes over
 config.bind('<ctrl-a>p', 'tab-prev')
 config.bind('<ctrl-a>n', 'tab-next')
