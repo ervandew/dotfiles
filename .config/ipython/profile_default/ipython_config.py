@@ -21,36 +21,15 @@ c.TerminalInteractiveShell.emacs_bindings_in_vi_insert_mode = False
 from IPython.terminal import prompts
 from pygments import token
 c.TerminalInteractiveShell.highlighting_style_overrides = {
-  # token.Whitespace:             '#bbbbbb',
-  # token.Comment:                '#999988',
-  # token.Comment.Preproc:        'bold noitalic #999999',
-  # token.Comment.Special:        'bold #999999',
-  token.String:                 '#708090',
-  token.String.Regex:           '#708090',
-  token.Number:                 '#875f87',
+  # pygments tokens: https://pygments.org/docs/tokens/
   token.Keyword:                '#666666',
-  # token.Keyword.Type:           '#666666',
   token.Name.Builtin:           '#999999',
-  # token.Name.Function:          '#666666',
-  # token.Name.Class:             '#666666',
   token.Name.Exception:         '#aaaaaa',
   token.Name.Namespace:         '#aaaaaa',
-  # token.Name.Variable:          '#008080',
-  # token.Name.Constant:          '#008080',
-  # token.Name.Tag:               '#000080',
-  # token.Name.Attribute:         '#008080',
-  # token.Name.Entity:            '#800080',
-  # token.Generic.Heading:        '#999999',
-  # token.Generic.Subheading:     '#aaaaaa',
-  # token.Generic.Deleted:        'bg:#ffdddd #000000',
-  # token.Generic.Inserted:       'bg:#ddffdd #000000',
-  # token.Generic.Error:          '#aa0000',
-  # token.Generic.Emph:           'italic',
-  # token.Generic.Strong:         'bold',
-  # token.Generic.Prompt:         '#555555',
-  # token.Generic.Output:         '#888888',
-  # token.Generic.Traceback:      '#aa0000',
-  # token.Error:                  'bg:#e3d2d2 #a61717',
+  token.Number:                 '#875f87',
+  token.Operator.Word:          '#875fd7',
+  token.String.Regex:           '#708090',
+  token.String:                 '#708090',
 
   # the ipython prompt colors
   prompts.Token.Prompt:         '#808080',
@@ -58,13 +37,17 @@ c.TerminalInteractiveShell.highlighting_style_overrides = {
   prompts.Token.OutPrompt:      '#c0c0c0',
   prompts.Token.OutPromptNum:   '#8787ff',
 
+  # ipython specific highlights: search for "class:" in ipython/prompt_toolkit
   # prompt_toolkit completion menu colors (requires monkey patch below)
   'completion-menu': 'bg:#333333 #cccccc',
   'completion-menu.completion': 'bg:#333333 #cccccc',
   'completion-menu.completion.current': 'bg:#cccccc #444444',
   'completion-menu.meta.completion': 'bg:#333333 #cccccc',
   'completion-menu.meta.completion.current': 'bg:#cccccc #222222',
-  'completion-menu.multi-column-meta': 'bg:#333333 #cccccc'
+  'completion-menu.multi-column-meta': 'bg:#333333 #cccccc',
+
+  # bracket/paren match
+  'matching-bracket.other': 'bg:#333333 #cf9ebe',
 }
 
 # choose a better color combo for highlighting lines in a stack trace
