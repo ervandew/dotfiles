@@ -235,6 +235,7 @@ return {{
     vim.api.nvim_set_hl(0, 'TreesitterContextLineNumber', { link = 'TreesitterContext' })
     vim.api.nvim_set_hl(0, 'TreesitterContextBottom', { underline = true, sp = '#673f67' })
     -- added by spec
+    vim.api.nvim_set_hl(0, 'TreesitterContextJumpLine', { fg = '#cf9ebe' })
     vim.api.nvim_set_hl(0, 'TreesitterContextVisible', { bg = '#201921' })
     vim.api.nvim_set_hl(0, 'TreesitterContextVisibleLine', { link = 'TreesitterContextLineNumber' })
     -- }}}

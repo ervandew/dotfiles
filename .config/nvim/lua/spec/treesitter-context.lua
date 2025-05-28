@@ -36,7 +36,7 @@ return {{
           local context = contexts[#contexts + 1 - i]
           vim.api.nvim_buf_set_extmark(0, ext_ns, context['line'], 0, {
             virt_text_pos = 'overlay',
-            virt_text = { { tostring(i - 1), 'MatchParen' } }
+            virt_text = { { tostring(i - 1), 'TreesitterContextJumpLine' } }
           })
         end
 
@@ -49,10 +49,17 @@ return {{
             contextbuf = vim.fn.winbufnr(winnr)
             for lnum = vim.fn.line('$', winid), 1, -1 do
               index = index + 1
+              local char
+              if index > 10 then
+                char = vim.fn.nr2char(index - 11 + 97)
+              else
+                char = tostring(index - 1)
+              end
+
               vim.api.nvim_buf_set_extmark(contextbuf, ext_ns, lnum - 1, 0, {
                 virt_text_pos = 'overlay',
                 virt_text = {
-                  { tostring(index - 1), 'TreesitterContextLineNumber' }
+                  { char, 'TreesitterContextJumpLine' }
                 }
               })
             end
@@ -74,10 +81,15 @@ return {{
           for i = 0, index - 1 do
             if choices ~= '' then
               choices = choices .. '\n'
-            elseif i >= 10 then
-              break
             end
-            choices = choices .. '&' .. i
+
+            local c
+            if i >= 10 then
+              c = vim.fn.nr2char(97 + i - 10)
+            else
+              c = tostring(i)
+            end
+            choices = choices .. '&' .. c
           end
           local ok, choice = pcall(vim.fn.confirm, '', 'context: ' .. choices, -1)
           if ok and choice >= 0 then
