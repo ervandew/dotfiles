@@ -59,6 +59,7 @@ M.setup = function()
 
   local merge = vim.fn.bufname(4)
   vim.cmd('bot split ' .. merge)
+  vim.wo.scrollbind = true
 
   -- quit when closing the main file window
   local bufnr = vim.fn.bufnr('%')
