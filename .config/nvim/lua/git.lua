@@ -2117,11 +2117,19 @@ local status_cmd = function(cmd, opts)
     if opts.term then
       term('git ' .. cmd .. ' ' .. paths, {
         cwd = repo(),
-        on_exit = status_term_exit,
+        on_exit = function()
+          status_term_exit()
+          if opts.after then
+            opts.after()
+          end
+        end,
       })
     else
       M.git(cmd .. ' ' .. paths)
       status()
+      if opts.after then
+        opts.after()
+      end
     end
   end)
 end
@@ -2356,6 +2364,9 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     end
 
     status_cmd('restore', {
+      after = function()
+        pcall(vim.cmd.checktime) -- update existing buffers if necessary
+      end,
       confirm = function(selection)
         local affected = vim.tbl_filter(function(l)
           return l:match('^.M') and true or false
@@ -2372,7 +2383,6 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       end,
       untracked = false,
     })
-    pcall(vim.cmd.checktime) -- update existing buffers if necessary
   end, { buffer = bufnr })
   vim.keymap.set({ 'n', 'x' }, 'd', function()
     if status_cmd_stash('drop') then
