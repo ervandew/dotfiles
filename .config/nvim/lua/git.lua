@@ -1981,6 +1981,12 @@ local status_action = function()
   -- act on the status
   local status = line:sub(col, col)
   if col <= 2 and status ~= '?' and status ~= 'A' then
+    -- handle merge conflict case where local is modified but upstream was
+    -- deleted
+    if line:match('^DU') then
+      status = 'U'
+    end
+
     if status == 'D' then
       local revision = M.git(
         'rev-list --abbrev-commit -n 1 HEAD -- ' .. '"' .. path .. '"'
@@ -2295,9 +2301,10 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     'GitStatusBranchDescTag,' ..
     'GitStatusStash'
   )
-  vim.cmd('syntax match GitStatusConflict /\\(\\%1c\\|\\%2c\\)U/')
+  vim.cmd('syntax match GitStatusConflict /\\%1cUU/')
+  vim.cmd('syntax match GitStatusConflictDeleted /\\%1cDU/')
   vim.cmd('syntax match GitStatusDeleted /\\%2cD/')
-  vim.cmd('syntax match GitStatusDeletedStaged /\\%1cD/')
+  vim.cmd('syntax match GitStatusDeletedStaged /\\%1cD[^U]/')
   vim.cmd('syntax match GitStatusDeletedFile /\\(\\%1cD\\|\\%2cD\\)\\@<=.*/')
   vim.cmd('syntax match GitStatusModified /\\%2cM/')
   vim.cmd('syntax match GitStatusModifiedStaged /\\%1cM/')
