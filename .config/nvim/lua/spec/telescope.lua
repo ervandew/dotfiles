@@ -898,9 +898,14 @@ return {
       require('telescope').load_extension('live_grep_args')
       vim.keymap.set('n', '<leader>fg', function()
         -- check if the cursor is on a search match, and if so, pre-populate
-        -- telescope with that pattern
+        -- telescope with that pattern (removing leading \V that may exist)
         local default_text = ''
-        local pattern = vim.fn.getreg('/')
+        local pattern = vim.fn.substitute(
+          vim.fn.getreg('/'),
+          '^\\(\\\\V\\)\\?',
+          '',
+          ''
+        )
         local line = vim.fn.getline('.')
         local col = vim.fn.col('.')
         local matches = {}
