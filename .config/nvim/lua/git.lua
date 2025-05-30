@@ -2021,6 +2021,12 @@ local status_action = function()
   -- open the file if it hasn't been deleted
   elseif not line:gsub('^%s', ''):match('^D') then
     local filename = vim.fn.fnamemodify(root .. path, ':.')
+
+    -- ignore directories
+    if vim.fn.isdirectory(filename) == 1 then
+      return
+    end
+
     local winnr = vim.fn.bufwinnr(filename)
     if winnr == -1 then
       local open = 'above new'
