@@ -181,7 +181,7 @@ local window = function(name, open, lines, opts)
     vim.cmd.diffthis()
     vim.cmd.winc('p')
 
-    -- don't discrupt an existing diff
+    -- don't disrupt an existing diff
     local other_diff = vim.wo.diff
     if not other_diff then
       vim.cmd.diffthis()
@@ -199,6 +199,46 @@ local window = function(name, open, lines, opts)
     vim.cmd.winc('p')
     vim.cmd.diffoff()
   end
+end
+
+local ignore_whitespace_note = '[i]gnore whitespace: '
+local diff_modal = function(name, cmd, args)
+  local result = M.git(cmd .. ' ' .. args)
+  if not result then
+    return
+  end
+  local lines = vim.fn.split(result, '\n')
+  table.insert(lines, 1, ignore_whitespace_note .. 'false')
+  window(name, 'modal', lines)
+  vim.b.git_ignore_whitespace = false
+
+  -- toggle ignoring white space
+  vim.keymap.set('n', 'i', function()
+    if vim.b.git_ignore_whitespace then
+      result = M.git(cmd .. ' ' .. args)
+      vim.b.git_ignore_whitespace = false
+    else
+      result = M.git(cmd .. ' --ignore-all-space ' .. args)
+      vim.b.git_ignore_whitespace = true
+    end
+    if result then
+      lines = vim.fn.split(result, '\n')
+      table.insert(
+        lines,
+        1,
+        ignore_whitespace_note .. tostring(vim.b.git_ignore_whitespace)
+      )
+      vim.bo.readonly = false
+      vim.bo.modifiable = true
+      vim.cmd('silent 1,$delete _')
+      vim.fn.append(1, lines)
+      vim.cmd('silent 1,1delete _')
+      vim.fn.cursor(1, 1)
+      vim.bo.modifiable = false
+    end
+  end, { buffer = true })
+
+  return true
 end
 
 local set_info = function(root, path, revision)
@@ -294,14 +334,14 @@ local get_previous_revision = function(path, revision)
   end
 
   -- first attempt against @{upstream} so we can handle side by side diffs on
-  -- incomming commits
+  -- incoming commits
   local result = M.git(cmd:gsub('<revrange>', '@{upstream}'), { quiet = true })
 
   -- above may have failed if there is no upstream, or we may get back an empty
   -- result if we are attempting to get the previous revision of a commit that
   -- is ahead of the upstream (eg. an amended commit), so try again against
   -- just HEAD
-  -- (using empty string so this works in a detatched head, eg. bisect)
+  -- (using empty string so this works in a detached head, eg. bisect)
   if not result or result == '' then
     result = M.git(cmd:gsub('<revrange>', ''), {})
   end
@@ -958,14 +998,11 @@ end
 local log_patch = function()
   local root = vim.b.git_info.root
   local revision = log_revision()
-  local result = M.git('log -1 -p ' .. revision)
-  if not result then
-    return
+  local name = 'git_' .. revision .. '.patch'
+  if diff_modal(name, 'log', '-1 -p ' .. revision) then
+    set_info(root, nil, revision)
+    log_patch_goto_mapping()
   end
-  window('git_' .. revision .. '.patch', 'modal', vim.fn.split(result, '\n'))
-
-  set_info(root, nil, revision)
-  log_patch_goto_mapping()
 end
 
 local log_diff = function(path1, path2)
@@ -1194,6 +1231,11 @@ local log = function(opts)
   for i, arg in ipairs(opts.fargs_orig or opts.fargs or {}) do
     if arg == '%' then
       root, path, _ = file(opts.fargs[i])
+      if path == '%' then
+        error('Not a valid file')
+        return
+      end
+
       args, replaced = args:gsub(' ' .. path, '')
       if replaced == 0 then
         args = args:gsub(path, '')
@@ -1298,7 +1340,7 @@ local log = function(opts)
       skipped = true
 
     else
-      -- skip these lines since thye are redundant
+      -- skip these lines since they are redundant
       if not line:match('^diff %-%-git') and
          not line:match('^%-%-%- a/') and
          not line:match('^+++ b/') and
@@ -1853,9 +1895,7 @@ local status_action = function()
         vim.tbl_map(function(l) return l:sub(4) end, lines),
         ' '
       )
-      local result = M.git('diff HEAD ' .. paths)
-      if result then
-        window('git_HEAD.patch', 'modal', vim.fn.split(result, '\n'))
+      if diff_modal('git_HEAD.patch', 'diff', 'HEAD ' .. paths) then
         set_info(root, nil, 'HEAD')
         log_patch_goto_mapping()
       end
@@ -1956,10 +1996,8 @@ local status_action = function()
 
   local stash = line:match('^## %- (stash@{%d+}):.*')
   if stash then
-    local result = M.git('stash show -p ' .. stash)
-    if result then
-      window('git_' .. stash .. '.patch', 'modal', vim.fn.split(result, '\n'))
-    end
+    local name = 'git_' .. stash .. '.patch'
+    diff_modal(name, 'stash show', '-p ' .. stash)
   end
 
   -- ignore comment lines
@@ -1998,14 +2036,12 @@ local status_action = function()
       })
     elseif status == 'M' then
       local staged = col == 1
-      local diff_cmd = 'diff ' .. (staged and '--cached ' or '')
-      local result = M.git(diff_cmd .. '"' .. path .. '"')
-      if not result then
-        return
+      local name = path .. '.patch'
+      local args = (staged and '--cached ' or '') .. '"' .. path .. '"'
+      if diff_modal(name, 'diff', args) then
+        set_info(root, nil, nil)
+        log_patch_goto_mapping()
       end
-      window(path .. '.patch', 'modal', vim.fn.split(result, '\n'))
-      set_info(root, nil, nil)
-      log_patch_goto_mapping()
     elseif status == 'U' then
       local cmd = 'git mergetool ' .. path
       term(cmd, {
