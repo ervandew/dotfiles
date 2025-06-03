@@ -2376,7 +2376,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     )
     if action then
       vim.cmd.normal('t' .. actions[action]:sub(1, 1))
-      vim.cmd.startinsert()
+      vim.cmd.startinsert({ bang = true })
     end
   end, { buffer = bufnr })
   vim.keymap.set('n', 'ts', status_branch_cmd('switch'), { buffer = bufnr })
