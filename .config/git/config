@@ -163,7 +163,7 @@
   # space separated list of branches to prevent force pushing to
   # (enforced by custom pre-push hook)
   # NOTE: also used by dbranch alias
-  protected = main master staging sprint
+  protected = main master qa-test staging sprint
 
 [rebase]
   autostash = true

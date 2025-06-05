@@ -306,7 +306,8 @@ M.git = function(args, opts)
 end
 
 local is_protected = function(branch)
-  local protected = vim.fn.split(M.git('config get push.force.protected') or '')
+  local result = M.git('config get push.force.protected', { quiet = true }) or ''
+  local protected = vim.fn.split(result)
   return vim.list_contains(protected, branch)
 end
 
@@ -1804,23 +1805,28 @@ local status_branch_delete = function(selection)
       return
     end
 
-    local remote = M.git(
+    -- get the remote before deleting the branch
+    local remote = not is_protected(name) and M.git(
       'config get branch.' .. name .. '.remote',
       { quiet = true }
     )
+
     local flag = result == 2 and ' -D ' or ' -d '
-    if M.git('branch' .. flag .. name) then
-      notify('Deleted local branch: ' .. name)
-      if remote then
-        msg = 'Delete remote? ' .. remote .. '/' .. name
-        result = confirm(msg, '&yes\n&no')
-        vim.cmd.redraw()
-        if result == 1 then
-          term('git push ' .. remote .. ' -d ' .. name, {
-            cwd = repo(),
-            echo = 'deleting ' .. remote .. '/' .. name .. '...',
-          })
-        end
+    if not M.git('branch' .. flag .. name) then
+      return
+    end
+
+    notify('Deleted local branch: ' .. name)
+
+    if remote then
+      msg = 'Delete remote? ' .. remote .. '/' .. name
+      result = confirm(msg, '&yes\n&no')
+      vim.cmd.redraw()
+      if result == 1 then
+        term('git push ' .. remote .. ' -d ' .. name, {
+          cwd = repo(),
+          echo = 'deleting ' .. remote .. '/' .. name .. '...',
+        })
       end
     end
   end
