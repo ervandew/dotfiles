@@ -1232,14 +1232,15 @@ local log = function(opts)
   for i, arg in ipairs(opts.fargs_orig or opts.fargs or {}) do
     if arg == '%' then
       root, path, _ = file(opts.fargs[i])
-      if path == '%' then
+      if path == nil or path == '%' then
         error('Not a valid file')
         return
       end
 
-      args, replaced = args:gsub(' ' .. path, '')
+      local path_pattern = path:gsub('%-', '%%-')
+      args, replaced = args:gsub(' ' .. path_pattern, '')
       if replaced == 0 then
-        args = args:gsub(path, '')
+        args = args:gsub(path_pattern, '')
       end
     else
       for pattern, expansion in pairs(expansions) do
@@ -1270,20 +1271,24 @@ local log = function(opts)
     root = repo()
   end
 
+  if not root then
+    return
+  end
+
   local log_cmd = 'log --pretty=tformat:"%m|%h|%an|%ar|%d|%s"'
   if opts.bisect and #opts.bisect then
     log_cmd = log_cmd .. ' ' .. opts.bisect[1] .. '...' .. opts.bisect[2]
   end
   if args and args ~= '' then
     if args:match('--graph') then
-      term('git log ' .. args, { cwd = repo() })
+      local graph_cmd = 'git log ' .. args
+      if path then
+        graph_cmd = graph_cmd .. ' ' .. path
+      end
+      term(graph_cmd, { cwd = repo() })
       return
     end
     log_cmd = log_cmd .. ' ' .. args
-  end
-
-  if not root then
-    return
   end
 
   if path then
