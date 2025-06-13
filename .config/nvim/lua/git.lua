@@ -43,6 +43,7 @@ local modal = function(opts)
   -- add mapping to "sink" the modal as a horizontal split at the bottom or
   -- above our status/log windows
   vim.keymap.set('n', 'S', function()
+    local pos = vim.fn.getpos('.')
     local open = 'botright'
     for _, name in ipairs({ status_name, log_name }) do
       local winnr = vim.fn.bufwinnr(name)
@@ -54,13 +55,16 @@ local modal = function(opts)
     end
     vim.cmd(open .. ' new')
     vim.cmd.buffer(bufnr)
+    vim.fn.setpos('.', pos)
     if vim.fn.bufname():match('%.patch$') then
       -- remove our <space> scrolling mapping
       pcall(vim.keymap.del, 'n', '<space>', { buffer = true })
     end
 
+    local sunk_win = vim.fn.winnr()
     vim.fn.win_gotoid(window)
     vim.cmd.quit()
+    vim.cmd(sunk_win .. 'winc w')
   end, { buffer = bufnr })
 end
 
@@ -102,7 +106,6 @@ local window = function(name, open, lines, opts)
   if winnr ~= -1 then
     vim.cmd(winnr .. 'winc w')
   else
-    local lastwinid = vim.fn.win_getid()
     if open == 'modal' then
       modal()
       vim.cmd.file(name)
@@ -111,6 +114,8 @@ local window = function(name, open, lines, opts)
     end
 
     vim.keymap.set('n', 'q', function()
+      local target_winid = vim.fn.win_getid(vim.fn.winnr() - 1)
+
       vim.cmd.quit()
 
       -- check if the only windows open are git windows
@@ -126,6 +131,7 @@ local window = function(name, open, lines, opts)
         elseif log_winnr ~= -1 then
           vim.cmd((log_winnr + 1) .. 'resize ' .. log_height)
         end
+        target_winid = vim.fn.win_getid()
       elseif vim.fn.winnr('$') == 2 and
          status_winnr ~= -1 and
          log_winnr ~= -1
@@ -133,14 +139,11 @@ local window = function(name, open, lines, opts)
         vim.cmd('above new')
         vim.cmd((log_winnr + 1) .. 'resize ' .. log_height)
         vim.cmd((status_winnr + 1) .. 'resize ' .. status_height)
+        target_winid = vim.fn.win_getid()
       end
 
-      -- ensure that we return the original window, if it still exists
-      local lastwinnr = vim.fn.win_id2win(lastwinid)
-      if lastwinnr ~= 0 then
-        vim.cmd(lastwinnr .. 'winc w')
-      end
 
+      vim.fn.win_gotoid(target_winid)
       vim.cmd.doautocmd('WinEnter')
     end, { buffer = true })
 
