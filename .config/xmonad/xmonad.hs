@@ -15,11 +15,10 @@ import XMonad.Layout.StackTile
 import XMonad.Layout.TwoPane
 import XMonad.Util.EZConfig
 import XMonad.Util.NamedScratchpad
-import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.WorkspaceCompare
 import qualified XMonad.StackSet as W
-import System.IO
 
+myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm"]
 myLayout = desktopLayoutModifiers $
     onWorkspace "2:im/mail"  (Accordion ||| Full) $
     onWorkspace "3:media" Full $
@@ -34,15 +33,9 @@ myLayout = desktopLayoutModifiers $
 
 myManageHook = composeAll [
     -- some dialog windows that don't float by default
-    className =? "Keyring"            --> doFloat,
-    -- gimp insists on floating, so prevent that.
-    role =? "gimp-image-window"       --> ask >>= doF . W.sink
+    className =? "Keyring" --> doFloat
   ]
-  where
-    role = stringProperty "WM_WINDOW_ROLE"
 
-myTerminal = "alacritty"
-myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm"]
 myScratchpads = [
     NS "scratchterm"
       "alacritty --class scratchterm -e tmux -L scratch new-session -s scratch -A"
@@ -75,25 +68,19 @@ main = do
     desktopConfig {
       borderWidth        = 1,
       modMask            = mod1Mask,
-      terminal           = myTerminal,
       normalBorderColor  = "#333333",
       focusedBorderColor = "#5884b0",
+      focusFollowsMouse  = False,
+      terminal           = "alacritty",
       workspaces         = myWorkspaces,
+      layoutHook         = myLayout,
+      logHook            = fadeInactiveLogHook 0.5,
       manageHook         =
         manageDocks <+>
         myManageHook <+>
         manageHook desktopConfig <+>
-        namedScratchpadManageHook myScratchpads,
-      layoutHook         = myLayout,
-      focusFollowsMouse  = False,
-      logHook            = fadeInactiveLogHook 0.5
+        namedScratchpadManageHook myScratchpads
     }
-    -- change workspace keybindings to not be "greedy" (move my focus to the
-    -- screen displaying the workspace instead of moving the workspace to my
-    -- screen)
-    `additionalKeys` [((m .|. mod1Mask, k), windows $ f i)
-         | (i, k) <- zip myWorkspaces [xK_1 .. xK_9]
-         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
     `additionalKeysP` [
       ("M-x",         kill),
       ("M-m",         sendMessage $ JumpToLayout "Full"),
@@ -101,7 +88,6 @@ main = do
       ("M-S-<Tab>",   windows W.focusUp),
       ("M-p",         namedScratchpadAction myScratchpads "scratchterm"),
       ("M-S-p",       spawn $ "~/bin/keyring prompt --paste"),
-      ("M-z",         spawn $ "alock -cursor theme:name=xtr -auth pam"),
       ("M-q",         spawn $ "xmonad --restart"),
 
       -- mnemonics based on the shift version of the key:
