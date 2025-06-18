@@ -106,7 +106,9 @@ local window = function(name, open, lines, opts)
   if winnr ~= -1 then
     vim.cmd(winnr .. 'winc w')
   else
+    local target_winid
     if open == 'modal' then
+      target_winid = vim.fn.win_getid(vim.fn.winnr())
       modal()
       vim.cmd.file(name)
     else
@@ -114,7 +116,9 @@ local window = function(name, open, lines, opts)
     end
 
     vim.keymap.set('n', 'q', function()
-      local target_winid = vim.fn.win_getid(vim.fn.winnr() - 1)
+      if not target_winid then
+        target_winid = vim.fn.win_getid(vim.fn.winnr() - 1)
+      end
 
       vim.cmd.quit()
 
@@ -143,8 +147,10 @@ local window = function(name, open, lines, opts)
       end
 
 
-      vim.fn.win_gotoid(target_winid)
-      vim.cmd.doautocmd('WinEnter')
+      vim.schedule(function()
+        vim.fn.win_gotoid(target_winid)
+        vim.cmd.doautocmd('WinEnter')
+      end)
     end, { buffer = true })
 
     if name:match('%.patch$') then
