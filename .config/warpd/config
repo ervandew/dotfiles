@@ -6,4 +6,6 @@ hint: A-f
 hint_activation_key: A-f
 hint_size: 12
 scroll_down: C-j
+scroll_down: C-d
 scroll_up: C-k
+scroll_up: C-u
