@@ -8,7 +8,7 @@
 # list of instance names to their corresponding command line arguments:
 #
 #   CONNECTION_STRINGS="
-#     mysql:localhost: mydb,
+#     mariadb:localhost: mydb,
 #     mysql:staging: -h mystaginghost -P 3307 -u myuser mydb,
 #     postgres:localhost: mydb,
 #     postgres:staging: postgresql://user@host/mydb
@@ -16,7 +16,7 @@
 #
 # The format of the CONNECTION_STRINGS is:
 #   dbtype:instance_name: <command line arguments>,
-#     dbtype: one of 'mysql' or 'postgres'
+#     dbtype: one of 'mariadb', 'mysql', or 'postgres'
 #     instance_name: any name you choose, but keep it alpha numeric
 #     command line arguments: any necessary arguments that need to be supplied
 #       to the database's corresponding command line client to connect to that
@@ -73,7 +73,7 @@ function usage() {
   echo "   Start a sql console:"
   echo "     sql"
   echo "   Run a single query:"
-  echo "     - mysql:"
+  echo "     - mysql/mariadb:"
   echo "       sql -e \"select 1\""
   echo "     - postgresql:"
   echo "       sql -c \"select 1\""
@@ -82,13 +82,19 @@ function usage() {
 }
 
 function runmysql() {
+  cmd=mysql
+  if [ "$1" == 'mariadb' ] ; then
+    cmd=mariadb
+    shift;
+  fi
+
   # attempt to run a script
-  runscript mysql "$@"
+  runscript $cmd "$@"
 
   # Note: as of the time of this writing, the color escape sequences screw up
   # line wrapping in the client, so this adds a newline to work around that.
   PROMPT_TEXT=$(echo -e "\\x1B[$COLOR$LABEL\\x1B[0m\n>")
-  runclient mysql --prompt "$PROMPT_TEXT " "$@"
+  runclient $cmd --prompt "$PROMPT_TEXT " "$@"
 }
 
 function runsqlplus() {
@@ -220,6 +226,8 @@ function runchoice() {
   LABEL=$(echo $instance | perl -pe 's|^\w+:(.*).*|\1|')
   if [ "$dbtype" == "mysql" ] ; then
     runmysql "$@" $connection
+  elif [ "$dbtype" == "mariadb" ] ; then
+    runmysql mariadb "$@" $connection
   elif [ "$dbtype" == "oracle" ] ; then
     runsqlplus "$@" $connection
   elif [ "$dbtype" == "postgres" ] ; then
