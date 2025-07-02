@@ -38,9 +38,16 @@ end
 
 local function update()
   if vim.t.maximized then
-    -- if the current window is fixed, then pick the nearest non-fixed
-    -- window and maximize that.
-    if ignore(vim.fn.win_getid()) then
+    local curwinid = vim.fn.win_getid()
+
+    -- if the current window is floating don't do anything
+    if vim.api.nvim_win_get_config(curwinid).zindex ~= nil then
+      return
+    end
+
+    -- if the current window is fixed, then pick the nearest non-fixed window
+    -- and maximize that.
+    if ignore(curwinid) then
       local curwin = vim.fn.winnr()
       for winnr = vim.fn.winnr('$'), 1, -1 do
         if winnr < curwin then
@@ -52,7 +59,9 @@ local function update()
           end
         end
       end
-      vim.cmd('noautocmd ' .. curwin .. 'winc w')
+      vim.schedule(function()
+        vim.cmd('noautocmd ' .. vim.fn.win_id2win(curwinid) .. 'winc w')
+      end)
 
     -- maximize the current window
     else
@@ -60,7 +69,6 @@ local function update()
     end
 
     -- set all fixed height windows to their fixed height
-    local curwinid = vim.fn.win_getid(vim.fn.winnr())
     for winnr = 1, vim.fn.winnr('$') do
       local winid = vim.fn.win_getid(winnr)
       if vim.wo[winid].winfixheight then
