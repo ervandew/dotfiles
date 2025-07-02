@@ -1234,10 +1234,11 @@ local log = function(opts)
   local replaced
   local args = opts.args
   local expansions = {
-    ['diff:([-/@{}%w]+)'] = {'diff against <match>', '<branch>...<match>'},
-    ['in:([-/%w]+)'] = {'incoming from <match>', '--right-only <branch>...<match>'},
-    ['out:([-/%w]+)'] = {'outgoing to <match>', '--left-only <branch>...<match>'},
+    ['(diff):([-/@{}%w]+)'] = {'diff against <match>', '<branch>...<match>'},
+    ['(in):([-/%w]+)'] = {'incoming from <match>', '--right-only <branch>...<match>'},
+    ['(out):([-/%w]+)'] = {'outgoing to <match>', '--left-only <branch>...<match>'},
   }
+  local header_addl = {}
   for i, arg in ipairs(opts.fargs_orig or opts.fargs or {}) do
     if arg == '%' then
       root, path, _ = file(opts.fargs[i])
@@ -1253,7 +1254,7 @@ local log = function(opts)
       end
     else
       for pattern, expansion in pairs(expansions) do
-        local match = arg:match(pattern)
+        local op, match = arg:match(pattern)
         if match then
           local branch = M.git('rev-parse --abbrev-ref HEAD')
           if branch then
@@ -1263,6 +1264,10 @@ local log = function(opts)
             opts.title = 'filter:       ' .. expansion[1]
               :gsub('<branch>', branch)
               :gsub('<match>', match)
+
+            if op == 'diff' then
+              header_addl = { '', '>: ' .. match, '<: ' .. branch }
+            end
             args = vim.fn.join(opts.fargs, ' ')
           end
           break
@@ -1324,6 +1329,9 @@ local log = function(opts)
   if not opts.bisect then
     local cmd_header = log_cmd:gsub('%-%-pretty=tformat:".-"%s?', '')
     lines[#lines + 1] = 'cmd:          ' .. cmd_header
+  end
+  if #header_addl > 0 then
+    vim.list_extend(lines, header_addl)
   end
   lines[#lines + 1] = ''
 
@@ -1395,7 +1403,7 @@ local log = function(opts)
   vim.cmd('syntax match GitMessage /\\(^[+-] \\(. \\)\\?\\w\\{2,} \\w.\\{-} (\\d.\\{-})\\( (.\\{-})\\)\\?\\)\\@<=.*/ contains=GitRefs')
   vim.cmd('syntax match GitLink /|\\S.\\{-}|/')
   vim.cmd('syntax match GitLogHeader /^\\%<4l.\\{-}: .*/ contains=GitLogHeaderName')
-  vim.cmd('syntax match GitLogHeaderName /^\\%<4l.\\{-}:/')
+  vim.cmd('syntax match GitLogHeaderName /^\\%<4l.\\{-}:/') -- main headers
   vim.cmd('syntax match GitLogFiles /\\(^\\s\\+[+-] \\)\\@<=files\\>.*/ contains=GitLogStatsChanged,GitLogStatsInserted,GitLogStatsDeleted')
   vim.cmd('syntax match GitLogDiff /^# .*/ contains=GitLogDiffAdd,GitLogDiffDelete')
   vim.cmd('syntax match GitLogDiffAdd /\\(^# \\)\\@<=+.*/')
@@ -1404,8 +1412,11 @@ local log = function(opts)
   vim.cmd('syntax match GitLogBisectBadFirst /\\(^[+-] \\)\\@<=X/')
   vim.cmd('syntax match GitLogBisectCurrent /\\(^[+-] \\)\\@<=#/')
   vim.cmd('syntax match GitLogBisectGood /\\(^[+-] \\)\\@<=\\*/')
+  vim.cmd('syntax match GitLogMarkerIn /^>\\(:\\)\\@=/')
   vim.cmd('syntax match GitLogMarkerIn /\\(^[+-] \\)\\@<=>/')
+  vim.cmd('syntax match GitLogMarkerOut /^<\\(:\\)\\@=/')
   vim.cmd('syntax match GitLogMarkerOut /\\(^[+-] \\)\\@<=</')
+  vim.cmd('syntax match GitLogHeaderName /^\\([<>]\\):/ contains=GitLogMarkerIn,GitLogMarkerOut') -- log diff: markers
   vim.cmd('syntax match GitLogStatsChanged /\\(^\\s\\+[+-] files .*\\)\\@<=\\d\\+ files\\? changed/')
   vim.cmd('syntax match GitLogStatsInserted /\\(^\\s\\+[+-] files .*\\)\\@<=\\d\\+ insertions\\?(+)/')
   vim.cmd('syntax match GitLogStatsDeleted /\\(^\\s\\+[+-] files .*\\)\\@<=\\d\\+ deletions\\?(-)/')
@@ -2602,6 +2613,11 @@ local complete_branch = function(prefix)
   end
 end
 
+local complete_log = function(compl_opts)
+  local custom = { 'diff:', 'in:', 'out:' }
+  return compl_opts.match, custom
+end
+
 local complete = function(arglead, cmdl, pos)
   local pre = string.sub(cmdl, 1, pos)
   local results = {}
@@ -2638,6 +2654,8 @@ local complete = function(arglead, cmdl, pos)
     ['^Git%s+log%s+.*diff:([-/%w]*)'] = complete_branch('diff:'),
     ['^Git%s+log%s+.*in:([-/%w]*)'] = complete_branch('in:'),
     ['^Git%s+log%s+.*out:([-/%w]*)'] = complete_branch('out:'),
+    -- complete some custom args
+    ['^Git%s+log%s+.-([-/%w]*)'] = complete_log,
     -- complete bisect action
     ['^Git%s+bisect%s+(%w*)$'] = function(compl_opts)
       return compl_opts.match, {
