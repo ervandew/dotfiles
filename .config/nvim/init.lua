@@ -270,6 +270,17 @@ vim.keymap.set({ 'c', 'i' }, '<c-v>', function()
   vim.fn.feedkeys(vim.fn.getreg('+'))
 end)
 
+
+-- alt-esc to close all floating windows
+vim.keymap.set('n', '<a-esc>', function()
+  for winnr = vim.fn.winnr('$'), 1, -1 do
+    local winid = vim.fn.win_getid(winnr)
+    if vim.api.nvim_win_get_config(winid).zindex ~= nil then
+      vim.api.nvim_win_close(winid, true)
+    end
+  end
+end)
+
 -- }}}
 
 -- commands {{{
