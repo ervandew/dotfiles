@@ -2830,6 +2830,15 @@ M.init = function(init_opts)
   vim.keymap.set('n', '<leader>gs', ':Git status<cr>', { silent = true })
   vim.keymap.set({ 'n', 'x' }, '<leader>gl', ':Git log %<cr>', { silent = true })
   vim.keymap.set({ 'n', 'x' }, '<leader>ga', ':Git annotate<cr>', { silent = true })
+  vim.keymap.set({ 'n', 'x' }, '<leader>gc', function()
+    for _, name in ipairs({ status_name, log_name }) do
+      local winnr = vim.fn.bufwinnr(name)
+      if winnr ~= -1 then
+        vim.api.nvim_win_close(vim.fn.win_getid(winnr), true)
+      end
+    end
+    vim.cmd.doautocmd('WinEnter')
+  end)
 end
 
 return M
