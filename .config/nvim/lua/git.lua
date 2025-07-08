@@ -1678,6 +1678,7 @@ local function bisect(opts)
           return
         end
 
+        local term_winid = vim.fn.win_getid(vim.fn.bufwinnr(term_bufnr))
         local log_winnr = vim.fn.bufwinnr(log_name)
         -- when starting a bisect session, open the log window
         if #opts.fargs == 0 or opts.fargs[1] == 'start' then
@@ -1692,7 +1693,7 @@ local function bisect(opts)
 
         vim.schedule(function()
           pcall(vim.cmd.checktime) -- update existing buffers if necessary
-          vim.cmd(vim.fn.bufwinnr(term_bufnr) .. 'winc w')
+          vim.fn.win_gotoid(term_winid)
         end)
       end
     })
