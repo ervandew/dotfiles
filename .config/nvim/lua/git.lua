@@ -2588,12 +2588,18 @@ local commands = {
 
 local complete_filepath = function(compl_opts)
   local arglead = compl_opts.arglead
+  local branch_prefix, file_suffix = arglead:match('^(.*):(.*)$')
+  arglead = file_suffix or arglead
+
   local root = repo()
   local results = vim.fn.glob(root .. arglead .. '*', nil, true)
   results = vim.tbl_map(function(r)
     local rel = r:sub(#root + 1)
     if vim.fn.isdirectory(r) == 1 then
       rel = rel .. '/'
+    end
+    if file_suffix then
+      rel = branch_prefix .. ':' .. rel
     end
     return rel
   end, results)
@@ -2609,6 +2615,16 @@ local complete_branch = function(prefix)
     local match = prefix and (prefix .. compl_opts.match) or compl_opts.match
     return match, results
   end
+end
+
+local complete_branch_filepath = function(compl_opts)
+  local compl_branch = complete_branch()
+  local results = {}
+  local bmatch, bresults = compl_branch(compl_opts)
+  local fmatch, fresults = complete_filepath(compl_opts)
+  vim.list_extend(results, bresults)
+  vim.list_extend(results, fresults)
+  return bmatch or fmatch, results
 end
 
 local complete_log = function(compl_opts)
@@ -2645,7 +2661,7 @@ local complete = function(arglead, cmdl, pos)
     ['^Git%s+add%s+.-([.-/%w]*)$'] = complete_filepath,
     ['^Git%s+mv%s+.-([.-/%w]*)$'] = complete_filepath,
     ['^Git%s+rm%s+.-([.-/%w]*)$'] = complete_filepath,
-    ['^Git%s+show%s+.-([.-/%w]*)$'] = complete_filepath,
+    ['^Git%s+show%s+.-([.%-/:%w]*)$'] = complete_branch_filepath,
     -- complete branch name for switch command
     ['^Git%s+switch%s+.-([-/%w]*)'] = complete_branch(),
     -- complete branch name in log expansions
