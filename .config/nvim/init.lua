@@ -140,11 +140,18 @@ function _tab() ---@diagnostic disable-line: lowercase-global
   local curr_tab = vim.fn.tabpagenr()
   for tabnr = 1,num_tabs do
     tabline = tabline .. (tabnr == curr_tab and '%#TabLineSel#' or '%#TabLine#')
-    local buflist = vim.fn.tabpagebuflist(tabnr)
+    local name = ''
     local winnr = vim.fn.tabpagewinnr(tabnr)
-    local name = vim.fn.fnamemodify(vim.fn.bufname(buflist[winnr]), ':t')
-    if name == '' then
-      name = '[No Name]'
+    local winid = vim.fn.win_getid(winnr)
+    if not vim.api.nvim_win_get_config(winid).zindex then
+      local bufnr = vim.fn.tabpagebuflist(tabnr)[winnr]
+      local buftype = vim.bo[bufnr].buftype
+      if buftype ~= 'nofile' and buftype ~= 'quickfix' then
+        name = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':t')
+        if name == '' then
+          name = '[No Name]'
+        end
+      end
     end
 
     local tab_name = vim.fn.gettabvar(tabnr, 'tab_name')
