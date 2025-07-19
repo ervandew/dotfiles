@@ -38,20 +38,18 @@ local function set(modeline, opt, value)
 end
 
 local function settings(settings_pairs, modeline)
-  local found = false
   if settings_pairs then
     local path = vim.fn.expand('%:p')
     for key, opts in pairs(settings_pairs) do
       key = vim.fn.expand(key)
       local matched = vim.fn.substitute(path, '^' .. key, '', '') ~= path
       if matched then
-        found = true
         set(modeline, 'tabstop', opts.tabstop or vim.o.tabstop)
         set(modeline, 'shiftwidth', opts.shiftwidth or vim.o.shiftwidth)
+        return true
       end
     end
   end
-  return found
 end
 
 local function detect()
