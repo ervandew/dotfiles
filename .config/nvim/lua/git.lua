@@ -2283,8 +2283,17 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     repo_actions = repo_actions .. ' [stashes: ' .. #stashes .. ']'
   end
 
-  if lines[1]:match('^## HEAD') and bisect_active() then
-    lines[1] = lines[1] .. ': [bisect]'
+  if lines[1]:match('^## HEAD') then
+    if lines[1]:match('^## HEAD %(no branch%)') then
+      local ref = M.git('describe', { quiet = true }) or nil
+      if ref then
+        lines[1] = lines[1] .. ': ' .. ref
+      end
+    end
+
+    if bisect_active() then
+      lines[1] = lines[1] .. ': [bisect]'
+    end
   elseif is_protected(branch) then
     local desc = M.git('describe', { quiet = true })
     if desc then
@@ -2617,14 +2626,37 @@ local complete_branch = function(prefix)
   end
 end
 
-local complete_branch_filepath = function(compl_opts)
+local complete_tag = function(compl_opts)
+  local tags = M.git('tag --list "' .. compl_opts.arglead ..  '*"') or ''
+  return compl_opts.match, vim.fn.split(tags, '\n')
+end
+
+local compl_chain = function(compls)
+  return function(compl_opts)
+    local results = {}
+    for _, c in ipairs(compls) do
+      local _, cresults = c(compl_opts)
+      vim.list_extend(results, cresults)
+    end
+    return compl_opts.match, results
+  end
+end
+
+local complete_branch_tag = function(compl_opts)
   local compl_branch = complete_branch()
-  local results = {}
-  local bmatch, bresults = compl_branch(compl_opts)
-  local fmatch, fresults = complete_filepath(compl_opts)
-  vim.list_extend(results, bresults)
-  vim.list_extend(results, fresults)
-  return bmatch or fmatch, results
+  return compl_chain({
+    compl_branch,
+    complete_tag,
+  })(compl_opts)
+end
+
+local complete_branch_tag_filepath = function(compl_opts)
+  local compl_branch = complete_branch()
+  return compl_chain({
+    compl_branch,
+    complete_tag,
+    complete_filepath,
+  })(compl_opts)
 end
 
 local complete_log = function(compl_opts)
@@ -2653,29 +2685,36 @@ local complete = function(arglead, cmdl, pos)
       end
       return compl_opts.match, cmds
     end,
+
     -- complete range command names
     ["^'<,'>Git%s+([-%w]*)$"] = function(compl_opts)
       return compl_opts.match, { 'annotate', 'log' }
     end,
+
     -- complete repo relative file paths for add, mv, rm, etc
     ['^Git%s+add%s+.-([.-/%w]*)$'] = complete_filepath,
     ['^Git%s+mv%s+.-([.-/%w]*)$'] = complete_filepath,
     ['^Git%s+rm%s+.-([.-/%w]*)$'] = complete_filepath,
-    ['^Git%s+show%s+.-([.%-/:%w]*)$'] = complete_branch_filepath,
-    -- complete branch name for switch command
+
+    ['^Git%s+checkout%s+.-([.%-/:%w]*)$'] = complete_branch_tag,
+    ['^Git%s+show%s+.-([.%-/:%w]*)$'] = complete_branch_tag_filepath,
     ['^Git%s+switch%s+.-([-/%w]*)'] = complete_branch(),
+
     -- complete branch name in log expansions
     ['^Git%s+log%s+.*diff:([-/%w]*)'] = complete_branch('diff:'),
     ['^Git%s+log%s+.*in:([-/%w]*)'] = complete_branch('in:'),
     ['^Git%s+log%s+.*out:([-/%w]*)'] = complete_branch('out:'),
+
     -- complete some custom args
     ['^Git%s+log%s+.-([-/%w]*)'] = complete_log,
+
     -- complete bisect action
     ['^Git%s+bisect%s+(%w*)$'] = function(compl_opts)
       return compl_opts.match, {
         'bad', 'good', 'reset', 'run', 'skip', 'start', 'test'
       }
     end,
+
     -- complete stash action
     ['^Git%s+stash%s+(%w*)$'] = function(compl_opts)
       return compl_opts.match, {
@@ -2683,6 +2722,7 @@ local complete = function(arglead, cmdl, pos)
         'drop', 'list', 'pop', 'push', 'show',
       }
     end,
+
     -- complete stash references
     ['^Git%s+stash%s+(%w+%s%S*)'] = function(compl_opts)
       local match = compl_opts.match
