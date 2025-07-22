@@ -47,6 +47,10 @@ foreground = '#111111'
 [colors.hints]
 start = { background = '#d787d7' }
 
+[cursor]
+# a hollow cursor makes reading the text under it more difficult
+unfocused_hollow = false
+
 [cursor.vi_mode_style]
 shape = 'block'
 
