@@ -18,8 +18,17 @@ local error = function(msg, hl)
 end
 
 local confirm = function(msg, choices, default, type)
+  local hl_saved = vim.api.nvim_get_hl(0, { name = 'MoreMsg' })
+  if type == 'Warning' then
+    vim.api.nvim_set_hl(0, 'MoreMsg', { link = 'WarningMsg' })
+  end
+
   default = default or 0
-  local ok, choice = pcall(vim.fn.confirm, '', msg .. ': ' .. choices, default, type)
+  local ok, choice = pcall(vim.fn.confirm, '', msg .. ': ' .. choices, default)
+
+  ---@diagnostic disable-next-line: param-type-mismatch
+  vim.api.nvim_set_hl(0, 'MoreMsg', hl_saved)
+
   return (ok and choice ~= 0) and choice or nil
 end
 
@@ -1760,7 +1769,8 @@ local status_branch_switch = function(selection, prompt_text)
     else
       local branch = M.git('rev-parse --abbrev-ref HEAD')
       local msg = 'Create new branch ' .. name .. ' from ' .. branch .. '?'
-      local result = confirm(msg, '&yes\n&no')
+      local msg_type = not is_protected(branch) and 'Warning' or nil
+      local result = confirm(msg, '&yes\n&no', nil, msg_type)
       if result == 1 then
         if M.git('switch -c ' .. name) then
           notify('Created new branch: ' .. name)
