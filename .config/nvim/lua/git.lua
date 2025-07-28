@@ -330,6 +330,9 @@ local is_protected = function(branch)
 end
 
 local get_revision = function(path, revision)
+  if revision == 'origin' then
+    revision = '@{upstream}'
+  end
   return M.git(
     'rev-list --abbrev-commit -n 1 ' ..
     revision .. ' -- ' ..
@@ -388,6 +391,10 @@ local file = function(path)
       if root then
         path = vim.fn.resolve(vim.fn.expand('%:p'))
       end
+    end
+
+    if path == '' then
+      return
     end
   else
     root = repo()
@@ -731,12 +738,15 @@ local diff = function(opts)
   local _, path, revision = file()
   local target_revision
   if opts.revision == 'prev' then
-    target_revision = get_previous_revision(path, revision)
+    if revision then
+      target_revision = get_previous_revision(path, revision)
+    end
   else
     target_revision = get_revision(path, opts.revision)
   end
 
   if not target_revision then
+    error('The current file has not revision to diff against.')
     return
   end
 
@@ -2669,6 +2679,13 @@ local complete_branch_tag_filepath = function(compl_opts)
   })(compl_opts)
 end
 
+local complete_diff = function(compl_opts)
+  local results = { 'prev' }
+  local _, results_branch_tag = complete_branch_tag(compl_opts)
+  vim.list_extend(results, results_branch_tag)
+  return compl_opts.match, results
+end
+
 local complete_log = function(compl_opts)
   local custom = { 'diff:', 'in:', 'out:' }
   return compl_opts.match, custom
@@ -2707,6 +2724,7 @@ local complete = function(arglead, cmdl, pos)
     ['^Git%s+rm%s+.-([.-/%w]*)$'] = complete_filepath,
 
     ['^Git%s+checkout%s+.-([.%-/:%w]*)$'] = complete_branch_tag,
+    ['^Git%s+diff%s+.-([.%-/:%w]*)$'] = complete_diff,
     ['^Git%s+show%s+.-([.%-/:%w]*)$'] = complete_branch_tag_filepath,
     ['^Git%s+switch%s+.-([-/%w]*)'] = complete_branch(),
 
