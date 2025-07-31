@@ -7,6 +7,7 @@
 ##
 import logging
 import os
+import re
 import requests
 import subprocess
 import sys
@@ -28,7 +29,7 @@ def main():
     sys.exit(1)
 
   packages = []
-  dependents = {}
+  #dependents = {}
   with open(filepath) as f:
     pkg_pad = len('package')
     for line in f.readlines():
@@ -67,7 +68,11 @@ def main():
   for package, version in packages:
     #latest = _request_latest(package)
 
-    installed = installed_versions.get(package.lower(), '')
+    package_name = package.lower()
+    # remove any package subscripting
+    package_name = re.sub(r'^(.*?)(\[.*\])?$', r'\1', package_name)
+
+    installed = installed_versions.get(package_name, '')
 
     #if (latest != version or installed != version):
     if (installed != version):
