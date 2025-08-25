@@ -23,6 +23,14 @@ c.TerminalInteractiveShell.editing_mode = 'vi'
 # (<esc>) and maybe other stuff
 c.TerminalInteractiveShell.emacs_bindings_in_vi_insert_mode = False
 
+c.TerminalInteractiveShell.shortcuts = [
+  {
+    'new_keys': ['escape', 'backspace'], # this actually translates to: Alt+BS
+    'command': 'prompt_toolkit:named_commands.backward_kill_word',
+    'create': True,
+  },
+]
+
 ## Override highlighting format for specific tokens
 c.TerminalInteractiveShell.highlighting_style_overrides = {
   # pygments tokens: https://pygments.org/docs/tokens/
