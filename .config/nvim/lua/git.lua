@@ -1631,7 +1631,12 @@ end
 local function bisect(opts)
   local cmd
   local active = bisect_active()
-  if not active and #opts.fargs == 0 then
+  if #opts.fargs == 0 then
+    if active then
+      bisect_log()
+      return
+    end
+
     local good, bad
     local branch = M.git('rev-parse --abbrev-ref HEAD')
     if not branch then
