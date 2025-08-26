@@ -1865,7 +1865,19 @@ local status_branch_delete = function(selection)
 
     local flag = result == 2 and ' -D ' or ' -d '
     if not M.git('branch' .. flag .. name) then
-      return
+      if result == 1 then
+        msg = 'Force delete branch? ' .. name
+        result = confirm(msg, '&yes\n&no')
+        vim.cmd.redraw()
+        if result ~= 1 then
+          return
+        end
+        if not M.git('branch -D ' .. name) then
+          return
+        end
+      else
+        return
+      end
     end
 
     notify('Deleted local branch: ' .. name)
