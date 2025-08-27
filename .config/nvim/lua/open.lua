@@ -80,8 +80,8 @@ M.open = function(action, opts)
   if path ~= rel_path and file_readable(path) and file_readable(rel_path) then
     local choice = prompt(
       'multiple results:\n' ..
-      '  absolute: ' .. path .. '\n' ..
-      '  relative: ' .. rel_path
+      '  absolute: ' .. vim.fn.fnamemodify(path, ':.') .. '\n' ..
+      '  relative: ' .. vim.fn.fnamemodify(rel_path, ':.')
     )
     if not choice then
       return
@@ -98,7 +98,12 @@ M.open = function(action, opts)
     local cwd_exists = is_dir(dir)
     local rel_exists = rel_dir ~= '.' and is_dir(rel_dir .. '/' .. dir)
     if cwd_exists and rel_exists then
-      local choice = prompt('open new file: ' .. opts.args)
+      local choice = prompt(
+        'open new file:\n' ..
+        '  absolute: ' .. vim.fn.fnamemodify(path .. opts.args, ':.') .. '\n' ..
+        '  relative: ' .. vim.fn.fnamemodify(rel_path, ':.')
+      )
+
       if not choice then
         return
       elseif choice == 2 then
@@ -132,7 +137,7 @@ M.init = function()
     vim.keymap.set('ca', abbrev, function()
       local type = vim.fn.getcmdtype()
       local pos = vim.fn.getcmdpos()
-      ---@diagnostic disable-next-line: redundant-parameter
+      ---@diagnostic disable-next-line: redundant-parameter, param-type-mismatch
       local char = vim.fn.nr2char(vim.fn.getchar(1))
       if type == ':' and pos == #abbrev + 1 and char:match('[%s]') then
         return abbrev:sub(1, 1):upper()
