@@ -74,6 +74,13 @@ function _status_left() ---@diagnostic disable-line: lowercase-global
   end
   local stl = name .. (vim.bo.modified and ' +' or '')
   if curwinid == winid then
+    -- check if the file exists and highlight if not
+    if vim.fn.bufname() ~= '' and
+       vim.bo.buftype == '' and
+       not vim.uv.fs_stat(name) then
+      stl = '%#StatusLineMissingFile#' .. stl .. ' [missing] %*'
+    end
+
     -- show the max diagnostic severity in the statusline
     if vim.b.max_diagnostics ~= nil then
       local max_severity = nil

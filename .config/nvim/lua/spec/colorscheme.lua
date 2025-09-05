@@ -82,6 +82,8 @@ return {{
     vim.api.nvim_set_hl(0, 'StatusLine', { fg = white, bg = background })
     vim.api.nvim_set_hl(0, 'StatusLineNC', { fg = '#626262', bg = background })
     vim.api.nvim_set_hl(0, 'StatusLineFF', { fg = '#c4c466', bg = background })
+    -- added in init.lua
+    vim.api.nvim_set_hl(0, 'StatusLineMissingFile', { fg = yellow, bg = background, italic = true })
     vim.api.nvim_set_hl(0, 'TabLine', { fg = '#626262',  bg = background })
     vim.api.nvim_set_hl(0, 'TabLineFill', { bg = background })
     vim.api.nvim_set_hl(0, 'TabLineSel', { fg = white,  bg = background })
