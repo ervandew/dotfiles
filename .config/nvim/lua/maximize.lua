@@ -55,6 +55,9 @@ local function update()
           if not ignore(winid) then
             vim.cmd('noautocmd ' .. winnr .. 'winc w')
             vim.cmd('winc _')
+            vim.schedule(function()
+              vim.cmd('doautocmd WinLeave')
+            end)
             break
           end
         end
