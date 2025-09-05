@@ -71,6 +71,7 @@ return {{
     vim.api.nvim_set_hl(0, 'ModeMsg', { fg = gray9 })
     vim.api.nvim_set_hl(0, 'MoreMsg', { link = 'ModeMsg' })
     vim.api.nvim_set_hl(0, 'MsgArea', { fg = white })
+    vim.api.nvim_set_hl(0, 'NormalNC', { bg = '#1f1f1f' }) -- non-current window
     vim.api.nvim_set_hl(0, 'Pmenu', { fg = '#7a7a7a', bg = gray2 })
     vim.api.nvim_set_hl(0, 'PmenuSel', { bg = gray3 })
     vim.api.nvim_set_hl(0, 'Search', { fg = white, bg = '#607080' })
@@ -215,7 +216,7 @@ return {{
     vim.api.nvim_set_hl(0, 'TelescopePreviewLine', { bg = background })
     vim.api.nvim_set_hl(0, 'TelescopeResultsComment', { fg = gray6 })
     vim.api.nvim_set_hl(0, 'TelescopeResultsNormal', { fg = '#aaaaaa' })
-    vim.api.nvim_set_hl(0, 'TelescopeSelection', { fg = green, bg = '#202020' })
+    vim.api.nvim_set_hl(0, 'TelescopeSelection', { fg = green, bg = '#121212' })
 
     -- git_status picker
     vim.api.nvim_set_hl(0, 'TelescopeResultsDiffAdd', { fg = green, bold = true })
