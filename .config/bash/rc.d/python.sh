@@ -22,7 +22,11 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
 
         # note: extra parens around this call loads the results into an array
         versions=(
-          $(uv python list --only-installed | grep -v -- "->" | sed 's|.*\s||')
+          $(
+            uv python list --only-installed \
+              | grep -v -- "->" \
+              | sed 's|.*[[:space:]]||'
+          )
         )
         for index in "${!versions[@]}" ; do
           echo "$index) $(basename ${versions[index]})"
