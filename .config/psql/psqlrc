@@ -2,7 +2,12 @@
 \x auto
 \set HISTCONTROL ignoredups
 
+-- aliases can be executed via a leading colon (eg. :databases)
+-- some aliases may accept additional args (eg. :type my_type)
 \set databases '\\l'
 \set tables '\\dt'
 \set type '\\dT+'
-\set kill 'select pg_terminate_backend(pid) from pg_stat_activity where datname = ''dashboard'';'
+
+-- incomplete sql statements can be specified, and completed when typing the alias
+-- (eg. :size limit 5;)
+\set size 'select tbl, tablerows, pg_relation_size(tbl) size, pg_size_pretty(pg_relation_size(tbl)) tablesize, pg_indexes_size(tbl) isize, pg_size_pretty(pg_indexes_size(tbl)) indexessize from ( select (schemaname || ''.'' || ''"'' || relname || ''"'')::regclass as tbl, to_char(n_live_tup, ''999,999,999,999'') tablerows from pg_stat_user_tables) t order by size desc'
