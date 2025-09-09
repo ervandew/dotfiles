@@ -15,8 +15,15 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
     if [ ! -d "$venv" ] ; then
       read -p "venv '$1' does not exist, create it? (y/n)? "
       if [ "$REPLY" == "y" ] ; then
-        versions=$(uv python list --only-installed | grep -v -- "->" | sed 's|.*\s||')
-        readarray -t versions <<< "$versions"
+        if ! which uv &> /dev/null ; then
+          echo 'uv command not found.'
+          return 1
+        fi
+
+        # note: extra parens around this call loads the results into an array
+        versions=(
+          $(uv python list --only-installed | grep -v -- "->" | sed 's|.*\s||')
+        )
         for index in "${!versions[@]}" ; do
           echo "$index) $(basename ${versions[index]})"
         done
