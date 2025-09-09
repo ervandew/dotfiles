@@ -279,15 +279,17 @@ local repo = function()
 end
 
 local repo_settings = function()
-  local root = repo()
-  if root then
-    -- escape dashes for matching
-    root = root:gsub('%-', '%%-')
-    for key, settings in pairs(vim.g.git_repo_settings) do
-      -- normalize the path by expanding to a full path ending in path delimiter
-      key = vim.fn.fnamemodify(vim.fn.expand(key), ':p')
-      if key:match('^' .. root .. '$') then
-        return settings
+  if vim.g.git_repo_settings then
+    local root = repo()
+    if root then
+      -- escape dashes for matching
+      root = root:gsub('%-', '%%-')
+      for key, settings in pairs(vim.g.git_repo_settings) do
+        -- normalize the path by expanding to a full path ending in path delimiter
+        key = vim.fn.fnamemodify(vim.fn.expand(key), ':p')
+        if key:match('^' .. root .. '$') then
+          return settings
+        end
       end
     end
   end
@@ -2450,7 +2452,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.keymap.set('n', 't', function()
     local actions = { 'switch', 'merge', 'rebase', 'delete' }
     local action = confirm(
-      'Choose a branch action:',
+      'Choose a branch action',
       '&' .. vim.fn.join(actions, '\n&')
     )
     if action then
