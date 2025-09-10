@@ -99,6 +99,7 @@ return {{
     vim.api.nvim_set_hl(0, '@constant.git_rebase', { fg = red_dark })
     vim.api.nvim_set_hl(0, '@markup.heading.gitcommit', { link = '@keyword' })
     vim.api.nvim_set_hl(0, '@string.special.url.gitcommit', { link = '@markup.link.gitcommit' })
+    vim.api.nvim_set_hl(0, '@string.documentation.python', { fg = gray6 })
     vim.api.nvim_set_hl(0, '@number.float.python', { link = '@number' })
     vim.api.nvim_set_hl(0, '@property.ini', { link = '@keyword' })
     vim.api.nvim_set_hl(0, '@type.ini', { link = 'Special' })
