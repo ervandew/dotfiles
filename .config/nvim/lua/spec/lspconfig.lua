@@ -273,8 +273,9 @@ return {
         end
 
         if item then
-          local filename = item.filename
-          local winnr = vim.fn.bufwinnr(vim.fn.bufnr('^' .. filename .. '$'))
+          local filename = vim.fn.resolve(item.filename)
+          local bufnr = vim.fn.bufnr('^' .. filename .. '$')
+          local winnr = vim.fn.bufwinnr(bufnr)
           if winnr ~= -1 then
             vim.cmd(winnr .. 'winc w')
             vim.cmd([[ normal! m' ]]) -- update jump list
