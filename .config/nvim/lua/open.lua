@@ -100,7 +100,7 @@ M.open = function(action, opts)
     if cwd_exists and rel_exists then
       local choice = prompt(
         'open new file:\n' ..
-        '  absolute: ' .. vim.fn.fnamemodify(path .. opts.args, ':.') .. '\n' ..
+        '  absolute: ' .. vim.fn.fnamemodify(path, ':.') .. '\n' ..
         '  relative: ' .. vim.fn.fnamemodify(rel_path, ':.')
       )
 
