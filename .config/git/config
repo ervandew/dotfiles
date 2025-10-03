@@ -3,7 +3,7 @@
   desc = describe
   brname = rev-parse --abbrev-ref HEAD
   brexists = "!f() { git show-ref --verify --quiet refs/heads/$1; }; f"
-  upstream = "!f() { git branch -vv | grep ${1:-$(git rev-parse --abbrev-ref HEAD)} | perl -pe 's/.*?\\[(.*?)(:\\s|\\]).*/\\1/ || exit 0' ; } ; f"
+  upstream = rev-parse --abbrev-ref @{upstream}
   root = rev-parse --show-toplevel
   # returns: <repo_name>:<branch_info>
   # branch_info is typically the current branch name, but if a rebase is in
