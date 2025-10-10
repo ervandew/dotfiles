@@ -451,7 +451,7 @@ return {
             end,
           }),
 
-          attach_mappings = function(prompt_bufnr)
+          attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
               actions.close(prompt_bufnr)
               local selection = action_state.get_selected_entry()
@@ -459,6 +459,16 @@ return {
               -- open folds (z0), center the cursor line (zz)
               vim.cmd('silent! normal! zOzz')
             end)
+
+            -- filter to top level elements
+            map({ 'i' }, '<c-k>', function()
+              local picker = action_state.get_current_picker(prompt_bufnr)
+              local prompt = picker:_get_prompt()
+              -- strip off any dot separated parts
+              prompt = prompt:match('(.-)%..*') or prompt
+              picker:set_prompt('!. ' .. prompt)
+            end)
+
             return true
           end,
           previewer = conf.grep_previewer(opts),
