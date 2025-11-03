@@ -1650,11 +1650,11 @@ local function bisect(opts)
       return
     end
 
-    local ok, result = pcall(
-      vim.fn.input,
-      (choice == 1 and 'bad' or 'good') .. ' revision/branch: '
-    )
-    if not ok then
+    local ok, result = pcall(vim.fn.input, {
+      prompt = (choice == 1 and 'bad' or 'good') .. ' revision/branch: ',
+      completion = 'customlist,v:lua.vim.g.git_bisect_complete_branch_tag',
+    })
+    if not ok or result == '' then
       return
     end
     vim.schedule(function()
@@ -2710,6 +2710,17 @@ local complete_log = function(compl_opts)
   local custom = { 'diff:', 'in:', 'out:' }
   return compl_opts.match, custom
 end
+
+local bisect_complete_branch_tag = function(arglead)
+  local _, results = complete_branch_tag({ arglead = arglead })
+  return vim.tbl_filter(function(b)
+    return b:match('^' .. arglead)
+  end, results)
+end
+-- FIXME: it seems that vim.fn.input completion string doesn't work if there
+-- are quotes (silently does nothing), so we can't use v:lua.require to load
+-- the function from this module, so exposing this as a global as a workaround
+vim.g.git_bisect_complete_branch_tag = bisect_complete_branch_tag
 
 local complete = function(arglead, cmdl, pos)
   local pre = string.sub(cmdl, 1, pos)
