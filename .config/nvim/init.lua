@@ -582,6 +582,69 @@ require('git').init({
     pr = 'branch',
     view = 'filepath',
   },
+  hooks = {
+    pre_branch_create = function(git, name)
+      local issue_id = name:match('^(%d+)-.*')
+      if not issue_id then
+        return 'Branch name should be in the format: <issue_id>-<desc>'
+      end
+
+      local issue_json = git.git('ticket-info ' .. issue_id)
+      local issue = vim.json.decode(issue_json)
+      if issue.assignee.email ~= 'exv05@acuitysso.com' then
+        return 'Issue is assigned to antother dev: ' .. issue.assignee.name
+      end
+      if issue.status ~= 'New' then
+        return 'Issue is not in a New state: ' .. issue.status
+      end
+
+      vim.print('Ticket: ' .. issue.title)
+      local current = git.git('rev-parse --abbrev-ref HEAD')
+      local msg = 'Create new branch ' .. name .. ' from ' .. current .. '?'
+      local msg_type = not git.is_protected(current) and 'Warning' or nil
+      local result = git.confirm(msg, '&yes\n&no', nil, msg_type)
+      if result ~= 1 then
+        return ''
+      end
+      return true
+    end,
+    pre_commit = function(git, branch)
+      -- check the existence of repository ticket patterns to determine if this
+      -- is a work repo or not
+      local repo = git.git('rev-parse --show-toplevel'):match('.*/(.*)')
+      local work_repos = git.git(
+        'config --get ticket.' .. repo .. '.pattern',
+        { quiet = true }
+      )
+      if not work_repos then
+        return true
+      end
+
+      local issue_id = branch:match('^(%d+)-.*')
+      if not issue_id then
+        return git.confirm(
+          'Are you sure you want to commit to a non-topic branch?',
+          '&yes\n&no',
+          nil,
+          'Warning'
+        ) == 1
+      end
+
+      local issue_json = git.git('ticket-info ' .. issue_id)
+      local issue = vim.json.decode(issue_json)
+      if issue.status ~= 'New' then
+         vim.print('Ticket (' .. issue.status .. '): ' .. issue.title)
+        return git.confirm(
+          'Ticket is not in a New state, are you sure you want to commit to it?',
+          '&yes\n&no',
+          nil,
+          'Warning'
+        ) == 1
+      end
+
+      return true
+    end
+  },
 })
 require('grep').init()
 require('indentdetect').init()

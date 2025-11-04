@@ -729,6 +729,14 @@ M.show = function(opts)
   return true
 end
 
+local hook = function(ref, ...)
+  return ref({
+    git = M.git,
+    confirm = confirm,
+    is_protected = is_protected,
+  }, ...)
+end
+
 local diff_augroup = vim.api.nvim_create_augroup('git_diff', {})
 local diff = function(opts)
   if vim.fn.bufname() == log_name then
@@ -1785,15 +1793,29 @@ local status_branch_switch = function(selection, prompt_text)
         end
       end
     else
-      local branch = M.git('rev-parse --abbrev-ref HEAD')
-      local msg = 'Create new branch ' .. name .. ' from ' .. branch .. '?'
-      local msg_type = not is_protected(branch) and 'Warning' or nil
-      local result = confirm(msg, '&yes\n&no', nil, msg_type)
-      if result == 1 then
-        if M.git('switch -c ' .. name) then
-          notify('Created new branch: ' .. name)
-          status()
+      if config.hooks and config.hooks.pre_branch_create then
+        local result = hook(config.hooks.pre_branch_create, name)
+        if result ~= true then
+          vim.schedule(function()
+            error(
+              result or
+              'abort: hook pre_branch_create returned a non-true result.'
+            )
+          end)
+          return
         end
+      else
+        local branch = M.git('rev-parse --abbrev-ref HEAD')
+        local msg = 'Create new branch ' .. name .. ' from ' .. branch .. '?'
+        local msg_type = not is_protected(branch) and 'Warning' or nil
+        local result = confirm(msg, '&yes\n&no', nil, msg_type)
+        if result ~= 1 then
+          return
+        end
+      end
+      if M.git('switch -c ' .. name) then
+        notify('Created new branch: ' .. name)
+        status()
       end
     end
   end
@@ -2539,6 +2561,17 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
 
   vim.keymap.set({ 'n', 'x' }, 'c', function()
     if can_commit then
+      local hook_result = hook(config.hooks.pre_commit, branch)
+      if hook_result ~= true then
+        vim.schedule(function()
+          error(
+            hook_result or
+            'abort: hook pre_branch_create returned a non-true result.'
+          )
+        end)
+        return
+      end
+
       if vim.fn.mode() == 'V' then
         status_cmd('commit -e', { term = true })
       else
