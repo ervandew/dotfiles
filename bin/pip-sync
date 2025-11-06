@@ -5,14 +5,13 @@
 # newer version available or if the installed version doesn't match what is
 # found in requirements.txt.
 ##
+import importlib.metadata
 import logging
 import os
 import re
-import requests
 import subprocess
 import sys
 
-#from pip._vendor.rich.progress import track
 from pip._internal.metadata import get_default_environment
 
 def main():
@@ -28,8 +27,9 @@ def main():
     print('file not found:', filepath, file=sys.stderr)
     sys.exit(1)
 
+
   packages = []
-  #dependents = {}
+  package_names = {'django-stubs', 'pip', 'setuptools', 'wheel'}
   with open(filepath) as f:
     pkg_pad = len('package')
     for line in f.readlines():
@@ -37,21 +37,33 @@ def main():
       if not line or line.startswith('#'):
         continue
 
-      package, __, version = line.partition('==')
-      if not version:
+      package, __, version = (
+        line.partition('>=') if '>=' in line else
+        line.partition('==')
+      )
+      if package.startswith('git+'):
+        url, __, __ = line.partition('@')
+        package = url.strip('/').rsplit('/')[-1]
+
+      package_name = package.lower()
+      # remove any package subscripting
+      package_name = re.sub(r'^(.*?)(\[.*\])?$', r'\1', package_name)
+      package_names.add(package_name)
+
+      if not version or '>=' in line:
         continue
 
-      packages.append((package, version))
+      packages.append((package, package_name, version))
       pkg_pad = max(pkg_pad, len(package))
 
-  #upgrade = 0
+  uninstall = {
+    dist.name.lower()
+    for dist in importlib.metadata.distributions()
+    if 'REQUESTED' in {f.name for f in importlib.metadata.files(dist.name)} # type: ignore
+  } - package_names
+
   install = []
   version_pad = 12
-  #frmt = '%%%(pkg_pad)ss: %%%(version_pad)ss %%%(version_pad)ss %%%(version_pad)ss' % {
-  #  'pkg_pad': pkg_pad,
-  #  'version_pad': version_pad,
-  #}
-  #header = frmt % ('package', 'latest', 'current', 'installed')
   frmt = '%%%(pkg_pad)ss: %%%(version_pad)ss %%%(version_pad)ss' % {
     'pkg_pad': pkg_pad,
     'version_pad': version_pad,
@@ -64,38 +76,24 @@ def main():
     dist.canonical_name.lower(): str(dist.version)
     for dist in env.iter_all_distributions()
   }
-  #for package, version in track(packages, description='Processing...'):
-  for package, version in packages:
-    #latest = _request_latest(package)
-
-    package_name = package.lower()
-    # remove any package subscripting
-    package_name = re.sub(r'^(.*?)(\[.*\])?$', r'\1', package_name)
-
+  for package, package_name, version in packages:
     installed = installed_versions.get(package_name, '')
 
-    #if (latest != version or installed != version):
     if (installed != version):
       if installed != version:
         install.append('%s==%s' % (package, version))
         padding = ' ' * (version_pad - len(installed))
         installed = '%s\033[1;31m%s\033[0m' % (padding, installed)
 
-      #if latest != version:
-      #  padding = ' ' * (version_pad - len(version))
-      #  version = '%s\033[0;33m%s\033[0m' % (padding, version)
-      #  upgrade += 1
-
       if print_header:
         print(header)
         print_header = False
 
-      #print(frmt % (package, latest, version, installed))
       print(frmt % (package, version, installed))
 
   print('pypi packages:            %2s' % len(packages))
-  #print('requirements out of date: %2s' % upgrade)
   print('install out of date:      %2s' % len(install))
+  print('uninstall out of date:    %2s' % len(uninstall))
 
   if install:
     valid = ('y', 'n')
@@ -106,13 +104,18 @@ def main():
     if response == 'y':
       subprocess.check_call(['pip', 'install'] + install)
 
-def _request_latest(package):
-  response = requests.get('https://pypi.org/pypi/%s/json' % package)
-  if response.status_code != 200:
-    return '???'
+  if uninstall:
+    print('\nThe following packages are no longer found in', filepath)
+    uninstall = list(sorted(uninstall))
+    for package_name in uninstall:
+      print(' ', package_name)
+    valid = ('y', 'n')
+    response = input('Remove out of data packages? (y/n): ')
+    while response not in valid:
+      response = input('  please enter y or n: ')
 
-  json = response.json()
-  return json['info']['version']
+    if response == 'y':
+      subprocess.check_call(['pip', 'uninstall'] + uninstall)
 
 if __name__ == '__main__':
   try:
