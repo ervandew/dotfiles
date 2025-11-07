@@ -30,6 +30,10 @@ M.complete = function(lead)
       entry = entry .. '/'
     end
     if not vim.list_contains(results, entry) then
+      -- if leading %/ was supplied, preserve it
+      if rel_only then
+        entry = '%/' .. entry
+      end
       results[#results + 1] = entry
     end
   end
@@ -64,6 +68,13 @@ M.open = function(action, opts)
     return
   end
 
+  if path:match('^%%/') then
+    local tail = path:match('^%%/(.*)')
+    path = vim.fn.expand(path)
+    path = vim.fn.fnamemodify(path, ':h')
+    path = path .. '/' .. tail
+  end
+
   local rel_dir = vim.fn.fnamemodify(vim.fn.bufname(), ':h')
   local rel_path
   if not is_absolute(path) and rel_dir ~= '.' then
@@ -94,7 +105,7 @@ M.open = function(action, opts)
     path = rel_path
   -- new file, check whether to open at cwd or relative path
   elseif rel_path then
-    local dir = vim.fn.fnamemodify(opts.args, ':h')
+    local dir = vim.fn.fnamemodify(path, ':h')
     local cwd_exists = is_dir(dir)
     local rel_exists = rel_dir ~= '.' and is_dir(rel_dir .. '/' .. dir)
     if cwd_exists and rel_exists then
