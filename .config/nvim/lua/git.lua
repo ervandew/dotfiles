@@ -1694,7 +1694,7 @@ local function bisect(opts)
     local runtest_args = vim.fn.join(vim.list_slice(opts.fargs, 2))
     cmd = 'git bisect run ' .. runtest .. ' ' .. runtest_args
   else
-    if not active and opts.fargs[1] ~= 'start' then
+    if not active and opts.fargs[1] ~= 'start' and opts.fargs[1] ~= 'reset' then
       error('git bisect session has not been started yet.')
       return
     end
