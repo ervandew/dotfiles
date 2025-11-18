@@ -2688,6 +2688,18 @@ local complete_filepath = function(compl_opts)
   return compl_opts.match, results
 end
 
+local complete_branch_args = function(compl_opts)
+  local args = { '-m', '-c' }
+  local branches = vim.fn.split(
+    M.git('branch -a --format="%(refname:short)"') or '',
+    '\n'
+  )
+  local results = {}
+  vim.list_extend(results, args)
+  vim.list_extend(results, branches)
+  return compl_opts.match, results
+end
+
 local complete_branch = function(prefix)
   return function(compl_opts)
     local branches = M.git('branch -a --format="%(refname:short)"') or ''
@@ -2741,7 +2753,11 @@ end
 
 local complete_log = function(compl_opts)
   local custom = { 'diff:', 'in:', 'out:' }
-  return compl_opts.match, custom
+  local results = {}
+  local _, branches_tags_filepaths = complete_branch_tag_filepath(compl_opts)
+  vim.list_extend(results, custom)
+  vim.list_extend(results, branches_tags_filepaths)
+  return compl_opts.match, results
 end
 
 local bisect_complete_branch_tag = function(arglead)
@@ -2787,10 +2803,11 @@ local complete = function(arglead, cmdl, pos)
     ['^Git%s+mv%s+.-([.-/%w]*)$'] = complete_filepath,
     ['^Git%s+rm%s+.-([.-/%w]*)$'] = complete_filepath,
 
+    ['^Git%s+branch%s+.-([-/%w]*)$'] = complete_branch_args,
     ['^Git%s+checkout%s+.-([.%-/:%w]*)$'] = complete_branch_tag,
     ['^Git%s+diff%s+.-([.%-/:%w]*)$'] = complete_diff,
     ['^Git%s+show%s+.-([.%-/:%w]*)$'] = complete_branch_tag_filepath,
-    ['^Git%s+switch%s+.-([-/%w]*)'] = complete_branch(),
+    ['^Git%s+switch%s+.-([-/%w]*)$'] = complete_branch(),
 
     -- complete branch name in log expansions
     ['^Git%s+log%s+.*diff:([-/%w]*)'] = complete_branch('diff:'),
@@ -2798,7 +2815,7 @@ local complete = function(arglead, cmdl, pos)
     ['^Git%s+log%s+.*out:([-/%w]*)'] = complete_branch('out:'),
 
     -- complete some custom args
-    ['^Git%s+log%s+.-([-/%w]*)'] = complete_log,
+    ['^Git%s+log%s+.-([-/%w]*)$'] = complete_log,
 
     -- complete bisect action
     ['^Git%s+bisect%s+(%w*)$'] = function(compl_opts)
