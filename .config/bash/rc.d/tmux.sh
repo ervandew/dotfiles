@@ -8,7 +8,7 @@ function tmux_path() {
 }
 
 function tmux_window_title() {
-  ignore="builtin|keyword|not found|^$|tmux"
+  ignore="builtin|keyword|not found|^$|tmux|__systemd_osc_context_precmdline"
 
   function tmux_title {
     title=$1
