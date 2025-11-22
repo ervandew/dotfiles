@@ -28,7 +28,7 @@ fi
 
 if [ -n "$val" ] ; then
   eval $val
-  repo=$(cd ${!var} ; git repo)
+  repo=$(cd ${!var} ; git repo-info)
   repo_root=$(cd ${!var} ; git root 2> /dev/null)
 
   if [ -f "$repo_root/.tmux-status" ] ; then

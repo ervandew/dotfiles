@@ -25,7 +25,7 @@ M.setup = function()
   end
 
   -- relies on repo alias from my .gitconfg
-  local branch = vim.fn.split(vim.fn.systemlist('git repo')[1], ':')[2]
+  local branch = vim.fn.split(vim.fn.systemlist('git repo-info')[1], ':')[2]
   local files = {
     REMOTE = 'MERGING IN',
     BASE = 'COMMON BASE',
