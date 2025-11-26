@@ -94,6 +94,22 @@ return {
         return ''
       end -- }}}
 
+      local quote_prompt_text = function(opts) -- {{{
+        return function(prompt_bufnr)
+          local picker = action_state.get_current_picker(prompt_bufnr)
+          local prompt = picker:_get_prompt()
+          if prompt:match('^"') then
+            if not prompt:find(opts.postfix, 1, true) then
+              prompt = prompt .. ' ' .. opts.postfix
+              picker:set_prompt(prompt)
+            end
+          else
+            local lga_actions = require('telescope-live-grep-args.actions')
+            lga_actions.quote_prompt(opts)(prompt_bufnr)
+          end
+        end
+      end -- }}}
+
       local search_path = function() -- {{{
         local cwd = vim.fn.getcwd()
 
@@ -940,7 +956,6 @@ return {
         end
 
         local cwd, cwd_display = search_path()
-        local lga_actions = require('telescope-live-grep-args.actions')
         ---@diagnostic disable-next-line: undefined-field
         require('telescope').extensions.live_grep_args.live_grep_args({
           attach_mappings = attach_mappings_file,
@@ -952,7 +967,8 @@ return {
               -- Examples of common args to add to the pattern:
               --   limit file types:  -t py
               --   limit to dir glob: -g **/path/**
-              ['<c-k>'] = lga_actions.quote_prompt({ postfix = ' --glob *' }),
+              ['<c-k>'] = quote_prompt_text({ postfix = ' --glob *' }),
+              ['<c-i>'] = quote_prompt_text({ postfix = ' --ignore-case' }),
               -- Send all results to the quickfix list and jump to first result
               ['<c-q>'] = function(prompt_bufnr)
                 actions.send_to_qflist(prompt_bufnr)
