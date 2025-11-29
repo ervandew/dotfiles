@@ -968,7 +968,7 @@ return {
               --   limit file types:  -t py
               --   limit to dir glob: -g **/path/**
               ['<c-k>'] = quote_prompt_text({ postfix = ' --glob *' }),
-              ['<c-i>'] = quote_prompt_text({ postfix = ' --ignore-case' }),
+              ['<c-a>'] = quote_prompt_text({ postfix = ' --ignore-case' }),
               -- Send all results to the quickfix list and jump to first result
               ['<c-q>'] = function(prompt_bufnr)
                 actions.send_to_qflist(prompt_bufnr)
