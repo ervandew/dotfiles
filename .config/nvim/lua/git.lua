@@ -2805,6 +2805,7 @@ local complete = function(arglead, cmdl, pos)
 
     ['^Git%s+branch%s+.-([-/%w]*)$'] = complete_branch_args,
     ['^Git%s+checkout%s+.-([.%-/:%w]*)$'] = complete_branch_tag,
+    ['^Git%s+cherry%-pick%s+.-([.%-/:%w]*)$'] = complete_branch_tag,
     ['^Git%s+diff%s+.-([.%-/:%w]*)$'] = complete_diff,
     ['^Git%s+show%s+.-([.%-/:%w]*)$'] = complete_branch_tag_filepath,
     ['^Git%s+switch%s+.-([-/%w]*)$'] = complete_branch(),
