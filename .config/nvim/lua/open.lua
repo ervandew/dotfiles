@@ -105,7 +105,7 @@ M.open = function(action, opts)
     path = rel_path
   -- new file, check whether to open at cwd or relative path
   elseif rel_path then
-    local dir = vim.fn.fnamemodify(path, ':h')
+    local dir = vim.fn.fnamemodify(vim.fn.fnamemodify(path, ':h'), ':.')
     local cwd_exists = is_dir(dir)
     local rel_exists = rel_dir ~= '.' and is_dir(rel_dir .. '/' .. dir)
     if cwd_exists and rel_exists then
