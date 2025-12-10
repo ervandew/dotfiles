@@ -21,3 +21,7 @@
 \set hot 'select tbl, to_char(updates_, ''999,999,999,999'') updates, to_char(hot_, ''999,999,999,999'') hot, (percent_::varchar || ''%'') percent from (select (schemaname || ''.'' || ''"'' || relname || ''"'')::regclass::varchar tbl, n_tup_upd updates_, n_tup_hot_upd hot_, case when n_tup_upd > 0 then (n_tup_hot_upd * 100 / n_tup_upd) else 0 end percent_ from pg_stat_all_tables where schemaname not in (''pg_catalog'', ''pg_toast'', ''information_schema'', ''pglogical'') and n_tup_upd > 0) h'
 
 \set writes 'select tbl, to_char(inserts_, ''999,999,999,999'') inserts, to_char(updates_, ''999,999,999,999'') updates, to_char(deletes_, ''999,999,999,999'') deletes from (select (schemaname || ''.'' || ''"'' || relname || ''"'')::regclass::varchar tbl, n_tup_ins inserts_, n_tup_upd updates_, n_tup_del deletes_ from pg_stat_all_tables where schemaname not in (''pg_catalog'', ''pg_toast'', ''information_schema'', ''pglogical'')) h'
+
+\set connections 'select usename user, count(*) connections from pg_stat_activity where backend_type = ''client backend'' group by usename order by connections desc;'
+
+\set replica 'select pg_is_in_recovery() as replica;'
