@@ -29,7 +29,7 @@ def main():
 
 
   packages = []
-  package_names = {'django-stubs', 'pip', 'setuptools', 'wheel'}
+  package_names = {'django-types', 'pip', 'setuptools', 'wheel'}
   with open(filepath) as f:
     pkg_pad = len('package')
     for line in f.readlines():
