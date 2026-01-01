@@ -40,6 +40,9 @@ c.tabs.mousewheel_switching = False
 # eg. for mailto:// links
 c.content.register_protocol_handler = False
 
+# attempt to fix periodic dns resolution issues
+c.content.dns_prefetch = False
+
 # Note: to get the best ad blocking install python-adblock (Brave's adblocker),
 # then in qutebrowser run: :adblock-update
 # allow some hosts that prevent some sites from working properly
