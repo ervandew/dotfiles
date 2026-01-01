@@ -21,3 +21,10 @@
     (string (string_content) @injection.content)))
   (#set! injection.language "sql")
 )
+
+; inject sql highlighting into python files using sql = """...
+(assignment
+  left: (identifier) @_id (#match? @_id "^sql$|^sql_|_sql$")
+  right: (string (string_content) @injection.content)
+  (#set! injection.language "sql")
+)
