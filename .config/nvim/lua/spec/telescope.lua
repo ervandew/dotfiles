@@ -901,7 +901,11 @@ return {
 
       vim.keymap.set('n', '<leader>f/', function()
         extensions.file_browser.file_browser({
-          attach_mappings = attach_mappings_file,
+          attach_mappings = function(prompt_bufnr, map)
+            attach_mappings_file(prompt_bufnr)
+            map({ 'i', 'n' }, '<a-bs>', fb_actions.goto_parent_dir)
+            return true
+          end,
           display_stat = false,
           dir_icon = '+',
           git_status = false,
