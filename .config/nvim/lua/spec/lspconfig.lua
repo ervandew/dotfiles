@@ -376,25 +376,16 @@ return {
 
       -- Servers {{{
 
-      local lspconfig = require('lspconfig')
-
       -- pyright {{{
-      lspconfig.pyright.setup({
+      vim.lsp.config('pyright', {
         settings = {
           python = {
-            -- alternate way to set a global python path
-            -- pythonPath = '/usr/bin/python',
+             pythonPath = '/home/ervandew/.config/python/venv/lucid/bin/python',
             -- NOTE: to avoid a bunch of pyright type errors w/ django
             -- $ pip install django-stubs
           },
         },
         on_attach = function(client)
-          if client.root_dir then
-            lspconfig.pyright.commands.PyrightSetPythonPath[1](
-              client.root_dir .. '/.virtualenv/bin/python'
-            )
-          end
-
           ignore['Pyright'] = {
             '"\\(__\\|args\\|kwargs\\|self\\)" is not accessed',
             -- 'No overloads',
@@ -429,10 +420,29 @@ return {
           }
 
         end,
-      }) -- }}}
+      })
+      vim.lsp.enable('pyright')
+      -- }}}
 
       -- ruff {{{
-      lspconfig.ruff.setup({})
+      vim.lsp.enable('ruff')
+      -- }}}
+
+      -- ty {{{
+      -- NOTE: to avoid a bunch of errors w/ django types, etc:
+      -- $ pip install django-types
+      vim.lsp.config('ty', {
+        settings = {
+          ty = {
+            configuration = {
+              environment = {
+                python = '/home/ervandew/.config/python/venv/lucid/bin/python',
+              }
+            }
+          },
+        }
+      })
+      --vim.lsp.enable('ty')
       -- }}}
 
       -- lua-language-server (lua_ls) {{{
@@ -445,7 +455,7 @@ return {
         library[#library + 1] = lazy .. dir
       end
 
-      lspconfig.lua_ls.setup({
+      vim.lsp.config('lua_ls', {
         settings = {
           Lua = {
             runtime = { version = 'LuaJIT' },
@@ -459,7 +469,9 @@ return {
         -- setting a really high value since it doesn't seem to
         -- to use the full interval, but does greatly reduce the chatter
         flags = { debounce_text_changes = 5000 },
-      }) -- }}}
+      })
+      vim.lsp.enable('lua_ls')
+      -- }}}
 
       -- }}}
 
