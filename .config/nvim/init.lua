@@ -592,7 +592,10 @@ require('git').init({
       local issue_json = git.git('ticket-info ' .. issue_id)
       local issue = vim.json.decode(issue_json)
       if issue.assignee.email ~= 'exv05@acuitysso.com' then
-        return 'Issue is assigned to antother dev: ' .. issue.assignee.name
+        if issue.assignee.email == vim.NIL then
+          return 'Issue is currently unassigned.'
+        end
+        return 'Issue is assigned to another dev: ' .. issue.assignee.name
       end
       if issue.status ~= 'New' then
         return 'Issue is not in a New state: ' .. issue.status
