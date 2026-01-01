@@ -91,6 +91,7 @@ hyperlinks = true
 # - absolute file:line reference
 # - python stack trace
 # - ipython stack trace
+# - ty reference file:line:col
 # - git diff file reference
 # - git log/status file reference
 # - git log ticket reference
@@ -99,6 +100,7 @@ regex = """(\
 (^|\\s)/\\S*\\.\\w+:\\d+|\
 File ".*", line \\d+, in .*|\
 File .*:\\d+, in .*|\
+--> .*:\\d+:\\d+|\
 (-{3} a|[+]{3} b)/.*|\
 (^|\\s)(A|M|R\\d*|\\?\\?)\\s+.*|\
 ((?i:fixes|refs|resolves)\\s+#\\S+|BOS-\\d+)|\

@@ -110,6 +110,13 @@ elif [[ $target =~ ^File ]] ; then
   # convert python stack reference to file:line
   file=$(echo "$target" | perl -pe 's/File "(.*)", line (\d+),.*/\1:\2/')
   _nvim $file
+
+# ty reference to file:line:col
+elif [[ $target =~ ^--\> ]] ; then
+  # convert ty file reference to file:line
+  file=$(echo "$target" | perl -pe 's/--> (.*):\d+/\1/')
+  _nvim $file
+
 fi # }}}
 
 # Open a ticket reference in the browser {{{
