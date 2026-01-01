@@ -584,6 +584,7 @@ require('git').init({
   },
   hooks = {
     pre_branch_create = function(git, name)
+      local work = require('work')
       local issue_id = name:match('^(%d+)-.*')
       if not issue_id then
         return 'Branch name should be in the format: <issue_id>-<desc>'
@@ -591,7 +592,7 @@ require('git').init({
 
       local issue_json = git.git('ticket-info ' .. issue_id)
       local issue = vim.json.decode(issue_json)
-      if issue.assignee.email ~= 'exv05@acuitysso.com' then
+      if issue.assignee.email ~= work.email then
         if issue.assignee.email == vim.NIL then
           return 'Issue is currently unassigned.'
         end
