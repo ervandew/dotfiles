@@ -335,7 +335,14 @@ end, { nargs = '?' })
 
 -- abbreviations {{{
 
-vim.keymap.set('ca', 'ln', 'lnext')
+vim.keymap.set('ca', 'ln', function()
+  local type = vim.fn.getcmdtype()
+  local cmdl = vim.fn.getcmdline():sub(1, vim.fn.getcmdpos())
+  if type == ':' and cmdl == 'ln' then
+    return 'lnext'
+  end
+  return 'ln'
+end, { expr = true })
 
 -- }}}
 
