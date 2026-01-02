@@ -25,6 +25,7 @@ vim.opt.switchbuf = 'useopen'
 vim.opt.tabstop = 2
 vim.opt.timeoutlen = 500
 vim.opt.updatetime = 1000
+vim.opt.winborder = 'rounded'
 vim.opt.wildignore:append({
   '*.pyc',
   '*.pyo',
@@ -652,6 +653,7 @@ require('git').init({
 })
 require('grep').init()
 require('indentdetect').init()
+require('lsp').init()
 require('maximize').init()
 require('mergetool').init()
 require('notes').init()
