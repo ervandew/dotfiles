@@ -72,6 +72,7 @@ local function delete()
     vim.api.nvim_feedkeys(esc, 'x', false)
     start = unpack(vim.api.nvim_buf_get_mark(0, '<'))
     finish = unpack(vim.api.nvim_buf_get_mark(0, '>'))
+    lnum = math.min(start, finish)
   end
 
   if vim.fn.getwininfo(vim.fn.win_getid())[1].loclist == 1 then
