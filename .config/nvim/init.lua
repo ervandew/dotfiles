@@ -674,7 +674,6 @@ require('qf').init()
 require('regex').init()
 require('tab').init()
 require('tabcomplete').init()
-require('term').init()
 require('virtualedit').init()
 require('wrap').init()
 
