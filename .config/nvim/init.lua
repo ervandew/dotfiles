@@ -100,8 +100,10 @@ function _status_left() ---@diagnostic disable-line: lowercase-global
   local stl_addl = ''
   -- for csv files, display which column the cursor is in
   if vim.bo.ft == 'csv' then
-    if vim.fn.exists(':CSV_WCol') == 3 then
-      stl_addl = '[col: ' .. vim.fn.CSV_WCol('Name') .. ' (' .. vim.fn.CSV_WCol() .. ')]'
+    local ok, csv = pcall(require, 'csv')
+    if ok then
+      local column = csv.column()
+      stl_addl = '[col: ' .. csv.column_name(column) .. ' (' .. column .. ')]'
     end
   end
 
@@ -660,6 +662,7 @@ require('git').init(
     },
   } -- }}}
 )
+require('csv').init()
 require('grep').init()
 require('indentdetect').init()
 require('lsp').init()
