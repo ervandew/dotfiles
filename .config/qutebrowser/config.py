@@ -181,14 +181,12 @@ config.bind(';m', 'hint media')
 config.bind(';x', 'hint links spawn xdg-open {hint-url}')
 
 # remove img tag from general hints list
-# (still accessible via media or img tab hinst: ;m ;I)
+# (still accessible via media or img tab hints: ;m ;I)
 if 'img' in c.hints.selectors['all']:
   c.hints.selectors['all'].remove('img')
 
-# yank selected content
 config.bind('yy', 'yank url')
 
-# command history nav
 config.bind('<up>', 'command-history-prev', mode='command')
 config.bind('<down>', 'command-history-next', mode='command')
 
