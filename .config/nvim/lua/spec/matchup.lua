@@ -5,6 +5,8 @@ return {{
     vim.g.matchup_matchparen_hi_surround_always = true
     -- disabled, usse nvim-treesitter-context instead
     vim.g.matchup_matchparen_offscreen = {}
+    -- don't show the trailing virtual text at the end of code blocks
+    vim.g.matchup_treesitter_disable_virtual_text = true
 
     -- replace CursorMoved*, Insert*, and TextChanged* autocmds with a
     -- CursorHold since a file with large blocks can cause matchup to be really
