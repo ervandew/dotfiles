@@ -1340,7 +1340,8 @@ local log = function(opts)
     else
       log_cmd = log_cmd .. ' --follow '
     end
-    log_cmd = log_cmd .. path
+    -- NOTE: using '--' to accomadate files that no longer exist in the repo
+    log_cmd = log_cmd .. '-- ' .. path
   end
 
   local result = M.git(log_cmd, opts)
