@@ -67,7 +67,25 @@ return {{
       rule.not_filetypes[#rule.not_filetypes + 1] = ft
     end -- }}}
 
-    -- not_after_regex (disable if the opening is after the supplied regex) {{{
+    -- not_after_node (skip if after the supplied treesitter node name) {{{
+    local not_after_node = function(node_type)
+      return function()
+        local lnum = vim.fn.line('.') - 1
+        local cnum = vim.fn.col('.') - 4
+        if cnum < 0 then
+          lnum = lnum - 1
+          cnum = 0
+        end
+        local node = vim.treesitter.get_node({ pos = { lnum, cnum } })
+        if node then
+          if node:type() == node_type then
+            return false
+          end
+        end
+      end
+    end -- }}}
+
+    -- not_after_regex (skip if after the supplied regex) {{{
     -- autopairs version doesn't use the whole line, but having the whole line
     -- to match against is much more flexible
     local not_after_regex = function(regex)
@@ -332,14 +350,28 @@ return {{
     -- }}}
 
     -- python {{{
-    -- disable default triple quote rules so we can customize them
+    -- disable default quote rules so we can customize the triple quote rule
+    -- + single/double quote rules to not complete on closing of a triple quote
+    not_filetype("'", 'python')
+    not_filetype('"', 'python')
     not_filetype('"""', 'python')
     not_filetype("'''", 'python')
+    -- don't complete single/double quote that is the 3rd quote of a triplet
+    autopairs.add_rule(quote("'", "'", 'python')
+      :with_pair(not_after_regex("''"))
+    )
+    autopairs.add_rule(quote('"', '"', 'python')
+      :with_pair(not_after_regex('""'))
+    )
+    -- don't complete triple quotes if the current node is a string (adding
+    -- closing triplet)
     autopairs.add_rule(quote("'''", "'''", 'python')
       :with_pair(cond.not_before_regex('%w'))
+      :with_pair(not_after_node('string_content'))
     )
     autopairs.add_rule(quote('"""', '"""', 'python')
       :with_pair(cond.not_before_regex('%w'))
+      :with_pair(not_after_node('string_content'))
     )
     -- }}}
 
