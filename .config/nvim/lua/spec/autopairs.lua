@@ -357,8 +357,10 @@ return {{
     not_filetype('"""', 'python')
     not_filetype("'''", 'python')
     -- don't complete single/double quote that is the 3rd quote of a triplet
+    -- or single quote being used as an apostrophe
     autopairs.add_rule(quote("'", "'", 'python')
       :with_pair(not_after_regex("''"))
+      :with_pair(cond.not_before_regex('%w'))
     )
     autopairs.add_rule(quote('"', '"', 'python')
       :with_pair(not_after_regex('""'))
