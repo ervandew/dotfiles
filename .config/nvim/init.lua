@@ -598,7 +598,16 @@ require('git').init(
         local work = require('work')
         local issue_id = name:match('^(%d+)-.*')
         if not issue_id then
-          return 'Branch name should be in the format: <issue_id>-<desc>'
+          local result = git.confirm(
+            'Branch name not in format: <issue_id>-<desc>, create anyway?',
+            '&yes\n&no',
+            nil,
+            'Warning'
+          )
+          if result ~= 1 then
+            return ''
+          end
+          return true
         end
 
         local issue_json = git.git('ticket-info ' .. issue_id)
