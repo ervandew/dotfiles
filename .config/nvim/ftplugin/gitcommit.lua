@@ -73,7 +73,6 @@ local view = function()
       'ps -ocommand= -p $(ps -oppid= -p $(ps -oppid= -p $PPID)) | ' ..
       'grep -e "--amend"'
     ) ~= ''
-    vim.print({'amend:', amend})
     local result = git.git('diff --cached')
     if amend then
       result = '# Amendment #\n' .. result .. '\n\n# Amending #\n' .. git.git('log -1 -p')
