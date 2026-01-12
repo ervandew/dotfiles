@@ -168,6 +168,7 @@ return {{
     vim.api.nvim_set_hl(0, 'GitStatusBranchDescAhead', { fg = green })
     vim.api.nvim_set_hl(0, 'GitStatusBranchDescTag', { link = 'GitRefs' })
     vim.api.nvim_set_hl(0, 'GitStatusBranchLocal', { fg = green })
+    vim.api.nvim_set_hl(0, 'GitStatusBranchLocalBisect', { fg = yellow, bold = true  })
     vim.api.nvim_set_hl(0, 'GitStatusBranchRemote', { fg = red_dark })
     vim.api.nvim_set_hl(0, 'GitStatusComment', { link = 'Comment' })
     vim.api.nvim_set_hl(0, 'GitStatusConflict', { fg = red })

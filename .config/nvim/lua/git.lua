@@ -1319,7 +1319,7 @@ local log = function(opts)
   end
 
   local log_cmd = 'log --pretty=tformat:"%m|%h|%an|%ar|%d|%s"'
-  if opts.bisect and #opts.bisect then
+  if opts.bisect and #opts.bisect ~= 0 then
     log_cmd = log_cmd .. ' ' .. opts.bisect[1] .. '...' .. opts.bisect[2]
   end
   if args and args ~= '' then
@@ -1729,7 +1729,11 @@ local function bisect(opts)
 
         vim.schedule(function()
           pcall(vim.cmd.checktime) -- update existing buffers if necessary
-          vim.fn.win_gotoid(term_winid)
+          -- so gross, but switching to the term window immediatly, even though
+          -- we are already in a scheduled call, stops working after awhile
+          vim.schedule(function()
+            vim.fn.win_gotoid(term_winid)
+          end)
         end)
       end
     })
@@ -2439,7 +2443,8 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.cmd('syntax match GitStatusAdded /\\%1cA/')
   vim.cmd('syntax match GitStatusAhead /\\(\\%1l.*\\[\\)\\@<=ahead \\d\\+/')
   vim.cmd('syntax match GitStatusBehind /\\(\\%1l.*[\\[\\|,[:space:]]\\)\\@<=behind \\d\\+/')
-  vim.cmd('syntax match GitStatusBranchLocal /\\(\\%1l## \\)\\@<=.\\{-}\\(\\.\\.\\.\\|$\\)/')
+  vim.cmd('syntax match GitStatusBranchLocal /\\(\\%1l## \\)\\@<=.\\{-}\\(\\.\\.\\.\\|$\\)/ contains=GitStatusBranchLocalBisect')
+  vim.cmd('syntax match GitStatusBranchLocalBisect /\\(\\%1l## HEAD (no branch):.*: \\)\\@<=\\[bisect\\]/')
   vim.cmd('syntax match GitStatusBranchRemote /\\(\\%1l## .*\\.\\.\\.\\)\\@<=.\\{-}\\(\\s\\|$\\)/')
   vim.cmd('syntax match GitStatusBranchDescAhead /\\(\\%1l## .* (desc: .*-\\)\\@<=\\(\\d\\+\\)\\ze\\(-g[0-9a-f]\\+)\\)/')
   vim.cmd('syntax match GitStatusBranchDescTag /\\(\\%1l## .* (desc: \\)\\@<=.*\\ze\\(-\\d\\+-g[0-9a-f]\\+)\\)/')
@@ -2450,6 +2455,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     'GitStatusAhead,' ..
     'GitStatusBehind,' ..
     'GitStatusBranchLocal,' ..
+    'GitStatusBranchLocalBisect,' ..
     'GitStatusBranchRemote,' ..
     'GitStatusBranchDescAhead,' ..
     'GitStatusBranchDescTag,' ..
