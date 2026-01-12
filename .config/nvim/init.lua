@@ -211,7 +211,11 @@ vim.keymap.set('n', '<tab>k', ':winc k<cr>', { silent = true })
 vim.keymap.set('n', '<tab>K', ':winc t<cr>', { silent = true })
 vim.keymap.set('n', '<tab>l', ':winc l<cr>', { silent = true })
 vim.keymap.set('n', '<tab>h', ':winc h<cr>', { silent = true })
-vim.keymap.set('n', '<tab>m', ':winc x<cr>', { silent = true })
+vim.keymap.set('n', '<tab>m', ':winc x | winc j<cr>', { silent = true })
+vim.keymap.set('n', '<tab>M', function()
+  local prev = vim.fn.winnr() - 1
+  vim.cmd(prev .. 'winc x | winc k')
+end, { silent = true })
 
 -- tab nav/manipulation mappings
 vim.keymap.set('n', 'gh', ':tabprev<cr>', { silent = true })
