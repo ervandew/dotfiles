@@ -129,7 +129,7 @@ M.align = function()
   if vim.b[0].__align_csv_autocmd == nil then
     vim.b[0].__align_csv_autocmd = vim.api.nvim_create_autocmd(
       {'InsertLeave', 'TextChanged'},
-      { callback = require('csv').align }
+      { buffer = 0, callback = require('csv').align }
     )
   end
 end
