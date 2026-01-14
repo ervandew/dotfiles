@@ -35,7 +35,7 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
         [[ ! "$REPLY" =~ ^[0-9]+$ ]] && echo 'not a number' && exit 1
         [[ $REPLY -gt $index ]] && echo 'invalid index' && exit 1
         python="${versions[REPLY]}"
-        $python -m venv "$venv"
+        $python -m venv --without-pip "$venv"
       fi
     elif [ ! -f $(readlink -f "$venv/bin/python") ] ; then
       read -p "venv '$1' python binary is no longer valid. delete this venv? (y/n)? "
@@ -120,4 +120,21 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
 
     cd $cwd
   }
+
+else
+  # function to perform the closest thing to a functioning uv sync in a project
+  # that still uses pip requirements
+  function uv-requirements {
+    if [ ! -f requirements.txt ] ; then
+      echo "requirements.txt file not found"
+      return 1
+    fi
+
+    # remove all installed packages
+    uv pip freeze | uv pip uninstall -r -
+    # install packages based on current requirements.txt
+    uv pip install -r requirements.txt "$@"
+    uv pip install "setuptools==80.9.0"
+  }
+
 fi
