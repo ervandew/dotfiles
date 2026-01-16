@@ -675,6 +675,7 @@ require('git').init(
     },
   } -- }}}
 )
+require('colorscheme').init()
 require('csv').init()
 require('grep').init()
 require('indentdetect').init()
