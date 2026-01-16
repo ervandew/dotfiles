@@ -366,14 +366,18 @@ return {{
       :with_pair(not_after_regex('""'))
     )
     -- don't complete triple quotes if the current node is a string (adding
-    -- closing triplet)
+    -- closing triplet), also if the current node is an ERROR since that most
+    -- likely indicates that the closing triplet is missing, which we are
+    -- probably in the process of adding.
     autopairs.add_rule(quote("'''", "'''", 'python')
       :with_pair(cond.not_before_regex('%w'))
       :with_pair(not_after_node('string_content'))
+      :with_pair(not_after_node('ERROR'))
     )
     autopairs.add_rule(quote('"""', '"""', 'python')
       :with_pair(cond.not_before_regex('%w'))
       :with_pair(not_after_node('string_content'))
+      :with_pair(not_after_node('ERROR'))
     )
     -- }}}
 
