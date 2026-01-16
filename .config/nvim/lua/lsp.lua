@@ -374,14 +374,13 @@ M.init = function()
     on_attach = function()
       ignore['Pyright'] = {
         '"\\(__\\|args\\|kwargs\\|self\\)" is not accessed',
-        -- 'No overloads',
-        -- 'not supported for "None"',
-        -- 'Object of type "None"',
         (function(bufnr, d)
+          -- allow wildcard imports from __init__ files
           if d.code == 'reportWildcardImportFromLibrary' and
              string.find(vim.fn.bufname(bufnr), '__init__.py') then
             return true
           end
+
           -- ignore 'not accessed' hints for parameters
           if d._tags and d._tags.unnecessary then
             local ok, node = pcall(vim.treesitter.get_node, {
@@ -399,6 +398,23 @@ M.init = function()
                  parent_type == 'lambda_parameters' then
                 return true
               end
+            end
+          end
+
+          if d.code == 'reportGeneralTypeIssues' then
+            -- ignore django transaction.atmoic error
+            if d.message:match('cannot be used with "with"') then
+              local line = vim.fn.getline(d.lnum + 1)
+              if line:match('with transaction%.atomic') then
+                return true
+              end
+            end
+
+            -- ignore some django related model/field errors
+            if d.message:match('"CommaSeparatedIntegerField" is not iterable') or
+               d.message:match('"cached_property" is not iterable')
+            then
+              return true
             end
           end
           return false
