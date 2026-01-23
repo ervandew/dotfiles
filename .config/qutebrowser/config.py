@@ -221,6 +221,7 @@ c.colors.completion.item.selected.bg = '#444'
 c.colors.completion.item.selected.fg = fg
 c.colors.completion.item.selected.border.top = '#555'
 c.colors.completion.item.selected.border.bottom = '#555'
+c.colors.completion.item.selected.match.fg = magenta
 c.colors.messages.error.bg = red
 c.colors.messages.info.bg = bg
 c.colors.statusbar.normal.bg = bg
