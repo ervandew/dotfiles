@@ -404,7 +404,7 @@ M.init = function()
           if d.code == 'reportGeneralTypeIssues' then
             -- ignore django transaction.atmoic error
             if d.message:match('cannot be used with "with"') then
-              local line = vim.fn.getline(d.lnum + 1)
+              local line = vim.fn.getbufline(bufnr, d.lnum + 1)[1]
               if line:match('with transaction%.atomic') then
                 return true
               end
