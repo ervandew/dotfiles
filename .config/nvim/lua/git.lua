@@ -2162,7 +2162,7 @@ local status_action = function()
       return
     end
 
-    local winnr = vim.fn.bufwinnr(filename)
+    local winnr = vim.fn.bufwinnr('^' .. filename .. '$')
     if winnr == -1 then
       local open = 'above new'
       local above_buf = vim.fn.getbufinfo(vim.fn.winbufnr(vim.fn.winnr() - 1))[1]
