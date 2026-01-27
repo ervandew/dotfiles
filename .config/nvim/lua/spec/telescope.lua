@@ -573,7 +573,9 @@ return {
         local result = {}
         local buffer_ids = vim.api.nvim_list_bufs()
         for _, buffer_id in ipairs(buffer_ids) do
-          if vim.api.nvim_buf_is_loaded(buffer_id) then
+          if vim.api.nvim_buf_is_loaded(buffer_id) and
+             vim.bo[buffer_id].buflisted
+          then
             local name = get_buffer_name(buffer_id)
             local dir = vim.fn.fnamemodify(name, ':p:h')
             result[#result + 1] = {
