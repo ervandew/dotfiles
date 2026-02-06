@@ -68,30 +68,21 @@ return {{
     end -- }}}
 
     -- not_after_node (skip if after the supplied treesitter node name) {{{
-    local not_after_node = function(node_type)
+    local not_after_node = function(node_type, opts)
       return function()
         local lnum = vim.fn.line('.') - 1
-        local cnum = vim.fn.col('.') - 4
+        local cnum = vim.fn.col('.') - 1 - (opts.chars or 1)
         if cnum < 0 then
           lnum = lnum - 1
           cnum = 0
         end
-        local node = vim.treesitter.get_node({ pos = { lnum, cnum } })
-        if node then
-          if node:type() == node_type then
-            return false
+        if lnum >= 0 then
+          local node = vim.treesitter.get_node({ pos = { lnum, cnum } })
+          if node then
+            if node:type() == node_type then
+              return false
+            end
           end
-        end
-      end
-    end -- }}}
-
-    -- not_after_regex (skip if after the supplied regex) {{{
-    -- autopairs version doesn't use the whole line, but having the whole line
-    -- to match against is much more flexible
-    local not_after_regex = function(regex)
-      return function(opts)
-        if opts.line:match(regex) then
-          return false
         end
       end
     end -- }}}
@@ -321,7 +312,7 @@ return {{
     not_filetype('{', 'lua')
     autopairs.add_rule(bracket('{', '}', 'lua')
       :with_pair(block_wrap)
-      :with_pair(not_after_regex('%s*%-%-'))
+      :with_pair(cond.not_after_regex('%s*%-%-', -1))
       :with_pair(cond.not_after_regex(bracket_ignored_next_char))
       :with_move(cond.is_bracket_line_move())
     )
@@ -359,11 +350,13 @@ return {{
     -- don't complete single/double quote that is the 3rd quote of a triplet
     -- or single quote being used as an apostrophe
     autopairs.add_rule(quote("'", "'", 'python')
-      :with_pair(not_after_regex("''"))
-      :with_pair(cond.not_before_regex('%w'))
+      :with_pair(cond.not_after_regex("''", 2))
+      :with_pair(cond.not_before_regex("''", 2))
+      :with_pair(cond.not_before_regex('%w%w', 2))
     )
     autopairs.add_rule(quote('"', '"', 'python')
-      :with_pair(not_after_regex('""'))
+      :with_pair(cond.not_after_regex('""', 2))
+      :with_pair(cond.not_before_regex('""', 2))
     )
     -- don't complete triple quotes if the current node is a string (adding
     -- closing triplet), also if the current node is an ERROR since that most
@@ -371,13 +364,13 @@ return {{
     -- probably in the process of adding.
     autopairs.add_rule(quote("'''", "'''", 'python')
       :with_pair(cond.not_before_regex('%w'))
-      :with_pair(not_after_node('string_content'))
-      :with_pair(not_after_node('ERROR'))
+      :with_pair(not_after_node('string_content', { chars = 3 }))
+      :with_pair(not_after_node('ERROR', { chars = 3 }))
     )
     autopairs.add_rule(quote('"""', '"""', 'python')
       :with_pair(cond.not_before_regex('%w'))
-      :with_pair(not_after_node('string_content'))
-      :with_pair(not_after_node('ERROR'))
+      :with_pair(not_after_node('string_content', { chars = 3 }))
+      :with_pair(not_after_node('ERROR', { chars = 3 }))
     )
     -- }}}
 
@@ -387,7 +380,7 @@ return {{
     not_filetype('"', 'vim')
     autopairs.add_rule(quote('"', '"', { 'vim' })
       :with_pair(block_wrap)
-      :with_pair(not_after_regex('^%s*'))
+      :with_pair(cond.not_after_regex('^%s*', -1))
       :with_pair(cond.not_after_regex(bracket_ignored_next_char))
       :with_move(cond.is_bracket_line_move())
     )
@@ -395,7 +388,7 @@ return {{
     -- (for folding)
     not_filetype('{', 'vim')
     autopairs.add_rule(bracket('{', '}', 'vim')
-      :with_pair(not_after_regex('^%s*"'))
+      :with_pair(cond.not_after_regex('^%s*"', -1))
     )
 
     -- auto close various statements
