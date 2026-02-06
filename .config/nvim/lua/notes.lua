@@ -42,14 +42,25 @@ local open = function(opts)
 
   if opts.args ~= '' then
     vim.fn.cursor(1, 1)
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local ok, result = pcall(vim.cmd, '/' .. opts.args .. '\\c')
-    if not ok then
-      result = vim.fn.substitute(result, '.*Vim:', '', '')
-      vim.api.nvim_echo({{ result, 'Error' }}, false, {})
-    else
-      -- open folds (z0), center the cursor line (zz)
-      vim.cmd('silent! normal! zOzz')
+    local heading = '^\\s*#\\+\\s*'
+    local search_for = {
+      heading .. opts.args:sub(1, 1):upper() .. opts.args:sub(2), -- capitalize
+      heading .. opts.args,
+      heading .. opts.args .. '\\c',
+      opts.args .. '\\c',
+    }
+    for _, pattern in ipairs(search_for) do
+      ---@diagnostic disable-next-line: param-type-mismatch
+      local ok, result = pcall(vim.fn.search, pattern, '')
+      if not ok then
+        ---@diagnostic disable-next-line: cast-local-type, param-type-mismatch
+        result = vim.fn.substitute(result, '.*Vim:', '', '')
+        vim.api.nvim_echo({{ result, 'Error' }}, false, {})
+      elseif result ~= 0 then
+        -- open folds (z0), center the cursor line (zz)
+        vim.cmd('silent! normal! zOzz')
+        break
+      end
     end
   end
 end
@@ -61,7 +72,7 @@ M.init = function()
     local abbrev = 'notes'
     local type = vim.fn.getcmdtype()
     local pos = vim.fn.getcmdpos()
-    ---@diagnostic disable-next-line: redundant-parameter
+    ---@diagnostic disable-next-line: param-type-mismatch
     local char = vim.fn.nr2char(vim.fn.getchar(1))
     if type == ':' and pos == #abbrev + 1 and char:match('[%s!]') then
       return 'Notes'
