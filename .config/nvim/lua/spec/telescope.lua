@@ -68,13 +68,34 @@ return {
           -- open the file
           else
             local cmd = 'split'
+
+            -- check if the current window is an empty unmodified buffer, and
+            -- if so open the file there.
             if vim.fn.expand('%') == '' and
-               not vim.o.modified and
+               not vim.bo.modified and
                vim.fn.line('$') == 1 and
                vim.fn.getline(1) == ''
             then
               cmd = 'edit'
+
+            -- otherwise look for another window with an empty buffer and open
+            -- the file there if one exists
+            else
+              for winnr = 1,vim.fn.winnr('$') do
+                local winid = vim.fn.win_getid(winnr)
+                local bufnr = vim.fn.winbufnr(winnr)
+                if vim.fn.bufname(bufnr) == '' and
+                   not vim.bo[bufnr].modified and
+                   vim.fn.line('$', winid) == 1 and
+                   vim.fn.getbufline(bufnr, 1)[1] == ''
+                then
+                  vim.cmd(winnr .. 'winc w')
+                  cmd = 'edit'
+                  break
+                end
+              end
             end
+
             vim.cmd(cmd .. ' ' .. selection)
           end
 
