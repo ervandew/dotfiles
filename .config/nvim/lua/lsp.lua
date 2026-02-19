@@ -355,6 +355,27 @@ M.init = function()
           vim.lsp.buf.definition({on_list = on_list})
         end, { buffer = bufnr, silent = true })
       end
+
+      if client and client.server_capabilities.codeActionProvider then
+        -- trigger option to select any available code action
+        vim.keymap.set('n', '<leader>a', function()
+          if vim.bo.filetype == 'python' then
+            vim.lsp.buf.code_action()
+          end
+        end, { buffer = bufnr, silent = true })
+
+        -- trigger code action limited to importing a missing reference
+        vim.keymap.set('n', '<leader>i', function()
+          if vim.bo.filetype == 'python' then
+            vim.lsp.buf.code_action({
+              filter = function(action)
+                return action.title:match('^import ') ~= nil
+              end,
+              apply = true, -- if only one action remains, apply it
+            })
+          end
+        end, { buffer = bufnr, silent = true })
+      end
     end
   })
 
@@ -362,15 +383,11 @@ M.init = function()
 
   -- Servers {{{
 
+  local work = require('work')
+
   -- pyright {{{
   vim.lsp.config('pyright', {
-    settings = {
-      python = {
-         pythonPath = '/home/ervandew/.config/python/venv/lucid/bin/python',
-        -- NOTE: to avoid a bunch of pyright type errors w/ django
-        -- $ pip install django-stubs
-      },
-    },
+    settings = { python = { pythonPath = work.python } },
     on_attach = function()
       ignore['Pyright'] = {
         '"\\(__\\|args\\|kwargs\\|self\\)" is not accessed',
@@ -431,20 +448,24 @@ M.init = function()
   -- }}}
 
   -- ty {{{
-  -- NOTE: to avoid a bunch of errors w/ django types, etc:
-  -- $ pip install django-types
   vim.lsp.config('ty', {
     settings = {
       ty = {
         configuration = {
-          environment = {
-            python = '/home/ervandew/.config/python/venv/lucid/bin/python',
+          environment = { python = work.python },
+          rules = {
+            ['invalid-assignment'] = 'ignore',
+            ['invalid-method-override'] = 'ignore',
+            ['not-subscriptable'] = 'ignore',
+            ['possibly-missing-attribute'] = 'ignore',
+            ['unused-ignore-comment'] = 'ignore',
+            ['unresolved-attribute'] = 'ignore',
           }
-        }
+        },
       },
     }
   })
-  --vim.lsp.enable('ty')
+  vim.lsp.enable('ty')
   -- }}}
 
   -- lua-language-server (lua_ls) {{{
