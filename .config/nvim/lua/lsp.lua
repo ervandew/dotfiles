@@ -102,13 +102,19 @@ M.init = function()
       local diagnostics = vim.diagnostic.get(args.buf)
       local filtered = {}
       for _, d in ipairs(diagnostics) do
+        local source = d.source:lower()
+        local prefix = '(' .. source .. ')'
+        if d.code then
+          prefix = '(' .. source .. ':' .. d.code .. ')'
+        end
+
         table.insert(filtered, {
           bufnr = d.bufnr,
           lnum = d.lnum + 1,
           col = d.col and (d.col + 1) or nil,
           end_lnum = d.end_lnum and (d.end_lnum + 1) or nil,
           end_col = d.end_col and (d.end_col + 1) or nil,
-          text = d.message,
+          text = prefix .. ' ' .. d.message,
           type = errlist_type_map[d.severity] or 'E',
           user_data = d.code,
         })
@@ -179,12 +185,7 @@ M.init = function()
           message = vim.fn.substitute(loc.text, '^\\s\\+', '', '')
           message = vim.fn.substitute(message, '\n', ' ', 'g')
           message = vim.fn.substitute(message, '\t', '  ', 'g')
-          if loc.user_data and type(loc.user_data) == 'string' then
-            message = loc.user_data .. ': ' .. message
-          else
-            message = ' ' .. message
-          end
-          message = name .. ' - (' .. locnum .. ' of ' .. #locs .. '):' .. message
+          message = name .. ' - (' .. locnum .. ' of ' .. #locs .. '): ' .. message
           break
         end
       end
@@ -454,6 +455,7 @@ M.init = function()
         configuration = {
           environment = { python = work.python },
           rules = {
+            ['instance-layout-conflict'] = 'ignore',
             ['invalid-assignment'] = 'ignore',
             ['invalid-method-override'] = 'ignore',
             ['not-subscriptable'] = 'ignore',
