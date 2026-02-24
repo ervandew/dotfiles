@@ -68,7 +68,10 @@ M.open = function(action, opts)
     return
   end
 
-  if path:match('^%%/') then
+  local absolute = path:match('^%./') -- force absolute
+  local relative = path:match('^%%/') -- force relative
+
+  if relative then
     local tail = path:match('^%%/(.*)')
     path = vim.fn.expand(path)
     path = vim.fn.fnamemodify(path, ':h')
@@ -107,7 +110,7 @@ M.open = function(action, opts)
   elseif rel_path then
     local dir = vim.fn.fnamemodify(vim.fn.fnamemodify(path, ':h'), ':.')
     local cwd_exists = is_dir(dir)
-    local rel_exists = rel_dir ~= '.' and is_dir(rel_dir .. '/' .. dir)
+    local rel_exists = not absolute and is_dir(dir .. '/' .. rel_dir)
     if cwd_exists and rel_exists then
       local choice = prompt(
         'open new file:\n' ..
