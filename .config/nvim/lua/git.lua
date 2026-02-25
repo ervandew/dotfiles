@@ -2119,8 +2119,8 @@ local status_action = function()
   local status = line:sub(col, col)
   if col <= 2 and status ~= '?' and status ~= 'A' then
     -- handle merge conflict case where local is modified but upstream was
-    -- deleted
-    if line:match('^DU') then
+    -- deleted, or vice versa
+    if line:match('^DU') or line:match('^UD') then
       status = 'U'
     end
 
@@ -2462,7 +2462,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     'GitStatusStash'
   )
   vim.cmd('syntax match GitStatusConflict /\\%1cUU/')
-  vim.cmd('syntax match GitStatusConflictDeleted /\\%1cDU/')
+  vim.cmd('syntax match GitStatusConflictDeleted /\\%1c\\(DU\\|UD\\)/')
   vim.cmd('syntax match GitStatusDeleted /\\%2cD/')
   vim.cmd('syntax match GitStatusDeletedStaged /\\%1cD[^U]/ contains=GitStatusDeletedFile')
   vim.cmd('syntax match GitStatusDeletedFile /\\(\\%1cD\\|\\%2cD\\)\\@<=.*/')
