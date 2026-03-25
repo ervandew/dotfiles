@@ -52,6 +52,10 @@
   glog = pick -t rev slog --graph
   dlog = "!f() { R=HEAD; if [[ \"$1\" =~ ^[a-zA-Z0-9]+$ ]] ; then R=$1; shift; fi; git pick -t rev log -1 -p $R \"$@\"; }; f"
 
+  # NOTE: aborting the rebase ($ git rebase --abort), etc may be the better
+  # method, but if that doesn't work this can be used as a fallback.
+  autostash-pop = "!f() { stash=$(find .git -name autostash) ; if [ -f "$stash" ] ; then git stash apply $(cat $stash); fi; }; f"
+
   # view the last committed version of a file, even if it has since been removed
   view = "!f() { F=$1; if [[ ! \"$1\" == *:* ]] ; then F=$(git rev-list -n 1 HEAD -- $F)^:$F; fi; git show $F 2>&1 | $EDITOR - -c \"let g:lsp_disabled = v:true | doautocmd BufRead $1 | set nomod noma bt=nofile | nmap <buffer> q :quit<cr>\"; }; f"
 
