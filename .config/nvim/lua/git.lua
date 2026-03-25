@@ -322,7 +322,8 @@ M.git = function(args, opts)
     return
   end
 
-  return result:gsub('\n$', '')
+  result = result:gsub('\n$', '')
+  return result ~= '' and result or nil
 end
 
 local is_protected = function(branch)
@@ -366,7 +367,7 @@ local get_previous_revision = function(path, revision)
   -- is ahead of the upstream (eg. an amended commit), so try again against
   -- just HEAD
   -- (using empty string so this works in a detached head, eg. bisect)
-  if not result or result == '' then
+  if not result then
     result = M.git(cmd:gsub('<revrange>', ''), {})
   end
 
@@ -737,6 +738,79 @@ local hook = function(ref, ...)
   }, ...)
 end
 
+local log_open = function()
+  local open = 'above new'
+  local winnr = vim.fn.winnr()
+  if vim.b.git_filename then
+    local bufwinnr = vim.fn.bufwinnr(vim.b.git_filename)
+    if bufwinnr ~= -1 then
+      vim.cmd(bufwinnr .. 'winc w')
+    end
+  elseif vim.fn.bufwinnr(status_name) == winnr - 1 then
+    open = 'winc k | ' .. open
+    winnr = winnr - 1
+  end
+
+  local above_buf = vim.fn.getbufinfo(vim.fn.winbufnr(winnr - 1))[1]
+  if above_buf.name == '' and     ---@diagnostic disable-line: undefined-field
+     above_buf.linecount == 1 and ---@diagnostic disable-line: undefined-field
+     above_buf.changed == 0       ---@diagnostic disable-line: undefined-field
+  then
+    if open:match('^winc k') then
+      open = '2winc k | edit'
+    else
+      open = 'winc k | edit'
+    end
+  end
+
+  return open
+end
+
+local log_patch_goto_mapping = function()
+  -- mapping that attempts to open the current file at the cursor line
+  -- (goto line)
+  -- NOTE: pretty naive implementation that expects that the line to go to is
+  -- still at the location determined from the patch info
+  vim.keymap.set('n', 'gl', function()
+    local lnum_file = vim.fn.search('^+++ b/', 'bnW')
+    local lnum_block = vim.fn.search('^@@ .* @@', 'bnW')
+    if lnum_file == 0 or lnum_block == 0 then
+      return
+    end
+
+    local root = vim.b.git_info.root
+    local filename = vim.fn.fnamemodify(
+      root .. vim.fn.getline(lnum_file):match('^%+%+%+ b/(.*)'),
+      ':.'
+    )
+    local block = tonumber(
+      vim.fn.getline(lnum_block):match('@@ %-%d+,%d+ %+(%d+),%d+ @@.*')
+    )
+    local lnum = block + (vim.fn.line('.') - lnum_block) - 1
+    local col = vim.fn.col('.') - 1
+    while true do
+      local removed = vim.fn.search('^-', 'b')
+      if removed == 0 or removed < lnum_block then
+        break
+      end
+      lnum = lnum - 1
+    end
+
+    -- if executed from a floating window, close it
+    if vim.api.nvim_win_get_config(vim.fn.win_getid()).zindex ~= nil then
+      vim.cmd.quit()
+    end
+
+    local winnr = vim.fn.bufwinnr(filename)
+    if winnr == -1 then
+      vim.cmd(log_open() .. ' ' .. filename)
+    else
+      vim.cmd(winnr .. 'winc w')
+    end
+    vim.fn.cursor(lnum, col)
+  end, { buffer = true })
+end
+
 local diff_augroup = vim.api.nvim_create_augroup('git_diff', {})
 local diff = function(opts)
   if vim.fn.bufname() == log_name then
@@ -744,6 +818,17 @@ local diff = function(opts)
   end
 
   opts.revision = opts.revision or (opts.fargs and opts.fargs[1]) or 'HEAD'
+
+  -- if the supplied revision is comparing branches (2-3 dots in the arg), then
+  -- open a diff modal
+  if opts.revision:match('%.%.') then
+    if diff_modal('git_diff.patch', 'diff', opts.args) then
+      local root = repo()
+      set_info(root, nil, 'HEAD')
+      log_patch_goto_mapping()
+    end
+    return
+  end
 
   local _, path, revision = file()
   local target_revision
@@ -756,7 +841,7 @@ local diff = function(opts)
   end
 
   if not target_revision then
-    error('The current file has not revision to diff against.')
+    error('The current file has no revision to diff against.')
     return
   end
 
@@ -962,76 +1047,6 @@ local log_files = function()
     end
   end
   vim.bo.modifiable = false
-end
-
-local log_open = function()
-  local open = 'above new'
-  local winnr = vim.fn.winnr()
-  if vim.b.git_filename then
-    local bufwinnr = vim.fn.bufwinnr(vim.b.git_filename)
-    if bufwinnr ~= -1 then
-      vim.cmd(bufwinnr .. 'winc w')
-    end
-  elseif vim.fn.bufwinnr(status_name) == winnr - 1 then
-    open = 'winc k | ' .. open
-    winnr = winnr - 1
-  end
-
-  local above_buf = vim.fn.getbufinfo(vim.fn.winbufnr(winnr - 1))[1]
-  if above_buf.name == '' and     ---@diagnostic disable-line: undefined-field
-     above_buf.linecount == 1 and ---@diagnostic disable-line: undefined-field
-     above_buf.changed == 0       ---@diagnostic disable-line: undefined-field
-  then
-    if open:match('^winc k') then
-      open = '2winc k | edit'
-    else
-      open = 'winc k | edit'
-    end
-  end
-
-  return open
-end
-
-local log_patch_goto_mapping = function()
-  -- mapping that attempts to open the current file at the cursor line
-  -- (goto line)
-  -- NOTE: pretty naive implementation that expects that the line to go to is
-  -- still at the location determined from the patch info
-  vim.keymap.set('n', 'gl', function()
-    local lnum_file = vim.fn.search('^+++ b/', 'bnW')
-    local lnum_block = vim.fn.search('^@@ .* @@', 'bnW')
-    if lnum_file == 0 or lnum_block == 0 then
-      return
-    end
-
-    local root = vim.b.git_info.root
-    local filename = vim.fn.fnamemodify(
-      root .. vim.fn.getline(lnum_file):match('^%+%+%+ b/(.*)'),
-      ':.'
-    )
-    local block = tonumber(
-      vim.fn.getline(lnum_block):match('@@ %-%d+,%d+ %+(%d+),%d+ @@.*')
-    )
-    local lnum = block + (vim.fn.line('.') - lnum_block) - 1
-    local col = vim.fn.col('.') - 1
-    while true do
-      local removed = vim.fn.search('^-', 'b')
-      if removed == 0 or removed < lnum_block then
-        break
-      end
-      lnum = lnum - 1
-    end
-
-    vim.cmd.quit()
-
-    local winnr = vim.fn.bufwinnr(filename)
-    if winnr == -1 then
-      vim.cmd(log_open() .. ' ' .. filename)
-    else
-      vim.cmd(winnr .. 'winc w')
-    end
-    vim.fn.cursor(lnum, col)
-  end, { buffer = true })
 end
 
 local log_patch = function()
@@ -1786,7 +1801,7 @@ local status_branch_switch = function(selection, prompt_text)
     local remote =
       name:match('^origin/.*$') or
       M.git('branch -r | grep "^\\s*origin/' .. name .. '$" || true')
-    if remote ~= '' then
+    if remote then
       remote = remote:gsub('^%s+', '')
       local msg = 'Create branch based on existing remote ' .. remote .. '?'
       local result = confirm(msg, '&yes\n&no')
