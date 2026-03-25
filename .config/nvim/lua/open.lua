@@ -71,17 +71,18 @@ M.open = function(action, opts)
   local absolute = path:match('^%./') -- force absolute
   local relative = path:match('^%%/') -- force relative
 
+  local rel_path
   if relative then
     local tail = path:match('^%%/(.*)')
     path = vim.fn.expand(path)
     path = vim.fn.fnamemodify(path, ':h')
     path = path .. '/' .. tail
-  end
-
-  local rel_dir = vim.fn.fnamemodify(vim.fn.bufname(), ':h')
-  local rel_path
-  if not is_absolute(path) and rel_dir ~= '.' then
-    rel_path = vim.fn.resolve(vim.fn.fnamemodify(rel_dir .. '/' .. path, ':p'))
+    rel_path = vim.fn.resolve(vim.fn.fnamemodify(path, ':p'))
+  else
+    local rel_dir = vim.fn.fnamemodify(vim.fn.bufname(), ':h')
+    if not absolute and not is_absolute(path) and rel_dir ~= '.' then
+      rel_path = vim.fn.resolve(vim.fn.fnamemodify(rel_dir .. '/' .. path, ':p'))
+    end
   end
 
   if is_dir(path) or is_dir(rel_path) then
@@ -107,10 +108,22 @@ M.open = function(action, opts)
   elseif file_readable(rel_path) then
     path = rel_path
   -- new file, check whether to open at cwd or relative path
-  elseif rel_path then
-    local dir = vim.fn.fnamemodify(vim.fn.fnamemodify(path, ':h'), ':.')
-    local cwd_exists = is_dir(dir)
-    local rel_exists = not absolute and is_dir(dir .. '/' .. rel_dir)
+  else
+    local cwd_dir
+    local cwd_exists = false
+    local rel_dir
+    local rel_exists = false
+
+    if not relative then
+      cwd_dir = vim.fn.fnamemodify(vim.fn.fnamemodify(path, ':h'), ':.')
+      cwd_exists = is_dir(cwd_dir)
+    end
+
+    if not absolute then
+      rel_dir = vim.fn.fnamemodify(rel_path, ':h')
+      rel_exists = not absolute and is_dir(vim.fn.fnamemodify(rel_path, ':h'))
+    end
+
     if cwd_exists and rel_exists then
       local choice = prompt(
         'open new file:\n' ..
@@ -128,7 +141,13 @@ M.open = function(action, opts)
     elseif rel_exists then
       path = rel_path
     else
-      error('Directory not found: ' .. dir)
+      if absolute then
+        error('Directory not found: ' .. cwd_dir)
+      elseif relative then
+        error('Directory not found: ' .. rel_dir)
+      else
+        error('Directory not found:\n  ' .. cwd_dir .. '\n  ' .. rel_dir)
+      end
       return
     end
   end
