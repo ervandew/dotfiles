@@ -43,10 +43,9 @@ return {{
         -- non-visible contexts (displayed in 1 line floating windows)
         local index = #contexts
         local contextbuf = nil
-        for winnr = 1, vim.fn.winnr('$') do
-          local winid = vim.fn.win_getid(winnr)
+        for _, winid in ipairs(vim.api.nvim_list_wins()) do
           if vim.w[winid]['treesitter_context'] then
-            contextbuf = vim.fn.winbufnr(winnr)
+            contextbuf = vim.fn.winbufnr(winid)
             for lnum = vim.fn.line('$', winid), 1, -1 do
               index = index + 1
               local char
