@@ -18,11 +18,10 @@ import XMonad.Util.NamedScratchpad
 import XMonad.Util.WorkspaceCompare
 import qualified XMonad.StackSet as W
 
-myWorkspaces = ["1:main", "2:im/mail", "3:media", "4:vm"]
+myWorkspaces = ["1:main", "2:comms", "3:vm"]
 myLayout = desktopLayoutModifiers $
-    onWorkspace "2:im/mail"  (Accordion ||| Full) $
-    onWorkspace "3:media" Full $
-    onWorkspace "4:vm" Full $
+    onWorkspace "2:comms"  (Accordion ||| Full) $
+    onWorkspace "3:vm" Full $
     accordionTwoPane ||| tiled ||| stackTwo ||| Full
   where
     accordionTwoPane = renamed [Replace "Accordion/TwoPane"] (
