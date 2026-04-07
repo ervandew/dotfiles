@@ -102,10 +102,14 @@ M.init = function()
       local diagnostics = vim.diagnostic.get(args.buf)
       local filtered = {}
       for _, d in ipairs(diagnostics) do
-        local source = d.source:lower()
-        local prefix = '(' .. source .. ')'
-        if d.code then
-          prefix = '(' .. source .. ':' .. d.code .. ')'
+        local text = d.message
+        if d.source then
+          local source = d.source:lower()
+          local prefix = '(' .. source .. ')'
+          if d.code then
+            prefix = '(' .. source .. ':' .. d.code .. ')'
+          end
+          text = prefix .. ' ' .. d.message
         end
 
         table.insert(filtered, {
@@ -114,7 +118,7 @@ M.init = function()
           col = d.col and (d.col + 1) or nil,
           end_lnum = d.end_lnum and (d.end_lnum + 1) or nil,
           end_col = d.end_col and (d.end_col + 1) or nil,
-          text = prefix .. ' ' .. d.message,
+          text = text,
           type = errlist_type_map[d.severity] or 'E',
           user_data = d.code,
         })
