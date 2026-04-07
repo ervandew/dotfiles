@@ -119,7 +119,7 @@ M.open = function(action, opts)
       cwd_exists = is_dir(cwd_dir)
     end
 
-    if not absolute then
+    if not absolute and rel_path then
       rel_dir = vim.fn.fnamemodify(rel_path, ':h')
       rel_exists = not absolute and is_dir(vim.fn.fnamemodify(rel_path, ':h'))
     end
