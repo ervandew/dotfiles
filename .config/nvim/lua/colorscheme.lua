@@ -172,6 +172,11 @@ M.init = function()
   hl('@constant.git_rebase', { fg = red_dark })
   hl('@markup.heading.gitcommit', { link = '@keyword' })
   hl('@string.special.url.gitcommit', { link = '@markup.link.gitcommit' })
+  hl('gitcommitOverflow', { fg = gray8 })
+  hl('gitcommitSummary', { link = 'Normal' })
+  hl('gitrebaseCommit', { fg = red_dark })
+  hl('gitrebasePick', { fg = gray8 })
+  hl('gitrebaseSummary', { link = 'Normal' })
 
   -- git.lua
   hl('GitAnnotate', { fg = gray6 })
