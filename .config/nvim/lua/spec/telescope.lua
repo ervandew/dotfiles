@@ -81,6 +81,7 @@ return {
             -- otherwise look for another window with an empty buffer and open
             -- the file there if one exists
             else
+              ---@diagnostic disable-next-line: redefined-local
               for winnr = 1,vim.fn.winnr('$') do
                 local winid = vim.fn.win_getid(winnr)
                 local bufnr = vim.fn.winbufnr(winnr)
@@ -140,6 +141,7 @@ return {
         if not path:match('^' .. cwd:gsub('%-', '%%-')) then
           local found = vim.fn.finddir('.git', path .. ';')
           if found ~= '' then
+            ---@diagnostic disable-next-line: param-type-mismatch
             cwd = vim.fn.fnamemodify(found, ':p:h:h')
           else
             cwd = path
@@ -409,6 +411,7 @@ return {
 
           local results = {}
           local path = vim.fn.expand('%:p')
+          ---@diagnostic disable-next-line: param-type-mismatch
           local patterns = vim.fn.readfile(patterns_file)
           for _, pattern in ipairs(patterns) do
             if string.sub(pattern, 1, 1) ~= ';' then
@@ -436,8 +439,8 @@ return {
         local sep
         local results
         local lang = vim.treesitter.language.get_lang(vim.o.ft)
-        local ok, parser = pcall(vim.treesitter.get_parser, 0, lang)
-        if ok then
+        local parser = vim.treesitter.get_parser()
+        if parser then
           sep = '.'
           results = ts_results(lang, parser)
         elseif vim.o.ft ~= '' then

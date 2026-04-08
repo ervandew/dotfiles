@@ -112,8 +112,8 @@ return {{
       local row, col = c[1] - 1, c[2]
       local range = {row, col, row, col + 1}
 
-      local ok_tree, root_tree = pcall(vim.treesitter.get_parser, bufnr)
-      if not ok_tree or not root_tree then
+      local root_tree = vim.treesitter.get_parser()
+      if not root_tree then
         return
       end
 
@@ -253,8 +253,8 @@ return {{
           local row, col = c[1] - 1, c[2]
           local range = {row, col, row, col + 1}
 
-          local ok_tree, root_tree = pcall(vim.treesitter.get_parser, bufnr)
-          if not ok_tree or not root_tree then
+          local root_tree = vim.treesitter.get_parser()
+          if not root_tree then
             return
           end
 
