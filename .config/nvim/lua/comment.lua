@@ -1,4 +1,4 @@
----Straight copy of neovim's _coomment.lua, with the following changes:
+---Straight copy of neovim's _comment.lua, with the following changes:
 --- Mod: replaced all 'vim._comment' references with 'comment'
 --- Mod: updated get_comment_parts() to add option to trim the left comment
 ---      string to remove the extra space between the comment operator and the
@@ -17,13 +17,13 @@
 ---@field right string Right part of comment
 
 --- Get 'commentstring' at cursor
----@param ref_position integer[]
+---@param ref_position [integer,integer]
 ---@return string
 local function get_commentstring(ref_position)
   local buf_cs = vim.bo.commentstring
 
-  local has_ts_parser, ts_parser = pcall(vim.treesitter.get_parser)
-  if not has_ts_parser then
+  local ts_parser = vim.treesitter.get_parser(0, '')
+  if not ts_parser then
     return buf_cs
   end
 
@@ -64,7 +64,7 @@ local function get_commentstring(ref_position)
 end
 
 --- Compute comment parts from 'commentstring'
----@param ref_position integer[]
+---@param ref_position [integer,integer]
 ---@return comment.Parts
 local function get_comment_parts(ref_position, opts)
   local cs = get_commentstring(ref_position)
@@ -93,14 +93,11 @@ local function make_comment_check(parts)
   local l_esc, r_esc = vim.pesc(parts.left), vim.pesc(parts.right)
 
   -- Commented line has the following structure:
-  -- <possible whitespace> <left> <anything> <right> <possible whitespace>
-  local nonblank_regex = '^%s-' .. l_esc .. '.*' .. r_esc .. '%s-$'
-
-  -- Commented blank line can have any amount of whitespace around parts
-  local blank_regex = '^%s-' .. vim.trim(l_esc) .. '%s*' .. vim.trim(r_esc) .. '%s-$'
+  -- <whitespace> <trimmed left> <anything> <trimmed right> <whitespace>
+  local regex = '^%s-' .. vim.trim(l_esc) .. '.*' .. vim.trim(r_esc) .. '%s-$'
 
   return function(line)
-    return line:find(nonblank_regex) ~= nil or line:find(blank_regex) ~= nil
+    return line:find(regex) ~= nil
   end
 end
 
@@ -120,6 +117,7 @@ local function get_lines_info(lines, parts)
   for _, l in ipairs(lines) do
     -- Update lines indent: minimum of all indents except blank lines
     local _, indent_width_cur, indent_cur = l:find('^(%s*)')
+    assert(indent_width_cur and indent_cur)
 
     -- Ignore blank lines completely when making a decision
     if indent_width_cur < l:len() then
@@ -154,7 +152,7 @@ end
 ---@return fun(line: string): string
 local function make_comment_function(parts, indent)
   local prefix, nonindent_start, suffix = indent .. parts.left, indent:len() + 1, parts.right
-  local blank_comment = indent .. vim.trim(parts.left) .. vim.trim(parts.right)
+  local blank_comment = indent .. vim.trim(parts.left) .. vim.trim(suffix)
 
   return function(line)
     if is_blank(line) then
@@ -169,14 +167,14 @@ end
 ---@return fun(line: string): string
 local function make_uncomment_function(parts)
   local l_esc, r_esc = vim.pesc(parts.left), vim.pesc(parts.right)
-  local nonblank_regex = '^(%s*)' .. l_esc .. '(.*)' .. r_esc .. '(%s-)$'
-  local blank_regex = '^(%s*)' .. vim.trim(l_esc) .. '(%s*)' .. vim.trim(r_esc) .. '(%s-)$'
+  local regex = '^(%s*)' .. l_esc .. '(.*)' .. r_esc .. '(%s-)$'
+  local regex_trimmed = '^(%s*)' .. vim.trim(l_esc) .. '(.*)' .. vim.trim(r_esc) .. '(%s-)$'
 
   return function(line)
-    -- Try both non-blank and blank regexes
-    local indent, new_line, trail = line:match(nonblank_regex)
+    -- Try regex with exact comment parts first, fall back to trimmed parts
+    local indent, new_line, trail = line:match(regex)
     if new_line == nil then
-      indent, new_line, trail = line:match(blank_regex)
+      indent, new_line, trail = line:match(regex_trimmed)
     end
 
     -- Return original if line is not commented
@@ -196,7 +194,7 @@ end
 --- Comment/uncomment buffer range
 ---@param line_start integer
 ---@param line_end integer
----@param ref_position? integer[]
+---@param ref_position? [integer, integer]
 local function toggle_lines(line_start, line_end, ref_position, opts)
   opts = opts or { align = false, trim = true }
   ref_position = ref_position or { line_start, 0 }
@@ -216,14 +214,9 @@ local function toggle_lines(line_start, line_end, ref_position, opts)
   -- - Debatable for highlighting in text area (like LSP semantic tokens).
   --   Mostly because it causes flicker as highlighting is preserved during
   --   comment toggling.
-  package.loaded['comment']._lines = vim.tbl_map(f, lines)
-  local lua_cmd = string.format(
-    'vim.api.nvim_buf_set_lines(0, %d, %d, false, package.loaded["comment"]._lines)',
-    line_start - 1,
-    line_end
-  )
-  vim.cmd.lua({ lua_cmd, mods = { lockmarks = true } })
-  package.loaded['comment']._lines = nil
+  vim._with({ lockmarks = true }, function()
+    vim.api.nvim_buf_set_lines(0, line_start - 1, line_end, false, vim.tbl_map(f, lines))
+  end)
 end
 
 --- Operator which toggles user-supplied range of lines
