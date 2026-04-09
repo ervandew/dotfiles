@@ -1,9 +1,4 @@
 -- options {{{
-vim.opt.guicursor = (
-  'n-c-sm:block-TermCursor,' ..
-  'i-ci-ve:ver25-TermCursor,' ..
-  'r-cr-o:hor20-TermCursor,v:block-VisualCursor'
-)
 vim.opt.clipboard = 'unnamedplus'
 vim.opt.complete:remove({ 'i', 't', 'u' })
 vim.opt.completeopt = { 'menuone', 'longest', 'preview' }
@@ -11,6 +6,11 @@ vim.opt.expandtab = true
 vim.opt.fileformats:append('mac')
 vim.opt.fillchars = { fold = ' ' }
 vim.opt.grepprg = 'rg --vimgrep'
+vim.opt.guicursor = (
+  'n-c-sm:block-TermCursor,' ..
+  'i-ci-ve:ver25-TermCursor,' ..
+  'r-cr-o:hor20-TermCursor,v:block-VisualCursor'
+)
 vim.opt.list = true
 vim.opt.listchars = { precedes = '<', extends = '>', tab = '>-', trail = '\\u25e6' }
 vim.opt.number = true
