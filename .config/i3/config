@@ -1,0 +1,61 @@
+set $mod Mod1
+
+bindsym $mod+Shift+r restart
+bindsym $mod+x kill
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
+bindsym $mod+Shift+h move left
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+bindsym $mod+Shift+l move right
+bindsym $mod+Shift+bar split horizontal
+bindsym $mod+Shift+underscore split vertical
+bindsym $mod+f fullscreen toggle
+
+bindsym $mod+plus exec --no-startup-id ~/bin/volume 3+
+bindsym $mod+minus exec --no-startup-id ~/bin/volume 3-
+
+bindsym $mod+Tab exec --no-startup-id ~/.config/i3/ipc --cycle forward
+bindsym $mod+Shift+Tab exec --no-startup-id ~/.config/i3/ipc --cycle backward
+bindsym $mod+a exec --no-startup-id ~/.config/i3/ipc --accordian-toggle
+bindsym $mod+p exec --no-startup-id ~/.config/i3/ipc --scratchpad
+bindsym $mod+Shift+p exec --no-startup-id ~/bin/keyring prompt --paste
+bindsym $mod+Shift+Return exec --no-startup-id alacritty
+
+set $ws1 "1:main"
+set $ws2 "2:comms"
+set $ws3 "3:vm"
+bindsym $mod+1 workspace $ws1
+bindsym $mod+2 workspace $ws2
+bindsym $mod+3 workspace $ws3
+for_window [workspace="2"] layout tabbed
+for_window [workspace="3"] layout tabbed
+for_window [class="Keyring"] floating enable
+for_window [class="scratchpad"] move scratchpad
+for_window [class="feh"] floating enable, move position 0 0
+for_window [class="MPlayer"] floating enable, move position center
+for_window [class="Gnumeric|Zathura" workspace="1:main"] \
+  floating enable, resize set 80 ppt 80 ppt, move position center
+
+focus_follows_mouse no
+font pango: Noto Sans Regular 12
+default_border pixel 1
+
+# tab/stacked    border  bground text    indictr child
+client.focused   #5884b0 #cccccc #222222 #774f77 #5884b0
+client.unfocused #cccccc #777777 #cccccc
+
+exec_always --no-startup-id xmodmap ~/.config/xinit/xmodmap
+exec_always --no-startup-id xrandr --auto
+exec_always --no-startup-id xset -b
+exec_always --no-startup-id xset -dpms
+exec_always --no-startup-id xset r rate 250 30
+exec_always --no-startup-id xsetroot -cursor_name left_ptr
+exec_always --no-startup-id hsetroot -solid '#333333'
+exec_always --no-startup-id "~/.config/i3/ipc &"
+exec_always --no-startup-id "pkill picom ; picom --config /dev/null --backend xrender --no-use-damage --inactive-dim 0.4 -b"
+exec_always --no-startup-id "pkill polybar ; polybar &"
+exec_always --no-startup-id "pkill keynav ; keynav &"
+exec_always --no-startup-id "pkill -9 unclutter ; sleep 0.3 ; unclutter --timeout 2 &"

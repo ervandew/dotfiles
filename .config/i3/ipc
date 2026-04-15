@@ -1,0 +1,219 @@
+#!/usr/bin/env python
+import argparse
+import os
+import subprocess
+import sys
+import time
+from threading import Event
+
+import i3ipc
+
+browser_class = 'qutebrowser'
+accordian_percent = 90
+
+def workspace(i3):
+  return [w for w in i3.get_workspaces() if w.focused][0]
+
+def on_workspace_focus(i3, event):
+  current = workspace(i3)
+  if current.name == '1:main':
+    for ws in i3.get_workspaces():
+      if ws.name == '1:main:fixed':
+        i3.command(f'workspace {ws.name}')
+
+def on_window_focus(i3, event):
+  ws = workspace(i3)
+  if ':fixed' in ws.name:
+    return
+
+  if is_accordian(i3, ws):
+    tree = i3.get_tree()
+    focused = tree.find_focused()
+    container = focused.parent
+    while True:
+      if container.parent is None or container.parent.type == 'workspace':
+        break
+      container = container.parent
+
+    windows = container.leaves()
+    containers = {w.parent for w in windows}
+    percent = int(10 / (len(windows) - 1))
+    for container in containers:
+      if container == focused.parent:
+        continue
+      windows = container.leaves()
+      con_percent = percent * len(windows)
+      i3.command(f'[con_id="{container.id}"] resize set height {con_percent} ppt')
+      win_percent = int(100 / len(windows))
+      for window in windows:
+        i3.command(f'[con_id="{window.id}"] resize set height {win_percent} ppt')
+
+    i3.command(f'resize set height {accordian_percent} ppt')
+
+def kill_existing():
+  for signal in ['SIGTERM', 'SIGKILL']:
+    result = subprocess.run(['pgrep', '-f', 'i3/ipc'], capture_output=True)
+    existing = [int(pid) for pid in result.stdout.decode().strip().split('\n')]
+    for pid in existing:
+      if pid != os.getpid():
+        print('kill existing process:', pid)
+        subprocess.Popen(['kill', '-s', signal, str(pid)])
+    time.sleep(.5)
+
+def cycle(i3, direction):
+  if direction not in ('forward', 'backward'):
+    return
+
+  focused = i3.get_tree().find_focused()
+  ws = focused.workspace()
+  leaves = ws.leaves()
+  if len(leaves) <= 1:
+    return
+
+  offset = 1 if direction == 'forward' else -1
+  index = leaves.index(focused)
+  index += offset
+  if index > len(leaves) - 1:
+    index = 0
+  elif index < 0:
+    index = len(leaves) - 1
+  leaves[index].command('focus')
+
+def scratchpad(i3):
+  found = i3.get_tree().find_classed('scratchpad')
+  if not found:
+    opened = Event()
+    def _new(i3, e):
+      opened.set()
+      i3.main_quit()
+    i3.on(i3ipc.Event.WINDOW_NEW, _new)
+    subprocess.Popen([
+      'alacritty', '--class', 'scratchpad', '-e',
+      'tmux', '-L', 'scratch', 'new-session', '-s', 'scratch', '-A',
+    ])
+    i3.main()
+    opened.wait(timeout=5)
+    # the following line needs to exist in the i3/config to move the
+    # window on open. this avoids other windows needing to temporarily
+    # resize themselves for the new window that we want to move
+    # immediately anyways:
+    #   for_window [class="scratchpad"] move scratchpad
+
+  showing = not found or not found[0].focused
+  i3.command('scratchpad show')
+  if showing:
+    i3.command('move position 0 0')
+    i3.command('resize set height 20 ppt')
+    i3.command('resize set width 100 ppt')
+    i3.command('move position 0 80ppt')
+
+def is_accordian(i3, ws):
+  if ws.num != 1:
+    return False
+
+  tree = i3.get_tree()
+  focused = tree.find_focused()
+  is_browser = focused.window_class == browser_class
+  if is_browser:
+    return True
+
+  workspace = focused.workspace()
+  browsers = [
+    b for b in tree.find_classed(browser_class) if b.workspace() == workspace
+  ]
+  if not browsers or len(browsers) > 1:
+    return False
+
+  container = focused.parent
+  if not container:
+    return False
+
+  while True:
+    if (
+      container.layout != 'splitv'
+      or container.parent is None
+      or container.parent.type == 'workspace'
+    ):
+      break
+    container = container.parent
+
+  if container.type == 'workspace':
+    return False
+
+  browser = browsers[0]
+  windows = container.leaves()
+  containers = {w.parent for w in windows}
+  return browser.parent in containers
+
+def main():
+  i3 = i3ipc.Connection()
+  if len(sys.argv) == 1:
+    print('starting i3 ipc daemon...')
+    kill_existing()
+    i3.on(i3ipc.Event.WINDOW_FOCUS, on_window_focus)
+    i3.on(i3ipc.Event.WORKSPACE_FOCUS, on_workspace_focus)
+    i3.main()
+    return
+
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--cycle',
+    help='Cycle through windows: --cycle forward|backward',
+  )
+  parser.add_argument(
+    '--scratchpad',
+    action='store_true',
+    help='Toggle the scratchpad terminal.',
+  )
+  parser.add_argument(
+    '--accordian-toggle',
+    action='store_true',
+    help='Toggle accordian mode when on the first workspace and '
+    'one of the target windows is focused',
+  )
+  args = parser.parse_args()
+
+  if args.cycle:
+    cycle(i3, args.cycle)
+
+  if args.scratchpad:
+    scratchpad(i3)
+
+  if args.accordian_toggle:
+    ws = workspace(i3)
+    if not is_accordian(i3, ws):
+      return
+
+    tree = i3.get_tree()
+    focused = tree.find_focused()
+    container = focused.parent
+    while True:
+      if container.parent.type == 'workspace':
+        break
+      container = container.parent
+
+    windows = container.leaves()
+    containers = {w.parent for w in windows}
+
+    to_accordian = ws.name.endswith(':fixed')
+    if to_accordian:
+      name = ws.name.rpartition(':')[0]
+      i3.command(f'rename workspace "{ws.name}" to "{name}"')
+      percent = int(100 - accordian_percent / (len(windows) - 1))
+    else:
+      i3.command(f'rename workspace "{ws.name}" to "{ws.name}:fixed"')
+      percent = int(100 / len(windows))
+
+    for container in containers:
+      windows = container.leaves()
+      con_percent = percent * len(windows)
+      i3.command(f'[con_id="{container.id}"] resize set height {con_percent} ppt')
+      win_percent = int(100 / len(windows))
+      for window in windows:
+        i3.command(f'[con_id="{window.id}"] resize set height {win_percent} ppt')
+
+    if to_accordian:
+      i3.command(f'resize set height {accordian_percent} ppt')
+
+if __name__ == '__main__':
+  main()

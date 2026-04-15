@@ -37,6 +37,6 @@ if [ -d $rc_dir ] ; then
   done
 fi
 
-exec xmonad
+exec i3
 
 # vim:ft=sh:fdm=marker

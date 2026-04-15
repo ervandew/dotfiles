@@ -57,7 +57,7 @@ shape = 'block'
 [keyboard]
 bindings = [
   { key = 'v', mods = 'control', action = 'Paste' },
-  { key = 's', mods = 'alt', action = 'ToggleViMode' },
+  { key = 'v', mods = 'alt', action = 'ToggleViMode' },
   { key = 'y', mode = 'Vi', action = 'Copy' },
   { key = 'y', mode = 'Vi', action = 'ClearSelection' },
   { key = 'Enter', mode = 'Vi', action = 'ToggleViMode' },
