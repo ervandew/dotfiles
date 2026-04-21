@@ -4,7 +4,6 @@ service=$(systemctl --no-pager list-units *vpn*service* | grep 'vpn.*active')
 service=$(echo $service | perl -pe "s|.*@(.*?)\.service.*|\1|")
 service=$(echo $service | perl -pe "s|\s*(.*?)\.service.*|\1|")
 if [ -n "$service" ] ; then
-  color=#c4c466
   if ssh -o ConnectTimeout=1 acuityvpn 'ip addr | grep tun0 &> /dev/null' &> /dev/null; then
     percent=$(ssh acuityvpn 'free | grep Mem | awk "{printf \"%.0f\", \$3/\$2 * 100}"')
     if [ $percent -gt 80 ] ; then
@@ -15,8 +14,10 @@ if [ -n "$service" ] ; then
       color=#87d787
     fi
     percent=" ($percent%)"
+    echo "%{F${color}}$service$percent%{F-}"
+  else
+    echo "$service$percent"
   fi
-  echo "%{F${color}}$service$percent%{F-}"
 else
   echo ""
 fi
