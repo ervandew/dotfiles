@@ -390,20 +390,48 @@ M.init = function()
 
   local work = require('work')
 
-  -- pyright {{{
-  vim.lsp.config('pyright', {
-    settings = { python = { pythonPath = work.python } },
-    on_attach = function()
-      ignore['Pyright'] = {
-        '"\\(__\\|args\\|kwargs\\|self\\)" is not accessed',
-        (function(bufnr, d)
-          -- allow wildcard imports from __init__ files
-          if d.code == 'reportWildcardImportFromLibrary' and
-             string.find(vim.fn.bufname(bufnr), '__init__.py') then
-            return true
-          end
+  -- ruff {{{
+  vim.lsp.enable('ruff')
+  -- }}}
 
-          -- ignore 'not accessed' hints for parameters
+  -- ty {{{
+  vim.lsp.config('ty', {
+    settings = {
+      ty = {
+        configuration = {
+          environment = { python = work.python },
+          rules = {
+            ['instance-layout-conflict'] = 'ignore',
+            ['invalid-argument-type'] = 'ignore',
+            ['invalid-assignment'] = 'ignore',
+            ['invalid-method-override'] = 'ignore',
+            ['no-matching-overload'] = 'ignore',
+            ['not-subscriptable'] = 'ignore',
+            ['possibly-missing-attribute'] = 'ignore',
+            ['possibly-missing-submodule'] = 'ignore',
+            ['unused-type-ignore-comment'] = 'ignore',
+            ['unresolved-attribute'] = 'ignore',
+            ['unsupported-operator'] = 'ignore',
+          }
+        },
+      },
+    },
+    on_attach = function(lsp_client, bufnr)
+      -- workaround for: https://github.com/astral-sh/ty/issues/3010
+      -- FIXME: add a BufWritePost as well?
+      lsp_client:request('textDocument/diagnostic', {
+        textDocument = vim.lsp.util.make_text_document_params(bufnr),
+      })
+
+      -- ignore some ty notes about unused variables, etc
+      ignore['ty'] = {
+        '`\\(args\\|kwargs\\|self\\)` is unused',
+        'Module `lxml` has no member `etree`',
+        'Cannot resolve imported module `lxml.etree`',
+        'Code is unreachable\nThis may depend on your current environment and settings',
+        'may not be iterable',
+        (function(bufnr, d)
+          -- ignore 'is unused' notes for parameters
           if d._tags and d._tags.unnecessary then
             local ok, node = pcall(vim.treesitter.get_node, {
               bufnr = bufnr,
@@ -422,54 +450,10 @@ M.init = function()
               end
             end
           end
-
-          if d.code == 'reportGeneralTypeIssues' then
-            -- ignore django transaction.atmoic error
-            if d.message:match('cannot be used with "with"') then
-              local line = vim.fn.getbufline(bufnr, d.lnum + 1)[1]
-              if line:match('with transaction%.atomic') then
-                return true
-              end
-            end
-
-            -- ignore some django related model/field errors
-            if d.message:match('"CommaSeparatedIntegerField" is not iterable') or
-               d.message:match('"cached_property" is not iterable')
-            then
-              return true
-            end
-          end
           return false
         end),
       }
-
-    end,
-  })
-  vim.lsp.enable('pyright')
-  -- }}}
-
-  -- ruff {{{
-  vim.lsp.enable('ruff')
-  -- }}}
-
-  -- ty {{{
-  vim.lsp.config('ty', {
-    settings = {
-      ty = {
-        configuration = {
-          environment = { python = work.python },
-          rules = {
-            ['instance-layout-conflict'] = 'ignore',
-            ['invalid-assignment'] = 'ignore',
-            ['invalid-method-override'] = 'ignore',
-            ['not-subscriptable'] = 'ignore',
-            ['possibly-missing-attribute'] = 'ignore',
-            ['unused-ignore-comment'] = 'ignore',
-            ['unresolved-attribute'] = 'ignore',
-          }
-        },
-      },
-    }
+    end
   })
   vim.lsp.enable('ty')
   -- }}}
