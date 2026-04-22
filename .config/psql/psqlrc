@@ -24,4 +24,9 @@
 
 \set connections 'select usename user, count(*) connections from pg_stat_activity where backend_type = ''client backend'' group by usename order by connections desc;'
 
+-- show the number of wal files, should probably be in the low hundreds (under 500?)
+\set wal_files 'select count(*) from pg_ls_waldir();'
+-- true if in a replica (read only) state, false otherwise
 \set replica 'select pg_is_in_recovery() as replica;'
+-- show replication lag as the size of data
+\set replication_lag 'select slot_name, active, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS replication_lag from pg_replication_slots;'
