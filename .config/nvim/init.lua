@@ -102,8 +102,9 @@ function _status_left() ---@diagnostic disable-line: lowercase-global
   if vim.bo.ft == 'csv' then
     local ok, csv = pcall(require, 'csv')
     if ok then
-      local column = csv.column()
-      stl_addl = '[col: ' .. csv.column_name(column) .. ' (' .. column .. ')]'
+      local col = csv.column()
+      local col_name = csv.column_name(col) or '<no header>'
+      stl_addl = '[col: ' .. col_name .. ' (' .. col .. ')]'
     end
   end
 
