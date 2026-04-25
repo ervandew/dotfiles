@@ -34,7 +34,12 @@ alias cp="cp -i"
 alias grep="grep --colour=auto"
 alias ls="ls --color"
 alias mv="mv -i"
-export EDITOR=vim
+
+if $(which nvim &> /dev/null) ; then
+  export EDITOR=nvim
+elif $(which vim &> /dev/null) ; then
+  export EDITOR=vim
+fi
 
 MULTIPLEXER=$(which tmux 2> /dev/null)
 if [ -n "$MULTIPLEXER" ] ; then
