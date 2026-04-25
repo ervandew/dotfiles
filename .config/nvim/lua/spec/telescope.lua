@@ -253,6 +253,10 @@ return {
       }) -- }}}
 
       vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'TelescopePrompt',
+        callback = function() end,
+      })
+      vim.api.nvim_create_autocmd('FileType', {
         pattern = 'TelescopeResults',
         callback = function() vim.opt_local.scrolloff = 5 end,
       })
