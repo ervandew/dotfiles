@@ -692,30 +692,6 @@ require('tabcomplete').init()
 require('virtualedit').init()
 require('wrap').init()
 
-local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
-if not vim.uv.fs_stat(lazypath) then
-  vim.fn.system({
-    'git',
-    'clone',
-    '--filter=blob:none',
-    'https://github.com/folke/lazy.nvim.git',
-    '--branch=stable', -- latest stable release
-    lazypath,
-  })
-end
-vim.opt.rtp:prepend(lazypath) ---@diagnostic disable-line: undefined-field
-
-require('lazy').setup( ---@diagnostic disable-line: undefined-field
-  'spec',     -- load plugin specs from .config/nvim/lua/spec/*.lua
-  {           -- lazy.nvim config options
-    change_detection = {
-      enable = false,
-      notify = false,
-    },
-    ui = { border = 'rounded' },
-  }
-)
-
 -- }}}
 
 -- load any work specific settings

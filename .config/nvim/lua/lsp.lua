@@ -463,10 +463,6 @@ M.init = function()
     vim.env.VIMRUNTIME,
     '${3rd}/luv/library',
   }
-  local lazy = vim.fn.stdpath('data') .. '/lazy/'
-  for _, dir in ipairs(vim.fn.readdir(lazy)) do
-    library[#library + 1] = lazy .. dir
-  end
 
   vim.lsp.config('lua_ls', {
     settings = {
