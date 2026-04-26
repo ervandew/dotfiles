@@ -121,6 +121,19 @@ local window = function(name, open, lines, opts)
       modal()
       vim.cmd.file(name)
     else
+      -- if the supplied open command isn't explicit, then attempt to force the
+      -- window to open above our fixed height status/log windows.
+      if open == 'new' or open == 'split' then
+        for _, fixed_name in ipairs({ status_name, log_name }) do
+          local fixed_winnr = vim.fn.bufwinnr(fixed_name)
+          if fixed_winnr ~= -1 then
+            vim.cmd(fixed_winnr .. 'winc w')
+            open = 'above ' .. open
+            break
+          end
+        end
+      end
+
       vim.cmd(open .. ' ' .. name)
     end
 
