@@ -30,6 +30,7 @@ local ensure_installed = {
   'query',
   'python',
   'rst',
+  'sql',
   'vim',
   'vimdoc',
 }
