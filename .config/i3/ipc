@@ -36,6 +36,9 @@ def on_window_focus(i3, event):
       container = container.parent
 
     windows = container.leaves()
+    if len(windows) <= 1:
+      return
+
     containers = {w.parent for w in windows}
     percent = int(10 / (len(windows) - 1))
     for container in containers:
