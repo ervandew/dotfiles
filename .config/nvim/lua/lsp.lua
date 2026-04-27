@@ -6,6 +6,10 @@ M.init = function()
     return
   end
 
+  -- prevent lsp semantic tokens from overriding injected tokens by lowering
+  -- semantic tokens down the the default priority of other tokens
+  vim.highlight.priorities.semantic_tokens = 100
+
   -- Diagnostics {{{
 
   -- ability to ignore/filter diagnostics {{{
