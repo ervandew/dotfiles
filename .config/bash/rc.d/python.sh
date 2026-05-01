@@ -122,6 +122,8 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
   }
 
 else
+  alias uv-sync="uv sync --active --frozen"
+
   # function to perform the closest thing to a functioning uv sync in a project
   # that still uses pip requirements
   function uv-requirements {
@@ -134,7 +136,6 @@ else
     uv pip freeze | uv pip uninstall -r -
     # install packages based on current requirements.txt
     uv pip install -r requirements.txt "$@"
-    uv pip install "setuptools==80.9.0"
   }
 
 fi
