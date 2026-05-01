@@ -40,6 +40,7 @@ for_window [class="Gnumeric|Zathura" workspace="1:main"] \
   floating enable, resize set 80 ppt 80 ppt, move position center
 
 focus_follows_mouse no
+focus_wrapping no
 font pango: Noto Sans Regular 12
 default_border pixel 1
 
