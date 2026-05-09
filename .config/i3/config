@@ -56,7 +56,7 @@ exec_always --no-startup-id xset r rate 250 30
 exec_always --no-startup-id xsetroot -cursor_name left_ptr
 exec_always --no-startup-id hsetroot -solid '#333333'
 exec_always --no-startup-id "~/.config/i3/ipc &"
-exec_always --no-startup-id "pkill picom ; picom --config /dev/null --backend xrender --no-use-damage --inactive-dim 0.4 -b"
+exec_always --no-startup-id "pkill picom ; picom -b"
 exec_always --no-startup-id "pkill polybar ; polybar &"
 exec_always --no-startup-id "pkill keynav ; keynav &"
 exec_always --no-startup-id "pkill -9 unclutter ; sleep 0.3 ; unclutter --timeout 2 &"
