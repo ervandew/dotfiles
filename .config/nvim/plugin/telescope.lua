@@ -159,6 +159,62 @@ local search_path = function() -- {{{
   return cwd, cwd_display
 end -- }}}
 
+local history_cycle = function(direction) -- {{{
+  return function(prompt_bufnr)
+    local current_picker = action_state.get_current_picker(prompt_bufnr)
+    local history = action_state.get_current_history()
+    local line = action_state.get_current_line()
+
+    if not vim.b[prompt_bufnr].telescope_prompt_prefix then
+      local prompt = current_picker:_get_prompt()
+      vim.b[prompt_bufnr].telescope_prompt_prefix =
+        prompt:sub(1, vim.fn.col('.') - 3) -- account for '> ' in prompt
+      vim.api.nvim_create_autocmd({'TextChanged', 'TextChangedI'}, {
+        buf = prompt_bufnr,
+        callback = function()
+          vim.b[prompt_bufnr].telescope_prompt_prefix = nil
+        end,
+      })
+    end
+
+    local prefix = vim.b[prompt_bufnr].telescope_prompt_prefix
+    local entry
+    while true do
+      if direction == 'next' then
+        entry = history:get_next(line, current_picker)
+        line = entry
+      else
+        entry = history:get_prev(line, current_picker)
+        line = entry
+      end
+
+      if not entry then
+        return
+      end
+      if not prefix or #prefix == 0 or entry:sub(1, #prefix) == prefix then
+        break
+      end
+    end
+
+    if entry ~= nil then
+      local col = vim.fn.col('.')
+      current_picker:reset_prompt()
+      current_picker:set_prompt(entry)
+      if prefix then
+        if #prefix > 0 then
+          vim.fn.cursor(0, col)
+        end
+        vim.schedule(function()
+          vim.b[prompt_bufnr].telescope_prompt_prefix = prefix
+        end)
+      end
+    end
+  end
+end -- }}}
+
+local history_next = history_cycle('next')
+local history_prev = history_cycle('prev')
+
 require('telescope').setup({ ---@diagnostic disable-line: undefined-field {{{
   defaults = {
     file_ignore_patterns = { '%.git/' },
@@ -206,8 +262,8 @@ require('telescope').setup({ ---@diagnostic disable-line: undefined-field {{{
     mappings = {
       i = {
         ['<c-v>'] = function() vim.fn.feedkeys(vim.fn.getreg('+')) end,
-        ['<down>'] = actions.cycle_history_next,
-        ['<up>'] = actions.cycle_history_prev,
+        ['<down>'] = history_next,
+        ['<up>'] = history_prev,
         ['<tab>'] = actions.move_selection_next,
         ['<s-tab>'] = actions.move_selection_previous,
         ['<c-j>'] = actions.preview_scrolling_down,
@@ -227,10 +283,10 @@ require('telescope').setup({ ---@diagnostic disable-line: undefined-field {{{
         end,
       },
       n = {
-        ['j'] = actions.cycle_history_next,
-        ['k'] = actions.cycle_history_prev,
-        ['<down>'] = actions.cycle_history_next,
-        ['<up>'] = actions.cycle_history_prev,
+        ['j'] = history_next,
+        ['k'] = history_prev,
+        ['<down>'] = history_next,
+        ['<up>'] = history_prev,
         ['<c-c>'] = actions.close,
         ['<space>'] = actions.toggle_selection,
         ['<tab>'] = actions.move_selection_next,
