@@ -206,6 +206,8 @@ require('telescope').setup({ ---@diagnostic disable-line: undefined-field {{{
     mappings = {
       i = {
         ['<c-v>'] = function() vim.fn.feedkeys(vim.fn.getreg('+')) end,
+        ['<down>'] = actions.cycle_history_next,
+        ['<up>'] = actions.cycle_history_prev,
         ['<tab>'] = actions.move_selection_next,
         ['<s-tab>'] = actions.move_selection_previous,
         ['<c-j>'] = actions.preview_scrolling_down,
@@ -225,6 +227,10 @@ require('telescope').setup({ ---@diagnostic disable-line: undefined-field {{{
         end,
       },
       n = {
+        ['j'] = actions.cycle_history_next,
+        ['k'] = actions.cycle_history_prev,
+        ['<down>'] = actions.cycle_history_next,
+        ['<up>'] = actions.cycle_history_prev,
         ['<c-c>'] = actions.close,
         ['<space>'] = actions.toggle_selection,
         ['<tab>'] = actions.move_selection_next,
