@@ -2,7 +2,7 @@
 
 ##
 # Script used to generate the right status for tmux:
-#    set -g status-right "#[fg=green]#(tmux-status-right)"
+#    set -g status-right "#(~/.config/tmux/tmux-status-right)"
 #
 # Currently just displays the current git repo/branch info.
 #
@@ -33,6 +33,8 @@ if [ -n "$val" ] ; then
 
   if [ -f "$repo_root/.tmux-status" ] ; then
     repo=$($repo_root/.tmux-status "$repo")
+  else
+    repo="#[fg=green]$repo"
   fi
 
   echo $repo
