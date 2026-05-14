@@ -2295,10 +2295,10 @@ local status_cmd = function(cmd, opts)
       })
     else
       M.git(cmd .. ' ' .. paths)
-      status()
       if opts.after then
-        opts.after()
+        opts.after(paths)
       end
+      status()
     end
   end)
 end
@@ -2543,13 +2543,19 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       return
     end
 
-    status_cmd('restore', {
-      after = function()
+    status_cmd('restore --ours', {
+      after = function(paths)
+        -- if any of the restored paths had a conflict from a merge, rebase,
+        -- stash pop, etc. then we need to call 'add' to set the conflict as
+        -- resolved after restoring the file. this has no affect on any files
+        -- not in this state.
+        M.git('add ' .. paths)
+
         pcall(vim.cmd.checktime) -- update existing buffers if necessary
       end,
       confirm = function(selection)
         local affected = vim.tbl_filter(function(l)
-          return l:match('^.M') and true or false
+          return l:match('^.[MDU]') and true or false
         end, selection)
         if #affected > 0 then
           return 'Are you sure you want to run: ' ..
@@ -2559,7 +2565,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       end,
       filter = function(line)
         -- only allow entries with unstaged changes
-        return line:match('^.[MD]')
+        return line:match('^.[MDU]')
       end,
       untracked = false,
     })
