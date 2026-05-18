@@ -123,6 +123,7 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
 
 else
   alias uv-sync="uv sync --active --frozen"
+  alias uv-lock="uv sync --active --exclude-newer $(date -u -d '7 days ago' '+%Y-%m-%dT%H:%M:%SZ')"
 
   # function to perform the closest thing to a functioning uv sync in a project
   # that still uses pip requirements
