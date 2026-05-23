@@ -49,22 +49,21 @@ vim.api.nvim_create_autocmd('FileType', {
 }) -- }}}
 
 -- htmljinja {{{
+vim.cmd([[
+  function! Matchup_htmljinja()
+    return matchup#util#standard_html() .
+      \ ',{%-\?\s*\<block\>:{%-\?\s*\<endblock\>\s*-\?%}' .
+      \ ',{%-\?\s*\<call\>:{%-\?\s*\<endcall\>\s*-\?%}' .
+      \ ',{%-\?\s*\<filter\>:{%-\?\s*\<endfilter\>\s*-\?%}' .
+      \ ',{%-\?\s*\<for\>:{%-\?\s*\<endfor\>\s*-\?%}' .
+      \ ',{%-\?\s*\<if\>:{%-\?\s*\<elif\>:{%-\?\s*\<else\>:{%-\?\s*\<endif\>\s*-\?%}' .
+      \ ',{%-\?\s*\<macro\>:{%-\?\s*\<endmacro\>\s*-\?%}'
+  endfunction
+]])
 vim.api.nvim_create_autocmd('FileType', {
   pattern = 'htmljinja',
   callback = function()
-    vim.b.match_words = table.concat({
-      '<!--:-->',
-      '<:>',
-      '<\\@<=[ou]l\\>[^>]*\\%(>\\|$\\):<\\@<=li\\>:<\\@<=/[ou]l>',
-      '<\\@<=dl\\>[^>]*\\%(>\\|$\\):<\\@<=d[td]\\>:<\\@<=/dl>',
-      '<\\@<=\\([^/!][^ \\t>]*\\)[^>]*\\%(>\\|$\\):<\\@<=/\\1>',
-      '{%-\\?\\s*\\<block\\>:{%-\\?\\s*\\<endblock\\>\\s*-\\?%}',
-      '{%-\\?\\s*\\<call\\>:{%-\\?\\s*\\<endcall\\>\\s*-\\?%}',
-      '{%-\\?\\s*\\<filter\\>:{%-\\?\\s*\\<endfilter\\>\\s*-\\?%}',
-      '{%-\\?\\s*\\<for\\>:{%-\\?\\s*\\<endfor\\>\\s*-\\?%}',
-      '{%-\\?\\s*\\<if\\>:{%-\\?\\s*\\<elif\\>:{%-\\?\\s*\\<else\\>:{%-\\?\\s*\\<endif\\>\\s*-\\?%}',
-      '{%-\\?\\s*\\<macro\\>:{%-\\?\\s*\\<endmacro\\>\\s*-\\?%}',
-    }, ',')
+    vim.b.match_words = 'Matchup_htmljinja()'
   end
 }) -- }}}
 
