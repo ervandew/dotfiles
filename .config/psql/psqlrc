@@ -8,7 +8,7 @@ select pg_is_in_recovery() is_replica \gset
 \else
   -- show replication lag in time
   -- show replication lag as the size of data
-  \set replica 'select application_name, state, write_lag, flush_lag, replay_lag from pg_stat_replication; select slot_name, active, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS replication_lag from pg_replication_slots;'
+  \set replica 'select application_name, client_addr, state, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), sent_lsn)) sent_lag, write_lag::varchar || '' '' || coalesce(pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), write_lsn)), '''') write_lag, flush_lag::varchar || '' '' || coalesce(pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), flush_lsn)), '''') flush_lag, replay_lag::varchar || '' '' || coalesce(pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn)), ''<null>'') replay_lag from pg_stat_replication order by application_name; select slot_name, slot_type, active, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) replication_lag from pg_replication_slots order by slot_name;'
 \endif
 
 \timing on
