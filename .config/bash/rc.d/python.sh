@@ -122,6 +122,7 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
   }
 
 else
+  alias uv-audit="uv audit --frozen --preview-features audit"
   alias uv-sync="uv sync --active --frozen"
   alias uv-lock="uv sync --active --exclude-newer $(date -u -d '7 days ago' '+%Y-%m-%dT%H:%M:%SZ')"
 
