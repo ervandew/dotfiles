@@ -580,6 +580,14 @@ vim.api.nvim_create_autocmd('WinNew', {
   end
 })
 
+-- add q mapping to close preview windows
+vim.api.nvim_create_autocmd('WinEnter', {
+  callback = function()
+    if vim.wo.previewwindow and vim.fn.maparg('q', 'n') == '' then
+      vim.keymap.set('n', 'q', ':close<cr>', { buffer = true, silent = true })
+    end
+  end
+})
 -- }}}
 
 -- plugins {{{
