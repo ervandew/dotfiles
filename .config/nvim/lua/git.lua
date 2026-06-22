@@ -2818,7 +2818,7 @@ local complete = function(arglead, cmdl, pos)
   local opts = { arglead = arglead, cmdl = cmdl, pos = pos}
   local completions = {
     -- complete command names
-    ['^Git%s+([-%w]*)$'] = function(compl_opts)
+    ['^Git%s+([_%-%w]*)$'] = function(compl_opts)
       local cmds = {}
       local all = vim.fn.system(
         'git help -a | grep "^\\s\\+\\w" | perl -pe "s|^\\s+(\\S+)\\s.*|\\1|"'
@@ -2835,30 +2835,30 @@ local complete = function(arglead, cmdl, pos)
     end,
 
     -- complete range command names
-    ["^'<,'>Git%s+([-%w]*)$"] = function(compl_opts)
+    ["^'<,'>Git%s+([_%-%w]*)$"] = function(compl_opts)
       return compl_opts.match, { 'annotate', 'log' }
     end,
 
     -- complete repo relative file paths for add, mv, rm, etc
-    ['^Git%s+add%s+.-([.-/%w]*)$'] = complete_filepath,
-    ['^Git%s+mv%s+.-([.-/%w]*)$'] = complete_filepath,
-    ['^Git%s+rm%s+.-([.-/%w]*)$'] = complete_filepath,
+    ['^Git%s+add%s+.-([._%-/%w]*)$'] = complete_filepath,
+    ['^Git%s+mv%s+.-([._%-/%w]*)$'] = complete_filepath,
+    ['^Git%s+rm%s+.-([._%-/%w]*)$'] = complete_filepath,
 
-    ['^Git%s+branch%s+.-([-/%w]*)$'] = complete_branch_args,
-    ['^Git%s+checkout%s+.-([.%-/:%w]*)$'] = complete_branch_tag,
-    ['^Git%s+cherry%-pick%s+.-([.%-/:%w]*)$'] = complete_branch_tag,
-    ['^Git%s+diff%s+.-([.%-/:%w]*)$'] = complete_diff,
-    ['^Git%s+merge%s+.-([-/%w]*)$'] = complete_branch(),
-    ['^Git%s+show%s+.-([.%-/:%w]*)$'] = complete_branch_tag_filepath,
-    ['^Git%s+switch%s+.-([-/%w]*)$'] = complete_branch(),
+    ['^Git%s+branch%s+.-([_%-/%w]*)$'] = complete_branch_args,
+    ['^Git%s+checkout%s+.-([._%-/:%w]*)$'] = complete_branch_tag,
+    ['^Git%s+cherry%-pick%s+.-([._%-/:%w]*)$'] = complete_branch_tag,
+    ['^Git%s+diff%s+.-([._%-/:%w]*)$'] = complete_diff,
+    ['^Git%s+merge%s+.-([_%-/%w]*)$'] = complete_branch(),
+    ['^Git%s+show%s+.-([._%-/:%w]*)$'] = complete_branch_tag_filepath,
+    ['^Git%s+switch%s+.-([_%-/%w]*)$'] = complete_branch(),
 
     -- complete branch name in log expansions
-    ['^Git%s+log%s+.*diff:([-/%w]*)'] = complete_branch('diff:'),
-    ['^Git%s+log%s+.*in:([-/%w]*)'] = complete_branch('in:'),
-    ['^Git%s+log%s+.*out:([-/%w]*)'] = complete_branch('out:'),
+    ['^Git%s+log%s+.*diff:([_%-/%w]*)'] = complete_branch('diff:'),
+    ['^Git%s+log%s+.*in:([_%-/%w]*)'] = complete_branch('in:'),
+    ['^Git%s+log%s+.*out:([_%-/%w]*)'] = complete_branch('out:'),
 
     -- complete some custom args
-    ['^Git%s+log%s+.-([-/%w]*)$'] = complete_log,
+    ['^Git%s+log%s+.-([_%-/%w]*)$'] = complete_log,
 
     -- complete bisect action
     ['^Git%s+bisect%s+(%w*)$'] = function(compl_opts)
@@ -2895,7 +2895,7 @@ local complete = function(arglead, cmdl, pos)
 
   for _, alias in ipairs(vim.tbl_keys(config.complete or {})) do
     local pattern = alias:gsub('%-', '%%-')
-    completions['^Git%s+' .. pattern .. '%s+([-/%w]*)$'] = function(compl_opts)
+    completions['^Git%s+' .. pattern .. '%s+([_%-/%w]*)$'] = function(compl_opts)
       local compl = config.complete[alias]
       local values
       if compl == 'branch' then
