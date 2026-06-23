@@ -405,6 +405,7 @@ M.init = function()
         configuration = {
           environment = { python = work.python },
           rules = {
+            ['call-top-callable'] = 'ignore',
             ['instance-layout-conflict'] = 'ignore',
             ['invalid-argument-type'] = 'ignore',
             ['invalid-assignment'] = 'ignore',
