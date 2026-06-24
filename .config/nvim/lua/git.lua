@@ -233,6 +233,7 @@ local window = function(name, open, lines, opts)
 end
 
 local ignore_whitespace_note = '[i]gnore whitespace: '
+local word_diff_note = 'w[o]rd diff: '
 local diff_modal = function(name, cmd, args)
   local result = M.git(cmd .. ' ' .. args)
   if not result then
@@ -240,24 +241,32 @@ local diff_modal = function(name, cmd, args)
   end
   local lines = vim.fn.split(result, '\n')
   table.insert(lines, 1, ignore_whitespace_note .. 'false')
+  table.insert(lines, 2, word_diff_note .. 'false')
   window(name, 'modal', lines)
   vim.b.git_ignore_whitespace = false
+  vim.b.git_word_diff = false
 
-  -- toggle ignoring white space
-  vim.keymap.set('n', 'i', function()
+  local update_diff = function()
+    local diff_args = args
     if vim.b.git_ignore_whitespace then
-      result = M.git(cmd .. ' ' .. args)
-      vim.b.git_ignore_whitespace = false
-    else
-      result = M.git(cmd .. ' --ignore-all-space ' .. args)
-      vim.b.git_ignore_whitespace = true
+      diff_args = '--ignore-all-space ' .. diff_args
     end
+    if vim.b.git_word_diff then
+      diff_args = '--word-diff ' .. diff_args
+    end
+
+    result = M.git(cmd .. ' ' .. diff_args)
     if result then
       lines = vim.fn.split(result, '\n')
       table.insert(
         lines,
         1,
         ignore_whitespace_note .. tostring(vim.b.git_ignore_whitespace)
+      )
+      table.insert(
+        lines,
+        2,
+        word_diff_note .. tostring(vim.b.git_word_diff)
       )
       vim.bo.readonly = false
       vim.bo.modifiable = true
@@ -267,6 +276,30 @@ local diff_modal = function(name, cmd, args)
       vim.fn.cursor(1, 1)
       vim.bo.modifiable = false
     end
+  end
+
+  -- toggle ignoring white space
+  vim.keymap.set('n', 'i', function()
+    vim.b.git_ignore_whitespace = not vim.b.git_ignore_whitespace
+    update_diff()
+  end, { buffer = true })
+
+  -- toggle word diff
+  vim.keymap.set('n', 'o', function()
+    vim.cmd('syntax match GitWordDiffAdded /{+.\\{-}+}/')
+    vim.cmd('syntax match GitWordDiffRemoved /\\[-.\\{-}-\\]/')
+    vim.api.nvim_set_hl(0, 'GitWordDiffAdded', { link = 'Added' })
+    vim.api.nvim_set_hl(0, 'GitWordDiffRemoved', { link = '@diff.minus' })
+
+    vim.b.git_word_diff = not vim.b.git_word_diff
+    if vim.b.git_word_diff then
+      vim.api.nvim_set_hl(0, 'DiffAdded', { link = 'Normal' })
+      vim.api.nvim_set_hl(0, 'DiffRemoved', { link = 'Normal' })
+    else
+      vim.api.nvim_set_hl(0, 'DiffAdded', { link = 'Added' })
+      vim.api.nvim_set_hl(0, 'DiffRemoved', { link = '@diff.minus' })
+    end
+    update_diff()
   end, { buffer = true })
 
   return true
