@@ -742,6 +742,8 @@ M.show = function(opts)
   local target_revision
   if opts.revision == 'prev' then
     target_revision = get_previous_revision(path, revision)
+  elseif opts.revision == 'staged' then
+    target_revision = '' -- results in just a leading ':' for staged content
   else
     target_revision = get_revision(path, opts.revision)
   end
@@ -882,6 +884,8 @@ local diff = function(opts)
     if revision then
       target_revision = get_previous_revision(path, revision)
     end
+  elseif opts.revision == 'staged' then
+    target_revision = 'staged'
   else
     target_revision = get_revision(path, opts.revision)
   end
@@ -2819,7 +2823,7 @@ local complete_branch_tag_filepath = function(compl_opts)
 end
 
 local complete_diff = function(compl_opts)
-  local results = { 'prev' }
+  local results = { 'prev', 'staged' }
   local _, results_branch_tag = complete_branch_tag(compl_opts)
   vim.list_extend(results, results_branch_tag)
   return compl_opts.match, results
