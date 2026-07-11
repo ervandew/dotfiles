@@ -111,9 +111,10 @@ end
 local window = function(name, open, lines, opts)
   opts = opts or {}
 
+  local bufnr
   local winnr = vim.fn.bufwinnr(name)
   if winnr ~= -1 then
-    vim.cmd(winnr .. 'winc w')
+    bufnr = vim.fn.winbufnr(winnr)
   else
     local target_winid
     if open == 'modal' then
@@ -185,7 +186,7 @@ local window = function(name, open, lines, opts)
     end
 
     -- detach all lsp clients for this temp buffer
-    local bufnr = vim.fn.bufnr()
+    bufnr = vim.fn.bufnr()
     local clients = vim.lsp.get_clients({ buffer = bufnr })
     for _, client in ipairs(clients) do
       if vim.lsp.buf_is_attached(bufnr, client.id) then
@@ -194,21 +195,20 @@ local window = function(name, open, lines, opts)
     end
   end
 
-  vim.bo.readonly = false
-  vim.bo.modifiable = true
-  vim.cmd('silent 1,$delete _')
-  vim.fn.append(1, lines)
-  vim.cmd('silent 1,1delete _')
-  vim.fn.cursor(1, 1)
-  vim.bo.modifiable = false
-  vim.bo.swapfile = false
-  vim.bo.buflisted = false
-  vim.bo.buftype = 'nofile'
-  vim.bo.bufhidden = 'wipe'
-  vim.cmd.doautocmd('BufReadPost')
+  local winid = vim.fn.win_getid(winnr)
+  vim.bo[bufnr].readonly = false
+  vim.bo[bufnr].modifiable = true
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+  vim.api.nvim_win_set_cursor(winid, { 1, 1 })
+  vim.bo[bufnr].modifiable = false
+  vim.bo[bufnr].swapfile = false
+  vim.bo[bufnr].buflisted = false
+  vim.bo[bufnr].buftype = 'nofile'
+  vim.bo[bufnr].bufhidden = 'wipe'
 
   -- let nvim diff code attempt to sync the cursor position
   if opts.diff_sync then
+    vim.cmd(winnr .. 'winc w')
     vim.cmd.diffthis()
     vim.cmd.winc('p')
 
@@ -230,6 +230,8 @@ local window = function(name, open, lines, opts)
     vim.cmd.winc('p')
     vim.cmd.diffoff()
   end
+
+  return winid
 end
 
 local ignore_whitespace_note = '[i]gnore whitespace: '
@@ -243,6 +245,7 @@ local diff_modal = function(name, cmd, args)
   table.insert(lines, 1, ignore_whitespace_note .. 'false')
   table.insert(lines, 2, word_diff_note .. 'false')
   window(name, 'modal', lines)
+  vim.cmd.doautocmd('BufReadPost')
   vim.b.git_ignore_whitespace = false
   vim.b.git_word_diff = false
 
@@ -325,12 +328,13 @@ local repo = function()
     return vim.b.git_info.root
   end
 
-  local root = vim.fn.system('git rev-parse --show-toplevel'):gsub('\n$', '')
-  if vim.v.shell_error ~= 0 or root:match('^fatal:') then
-    error(root)
+  local result = vim.system({ 'git', 'rev-parse', '--show-toplevel' }):wait()
+  if result.code ~= 0 then
+    error(result.stderr)
     return
   end
 
+  local root = result.stdout:gsub('\n$', '')
   -- ensure we have the full path ending in a path delimiter
   return vim.fn.fnamemodify(root, ':p')
 end
@@ -384,8 +388,11 @@ M.git = function(args, opts)
 end
 
 local is_protected = function(branch)
-  local result = M.git('config get push.force.protected', { quiet = true }) or ''
-  local protected = vim.fn.split(result)
+  local result = vim.system(
+    {'git', 'config', 'get', 'push.force.protected' }
+  ):wait()
+  local value = result.stdout:gsub('\n$', '')
+  local protected = vim.fn.split(value)
   return vim.list_contains(protected, branch)
 end
 
@@ -2405,53 +2412,86 @@ local status_cmd_stash = function(action)
   return false
 end
 
-local status_augroup = vim.api.nvim_create_augroup('git_status', {})
 function status(opts) ---@diagnostic disable-line: lowercase-global
-  local result = M.git('status -sb')
-  if not result then
+  opts = opts or {}
+  local root = repo()
+  if not root then
     return
   end
 
+  local commands = [[
+    git rev-parse --abbrev-ref HEAD
+    git log -1 "--pretty=format:%h %an: %s%n"
+    git stash list | wc -l
+    git status -sb
+  ]]
+  vim.system(
+    { 'sh', '-c', commands },
+    { cwd = root, text = true },
+    function(result)
+      if result.code ~= 0 then
+        error('Error getting git status info:\n' .. result.stderr)
+        return
+      end
+      vim.schedule(function()
+        local lines = vim.fn.split(result.stdout, '\n')
+        local branch = lines[1]
+        local head = lines[2]
+        local stashes = tonumber(lines[3])
+        local content = table.concat(vim.list_slice(lines, 4), '\n')
+        status_window(branch, head, stashes, content, opts)
+      end)
+    end
+  )
+end
+
+local status_timer = vim.loop.new_timer()
+local status_augroup = vim.api.nvim_create_augroup('git_status', {})
+---@diagnostic disable-next-line: lowercase-global
+function status_window(branch, head, stashes, result, opts)
+  opts = opts or {}
+
   local lines = vim.fn.split(result, '\n')
-  local branch = M.git('rev-parse --abbrev-ref HEAD')
-  local stashes = vim.fn.split(M.git('stash list') or '', '\n')
-  local head = M.git('log -1 "--pretty=format:%h %an: %s"')
   local branch_actions = 'gi(t) branch + [s]witch [m]erge [r]ebase [d]elete'
   local repo_actions = '(f)etch'
   local file_actions = '(s)tage (i)nteractive (u)nstage (r)estore (d)elete'
-  local is_ahead = result:match('%[ahead %d+')
-  local is_behind = result:match('[%[%s]behind %d+')
-  local is_gone = result:match('%[gone%]') -- remote is set but doesn't exist
-  local can_amend = is_ahead or not is_protected(branch)
-  local can_commit = false
+
+  local state = {
+    branch = branch,
+    is_ahead = result:match('%[ahead %d+'),
+    is_behind = result:match('[%[%s]behind %d+'),
+    is_gone = result:match('%[gone%]'), -- remote is set but doesn't exist
+    can_amend = result:match('%[ahead %d+') or not is_protected(branch),
+    can_commit = false,
+  }
   for _, line in ipairs(lines) do
     if line:match('^[ADMR]') then
-      can_commit = true
+      state.can_commit = true
       break
     end
   end
 
-  if can_commit then
+  if state.can_commit then
     repo_actions = repo_actions .. ' (c)ommit'
   end
-  if can_amend then
+  if state.can_amend then
     repo_actions = repo_actions .. ' (a)mend'
   end
-  if is_ahead then
-    if is_behind and not is_protected(branch) then
+  if state.is_ahead then
+    if state.is_behind and not is_protected(branch) then
       repo_actions = repo_actions .. ' (P)ush force'
-    elseif not is_behind then
+    elseif not state.is_behind then
       repo_actions = repo_actions .. ' (p)ush'
     end
   end
-  if is_behind then
+  if state.is_behind then
     repo_actions = repo_actions .. ' (m)erge'
   end
-  if is_gone then
+  if state.is_gone then
     repo_actions = repo_actions .. ' (p)ush'
   end
-  if #stashes > 0 then
-    repo_actions = repo_actions .. ' [stashes: ' .. #stashes .. ']'
+  if stashes > 0 then
+    repo_actions = repo_actions .. ' [stashes: ' .. stashes .. ']'
   end
 
   if lines[1]:match('^## HEAD') then
@@ -2484,8 +2524,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   local pos
   local winnr = vim.fn.bufwinnr(status_name)
   if winnr ~= -1 then
-    vim.cmd(winnr .. 'winc w')
-    pos = vim.fn.getpos('.')
+    pos = vim.api.nvim_win_get_cursor(vim.fn.win_getid(winnr))
   end
 
   local open = 'botright '
@@ -2496,7 +2535,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     vim.cmd(log_winnr .. 'winc w')
     open = 'above '
   end
-  window(status_name, open .. 'new', lines, {
+  local winid = window(status_name, open .. 'new', lines, {
     created = function()
       local nav = function(dir)
         vim.cmd('normal! ' .. dir)
@@ -2518,25 +2557,49 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
     end,
   })
 
-  set_info(repo())
-
   -- restore the state of our stashes
-  if vim.b.git_stashes then
-    if vim.fn.search('\\[stashes:') ~= 0 then
-      vim.fn.cursor(0, vim.fn.col('.') + 1)
+  local bufnr = vim.fn.winbufnr(winid)
+  if vim.b[bufnr].git_stashes then
+    local actions_line = vim.api.nvim_buf_get_lines(
+      bufnr,
+      status_repo_actions_line - 1,
+      status_repo_actions_line,
+      false
+    )[1]
+    if actions_line and actions_line:match('stashes') then
+      local col = actions_line:find('stashes')
+      vim.api.nvim_win_set_cursor(winid, {status_repo_actions_line, col})
+      vim.api.nvim_set_current_win(winid)
       status_action()
+    else
+      vim.b[bufnr].git_stashes = false
     end
   end
+
+  -- create/update the status mappings for the current state
+  status_mappings(bufnr, state)
 
   if pos then
-    vim.fn.setpos('.', pos)
-  else
-    -- place the cursor on the first status char we find
-    if vim.fn.search('^[^#]') ~= 0 then
-      vim.cmd.normal('jk')
+    vim.api.nvim_win_set_cursor(winid, pos)
+
+    local focus = (opts.focus == nil) and true or opts.focus
+    if focus then
+      vim.api.nvim_set_current_win(winid)
+    else
+      vim.api.nvim_set_current_win(prevwinid)
     end
+    -- if we have a position, then the status window buffer is already setup,
+    -- so we can exit here.
+    return
   end
 
+  vim.api.nvim_set_current_win(winid)
+  -- place the cursor on the first status char we find
+  if vim.fn.search('^[^#]') ~= 0 then
+    vim.cmd.normal('jk')
+  end
+
+  set_info(repo())
   vim.w.height = status_height -- for other plugins that may need to restore the height
   vim.wo.statusline = '%<%f %=%-10.(%l,%c%V%) %P'
   vim.wo.wrap = false
@@ -2579,9 +2642,10 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.cmd('syntax match GitRevision /\\(^## HEAD: \\)\\@<=\\w\\+/')
   vim.cmd('syntax match GitAuthor /\\(^## HEAD: \\w\\+ \\)\\@<=.\\{-}\\(:\\s\\)\\@=/')
   vim.cmd('syntax match GitMessage /\\(^## HEAD: \\w\\+ \\w.\\{-}:\\s\\)\\@<=.*/')
+end
 
-  local bufnr = vim.fn.bufnr()
-
+---@diagnostic disable-next-line: lowercase-global
+function status_mappings(bufnr, state)
   vim.keymap.set('n', 't', function()
     local actions = { 'switch', 'merge', 'rebase', 'delete' }
     local action = confirm(
@@ -2597,7 +2661,6 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   vim.keymap.set('n', 'tm', status_branch_cmd('merge'),  { buffer = bufnr })
   vim.keymap.set('n', 'tr', status_branch_cmd('rebase'), { buffer = bufnr })
   vim.keymap.set('n', 'td', status_branch_cmd('delete'), { buffer = bufnr })
-
   vim.keymap.set({ 'n', 'x' }, '<cr>', status_action, { buffer = bufnr })
   vim.keymap.set({ 'n', 'x' }, 's', function()
     status_cmd('stage')
@@ -2677,8 +2740,8 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end, { buffer = bufnr })
 
   vim.keymap.set({ 'n', 'x' }, 'c', function()
-    if can_commit then
-      local hook_result = hook(config.hooks.pre_commit, branch)
+    if state.can_commit then
+      local hook_result = hook(config.hooks.pre_commit, state.branch)
       if hook_result ~= true then
         vim.schedule(function()
           error(
@@ -2702,7 +2765,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       return
     end
 
-    if can_amend then
+    if state.can_amend then
       if vim.fn.mode() == 'V' then
         status_cmd('commit --amend', { term = true })
       else
@@ -2712,10 +2775,10 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'm', function()
-    if is_behind then
-      term(is_ahead and 'git rebase' or 'git merge', {
+    if state.is_behind then
+      term(state.is_ahead and 'git rebase' or 'git merge', {
         cwd = repo(),
-        echo = is_ahead and 'rebasing...' or 'merging...',
+        echo = state.is_ahead and 'rebasing...' or 'merging...',
         on_exit = function()
           pcall(vim.cmd.checktime) -- update existing buffers if necessary
           status_term_exit()
@@ -2729,7 +2792,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       return
     end
 
-    if is_ahead or is_gone then
+    if state.is_ahead or state.is_gone then
       term('git push', {
         cwd = repo(),
         echo = 'pushing...',
@@ -2739,7 +2802,7 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
   end, { buffer = bufnr })
 
   vim.keymap.set('n', 'P', function()
-    if is_ahead then
+    if state.is_ahead then
       term('git push -f', {
         cwd = repo(),
         echo = 'force pushing...',
@@ -2762,16 +2825,14 @@ function status(opts) ---@diagnostic disable-line: lowercase-global
       pattern = '*',
       group = status_augroup,
       callback = function()
-        status({ focus = false })
+        -- create a timer to debounce duplicate focus events
+        ---@diagnostic disable-next-line: need-check-nil
+        status_timer:start(200, 0, vim.schedule_wrap(function()
+          status({ focus = false })
+        end))
       end,
     }
   )
-
-  opts = opts or {}
-  local focus = opts.focus == nil and true or opts.focus
-  if not focus then
-    vim.api.nvim_set_current_win(prevwinid)
-  end
 end
 
 local commands = {
