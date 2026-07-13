@@ -867,10 +867,35 @@ local diff = function(opts)
 
   opts.revision = opts.revision or (opts.fargs and opts.fargs[1]) or 'HEAD'
 
-  -- if the supplied revision is comparing branches (2-3 dots in the arg), then
-  -- open a diff modal
-  if opts.revision:match('%.%.') then
-    if diff_modal('git_diff.patch', 'diff', opts.args) then
+  local _, path, revision = file()
+
+  -- if there is not path context or the supplied revision is comparing
+  -- branches (2-3 dots in the arg), then open a diff modal
+  if not path or opts.revision:match('%.%.') then
+    local expansions = {
+      ['(in):([-/%w]+)'] = '-p --right-only <branch>...<match>',
+      ['(out):([-/%w]+)'] = '-p --left-only <branch>...<match>',
+    }
+    local cmd = 'diff'
+    local args = opts.args
+    for i, arg in ipairs(opts.fargs or {}) do
+      for pattern, expansion in pairs(expansions) do
+        local _, match = arg:match(pattern)
+        if match then
+          local branch = M.git('rev-parse --abbrev-ref HEAD')
+          if branch then
+            cmd = 'log'
+            opts.fargs[i] = expansion
+              :gsub('<branch>', branch)
+              :gsub('<match>', match)
+            args = vim.fn.join(opts.fargs, ' ')
+            break
+          end
+        end
+      end
+    end
+
+    if diff_modal('git_diff.patch', cmd, args) then
       local root = repo()
       set_info(root, nil, 'HEAD')
       log_patch_goto_mapping()
@@ -878,7 +903,6 @@ local diff = function(opts)
     return
   end
 
-  local _, path, revision = file()
   local target_revision
   if opts.revision == 'prev' then
     if revision then
@@ -2884,17 +2908,19 @@ local complete = function(arglead, cmdl, pos)
     ['^Git%s+branch%s+.-([_%-/%w]*)$'] = complete_branch_args,
     ['^Git%s+checkout%s+.-([._%-/:%w]*)$'] = complete_branch_tag,
     ['^Git%s+cherry%-pick%s+.-([._%-/:%w]*)$'] = complete_branch_tag,
-    ['^Git%s+diff%s+.-([._%-/:%w]*)$'] = complete_diff,
     ['^Git%s+merge%s+.-([_%-/%w]*)$'] = complete_branch(),
     ['^Git%s+show%s+.-([._%-/:%w]*)$'] = complete_branch_tag_filepath,
     ['^Git%s+switch%s+.-([_%-/%w]*)$'] = complete_branch(),
 
-    -- complete branch name in log expansions
+    -- complete branch name in diff/log expansions
+    ['^Git%s+diff%s+.*in:([_%-/%w]*)'] = complete_branch('in:'),
+    ['^Git%s+diff%s+.*out:([_%-/%w]*)'] = complete_branch('out:'),
     ['^Git%s+log%s+.*diff:([_%-/%w]*)'] = complete_branch('diff:'),
     ['^Git%s+log%s+.*in:([_%-/%w]*)'] = complete_branch('in:'),
     ['^Git%s+log%s+.*out:([_%-/%w]*)'] = complete_branch('out:'),
 
     -- complete some custom args
+    ['^Git%s+diff%s+.-([._%-/:%w]*)$'] = complete_diff,
     ['^Git%s+log%s+.-([_%-/%w]*)$'] = complete_log,
 
     -- complete bisect action
