@@ -731,6 +731,10 @@ M.show = function(opts)
       elseif arg:match('/') then
         opts.path = arg
         local last_revision = M.git('rev-list -n 1 HEAD -- "' .. arg .. '"')
+        if not last_revision then
+          error('Unable to determine last revision for: ' .. arg)
+          return
+        end
         opts.revision = M.git(
           'rev-list --abbrev-commit -n 1 ' .. last_revision .. '^'
         )
