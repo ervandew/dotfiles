@@ -246,6 +246,17 @@ local diff_modal = function(name, cmd, args)
   vim.b.git_ignore_whitespace = false
   vim.b.git_word_diff = false
 
+  local diff_nav = function(dir)
+    local count = vim.v.count == 0 and 1 or vim.v.count
+    while count > 0 do
+      local pattern = vim.b.git_word_diff and '\\({+\\|[-\\)' or '^[-+]'
+      vim.fn.search(pattern, dir == 'prev' and 'bw' or 'w')
+      count = count - 1
+    end
+  end
+  vim.keymap.set('n', '<leader>dn', function() diff_nav('next') end, { buf = 0 })
+  vim.keymap.set('n', '<leader>dp', function() diff_nav('prev') end, { buf = 0 })
+
   local update_diff = function()
     local diff_args = args
     if vim.b.git_ignore_whitespace then
