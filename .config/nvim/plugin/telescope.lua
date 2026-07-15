@@ -104,6 +104,18 @@ local attach_mappings_file = function(prompt_bufnr) -- {{{
         end
       end
 
+      -- if no existing window to use was found, then ensure we don't split
+      -- below fixed windows
+      if cmd == 'split' then
+        while vim.fn.winnr() > 1 do
+          if vim.w.height then
+            vim.cmd('winc k')
+          else
+            break
+          end
+        end
+      end
+
       vim.cmd(cmd .. ' ' .. selection)
     end
 
