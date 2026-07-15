@@ -65,7 +65,9 @@ c.TerminalInteractiveShell.highlighting_style_overrides = {
 # (default is near unreadable)
 IPython.core.ultratb.VerboseTB.tb_highlight = 'bg:#333333'
 
-prompt_py_version = 'py %s ' % '{0.major}.{0.minor}'.format(sys.version_info)
+# NOTE: if the length of the prompt is < 11 chars, the continuation prompt may
+# not line up.
+prompt_py_version = 'python %s ' % '{0.major}.{0.minor}'.format(sys.version_info)
 class Prompt(IPython.terminal.prompts.Prompts):
   def in_prompt_tokens(self):
     return [
