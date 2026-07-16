@@ -387,6 +387,11 @@ M.git = function(args, opts)
   return result ~= '' and result or nil
 end
 
+local describe = function()
+  local result = vim.system({'git', 'describe' }):wait()
+  return result.stdout:gsub('\n$', '')
+end
+
 local is_protected = function(branch)
   local result = vim.system(
     {'git', 'config', 'get', 'push.force.protected' }
@@ -1664,11 +1669,8 @@ local grep_files = function(opts)
 end
 
 local function bisect_active()
-  local result = vim.fn.system('git --no-pager bisect visualize --oneline')
-  if result == '' then
-    return false
-  end
-  return vim.v.shell_error == 0
+  local result = vim.system({ 'git', 'bisect', 'visualize', '--oneline' }):wait()
+  return result.code == 0
 end
 
 local function bisect_log(opts)
@@ -2456,12 +2458,13 @@ function status_window(branch, head, stashes, result, opts)
   local repo_actions = '(f)etch'
   local file_actions = '(s)tage (i)nteractive (u)nstage (r)estore (d)elete'
 
+  local protected = is_protected(branch)
   local state = {
     branch = branch,
     is_ahead = result:match('%[ahead %d+'),
     is_behind = result:match('[%[%s]behind %d+'),
     is_gone = result:match('%[gone%]'), -- remote is set but doesn't exist
-    can_amend = result:match('%[ahead %d+') or not is_protected(branch),
+    can_amend = result:match('%[ahead %d+') or not protected,
     can_commit = false,
   }
   for _, line in ipairs(lines) do
@@ -2478,7 +2481,7 @@ function status_window(branch, head, stashes, result, opts)
     repo_actions = repo_actions .. ' (a)mend'
   end
   if state.is_ahead then
-    if state.is_behind and not is_protected(branch) then
+    if state.is_behind and not protected then
       repo_actions = repo_actions .. ' (P)ush force'
     elseif not state.is_behind then
       repo_actions = repo_actions .. ' (p)ush'
@@ -2496,7 +2499,7 @@ function status_window(branch, head, stashes, result, opts)
 
   if lines[1]:match('^## HEAD') then
     if lines[1]:match('^## HEAD %(no branch%)') then
-      local ref = M.git('describe', { quiet = true }) or nil
+      local ref = describe()
       if ref then
         lines[1] = lines[1] .. ': ' .. ref
       end
@@ -2505,12 +2508,14 @@ function status_window(branch, head, stashes, result, opts)
     if bisect_active() then
       lines[1] = lines[1] .. ': [bisect]'
     end
-  elseif is_protected(branch) then
-    local desc = M.git('describe', { quiet = true })
-    if desc then
+  elseif protected then
+    -- when on a protected branch, include the tag info if available
+    local desc = describe()
+    if desc and desc ~= '' then
       lines[1] = lines[1] .. ' (desc: ' .. desc .. ')'
     end
   end
+
   lines = vim.list_extend({
     lines[1],
     '## HEAD: ' .. head,
