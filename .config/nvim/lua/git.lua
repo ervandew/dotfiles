@@ -2585,7 +2585,9 @@ function status_window(branch, head, stashes, result, opts)
   status_mappings(bufnr, state)
 
   if pos then
-    vim.api.nvim_win_set_cursor(winid, pos)
+    -- if the number of lines in the status has changed, then this call might
+    -- fail, so just ignore silently
+    pcall(vim.api.nvim_win_set_cursor, winid, pos)
 
     local focus = (opts.focus == nil) and true or opts.focus
     if focus then
