@@ -63,19 +63,22 @@ def accordian(i3):
     commands.append(f'[con_id="{container_id}"] resize set height {percent} ppt')
 
   # NOTE: when resizing windows in a container, the percent is relative to
-  # the container size not the overall height.
+  # the container size not the overall screen height.
   for container_id in container_ids:
     window_ids = window_ids_by_container_id[container_id]
     for window_id in window_ids:
       if window_id == focused.id:
         percent = accordian_percent
       elif focused.id in window_ids:
-        percent = int((100 - accordian_percent) / len(window_ids))
+        percent = int((100 - accordian_percent) / (len(window_ids) - 1))
       else:
         percent = int(100 / len(window_ids))
       commands.append(f'[con_id="{window_id}"] resize set height {percent} ppt')
 
-  i3.command(';'.join(commands))
+  # gross, but repeating the commands eventually resizes them to the actual
+  # percentages we want.
+  for __ in range(len(windows)):
+    i3.command(';'.join(commands))
 
 def kill_existing():
   for signal in ['SIGTERM', 'SIGKILL']:
