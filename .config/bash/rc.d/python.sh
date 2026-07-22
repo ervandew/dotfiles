@@ -29,7 +29,7 @@ if [[ -z "$VIRTUAL_ENV" ]] ; then
           )
         )
         for index in "${!versions[@]}" ; do
-          echo "$index) $(basename ${versions[index]})"
+          echo "$index) ${versions[index]}"
         done
         read -p "Please choose a python version: "
         [[ ! "$REPLY" =~ ^[0-9]+$ ]] && echo 'not a number' && exit 1
