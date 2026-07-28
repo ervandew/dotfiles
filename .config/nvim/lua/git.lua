@@ -2278,12 +2278,19 @@ local status_action = function()
     local winnr = vim.fn.bufwinnr('^' .. filename .. '$')
     if winnr == -1 then
       local open = 'above new'
-      local above_buf = vim.fn.getbufinfo(vim.fn.winbufnr(vim.fn.winnr() - 1))[1]
-      if above_buf.name == '' and     ---@diagnostic disable-line: undefined-field
-         above_buf.linecount == 1 and ---@diagnostic disable-line: undefined-field
-         above_buf.changed == 0       ---@diagnostic disable-line: undefined-field
+      local above_winid = vim.fn.win_getid(vim.fn.winnr() - 1)
+      local above_bufnr = vim.fn.winbufnr(above_winid)
+      if vim.fn.bufname(above_bufnr) == '' and
+         not vim.bo[above_bufnr].modified and
+         vim.bo[above_bufnr].filetype ~= 'qf' and
+         vim.fn.line('$', above_winid) == 1 and
+         vim.fn.getbufline(above_bufnr, 1)[1] == ''
       then
         open = 'winc k | edit'
+      elseif vim.bo[above_bufnr].filetype == 'qf' and
+             vim.fn.win_gettype(above_winid) ~= 'loclist'
+      then
+        open = 'winc k | ' .. open
       end
       vim.cmd(open .. ' ' .. filename)
     else

@@ -94,6 +94,7 @@ local attach_mappings_file = function(prompt_bufnr) -- {{{
           local bufnr = vim.fn.winbufnr(winnr)
           if vim.fn.bufname(bufnr) == '' and
              not vim.bo[bufnr].modified and
+             vim.bo[bufnr].filetype ~= 'qf' and
              vim.fn.line('$', winid) == 1 and
              vim.fn.getbufline(bufnr, 1)[1] == ''
           then
