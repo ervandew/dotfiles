@@ -302,6 +302,11 @@ local diff_modal = function(name, cmd, args)
   vim.keymap.set('n', 'o', function()
     vim.cmd('syntax match GitWordDiffAdded /{+.\\{-}+}/')
     vim.cmd('syntax match GitWordDiffRemoved /\\[-.\\{-}-\\]/')
+    -- handle case where the word diff is in line that starts with dashes,
+    -- causing it to match DiffRemoved
+    vim.cmd('syntax match GitWordDiffAdded /{+.\\{-}+}/ containedin=DiffRemoved contained')
+    vim.cmd('syntax match GitWordDiffRemoved /\\[-.\\{-}-\\]/ containedin=DiffRemoved contained')
+
     vim.api.nvim_set_hl(0, 'GitWordDiffAdded', { link = 'Added' })
     vim.api.nvim_set_hl(0, 'GitWordDiffRemoved', { link = '@diff.minus' })
 
