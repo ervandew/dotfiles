@@ -169,7 +169,6 @@ local window = function(name, open, lines, opts)
         target_winid = vim.fn.win_getid()
       end
 
-
       vim.schedule(function()
         vim.fn.win_gotoid(target_winid)
         vim.cmd.doautocmd('WinEnter')
@@ -195,6 +194,7 @@ local window = function(name, open, lines, opts)
     end
   end
 
+  winnr = vim.fn.bufwinnr(bufnr)
   local winid = vim.fn.win_getid(winnr)
   vim.bo[bufnr].readonly = false
   vim.bo[bufnr].modifiable = true
