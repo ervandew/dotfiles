@@ -2843,7 +2843,7 @@ function status_mappings(bufnr, state)
     {
       pattern = '*',
       group = status_augroup,
-      callback = function(event)
+      callback = function()
         -- create a timer to debounce duplicate focus events and to prevent
         -- issues during a TabEnter for a new tab where the current tab number
         -- and the tab number of an existing status window can be reported
