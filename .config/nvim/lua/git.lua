@@ -2839,15 +2839,22 @@ function status_mappings(bufnr, state)
     end,
   })
   vim.api.nvim_create_autocmd(
-    { 'BufWritePost', 'FocusGained', 'ShellCmdPost' },
+    { 'BufWritePost', 'FocusGained', 'ShellCmdPost', 'TabEnter' },
     {
       pattern = '*',
       group = status_augroup,
-      callback = function()
-        -- create a timer to debounce duplicate focus events
+      callback = function(event)
+        -- create a timer to debounce duplicate focus events and to prevent
+        -- issues during a TabEnter for a new tab where the current tab number
+        -- and the tab number of an existing status window can be reported
+        -- incorrectly.
         ---@diagnostic disable-next-line: need-check-nil
         status_timer:start(200, 0, vim.schedule_wrap(function()
-          status({ focus = false })
+          local status_winid = vim.fn.bufwinid(status_name)
+          local status_tabnr = vim.fn.win_id2tabwin(status_winid)[1]
+          if status_tabnr == vim.fn.tabpagenr() then
+            status({ focus = false })
+          end
         end))
       end,
     }
