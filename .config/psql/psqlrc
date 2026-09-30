@@ -16,7 +16,7 @@ select pg_is_in_recovery() is_replica \gset
 \set HISTCONTROL ignoredups
 
 -- aliases can be executed via a leading colon (eg. :databases)
--- some aliases may accept additional args (eg. :type my_type)
+-- some aliases may accept additional args (eg. :tables my_schema.*, :type my_type)
 \set databases '\\l'
 \set tables '\\dt'
 \set type '\\dT+'
@@ -25,25 +25,37 @@ select pg_is_in_recovery() is_replica \gset
 -- (eg. :size limit 5;)
 -- they also should support filtering/ordering by any column via appending an
 -- underscore to target the unformatted value
--- (eg. :size order by table_size_ desc limit 5;)
+-- (eg. :size order by tbl_size_ desc limit 5;)
 
 \set uptime 'select now() - pg_postmaster_start_time() as uptime;'
 
-\set size 'select tbl, to_char(tablerows_, ''999,999,999,999'') tablerows, to_char(deadrows_, ''999,999,999'') deadrows, pg_size_pretty(table_size_) table_size, pg_size_pretty(indexes_size_) indexes_size, to_char(seq_scans_, ''999,999,999,999'') seq_scans, to_char(index_scans_, ''999,999,999,999'') index_scans from (select tbl, n_live_tup tablerows_, n_dead_tup deadrows_, pg_table_size(tbl) table_size_, pg_indexes_size(tbl) indexes_size_, seq_scan seq_scans_, idx_scan index_scans_ from (select (schemaname || ''.'' || ''"'' || relname || ''"'')::regclass::varchar tbl, n_live_tup, n_dead_tup, seq_scan, idx_scan from pg_stat_user_tables where schemaname not in (''pglogical'', ''_timescaledb_internal'')) t) s'
+\set size 'select tbl, to_char(rows_, ''999,999,999'') rows, to_char(dead_, ''999,999,999'') dead, pg_size_pretty(tbl_size_) tbl_size, pg_size_pretty(indexes_size_) indexes_size, to_char(seq_scans_, ''999,999,999'') seq_scans, to_char(idx_scans_, ''999,999,999'') idx_scans from (select tbl, n_live_tup rows_, n_dead_tup dead_, pg_table_size(tbl) tbl_size_, pg_indexes_size(tbl) indexes_size_, seq_scan seq_scans_, idx_scan idx_scans_ from (select (schemaname || ''.'' || ''"'' || relname || ''"'')::regclass::varchar tbl, n_live_tup, n_dead_tup, seq_scan, idx_scan from pg_stat_user_tables where schemaname not in (''pglogical'', ''_timescaledb_internal'')) t) s'
 
-\set idx 'select tbl, idx, pg_size_pretty(idx_size_) idx_size, to_char(idx_scans_, ''999,999,999,999'') idx_scans, idx_def from (select (ia.schemaname || ''.'' || ''"'' || ia.relname || ''"'')::regclass::varchar tbl, indexrelname idx, pg_table_size(indexrelid) idx_size_, idx_scan idx_scans_, regexp_replace(indexdef, ''CREATE (UNIQUE )?INDEX .* USING (btree )?'', ''\\1'') idx_def from pg_stat_all_indexes ia join pg_indexes i on i.indexname = ia.indexrelname join pg_class c on ia.relid = c.oid where ia.schemaname not in (''pg_catalog'', ''pg_toast'', ''pglogical'')) i'
+\set idx 'select tbl, idx, pg_size_pretty(idx_size_) idx_size, to_char(idx_scans_, ''999,999,999'') idx_scans, idx_def from (select (ia.schemaname || ''.'' || ''"'' || ia.relname || ''"'')::regclass::varchar tbl, indexrelname idx, pg_table_size(indexrelid) idx_size_, idx_scan idx_scans_, regexp_replace(indexdef, ''CREATE (UNIQUE )?INDEX .* USING (btree )?'', ''\\1'') idx_def from pg_stat_all_indexes ia join pg_indexes i on i.indexname = ia.indexrelname join pg_class c on ia.relid = c.oid where ia.schemaname not in (''pg_catalog'', ''pg_toast'', ''pglogical'')) i'
 
-\set hot 'select tbl, to_char(updates_, ''999,999,999,999'') updates, to_char(hot_, ''999,999,999,999'') hot, (percent_::varchar || ''%'') percent from (select (schemaname || ''.'' || ''"'' || relname || ''"'')::regclass::varchar tbl, n_tup_upd updates_, n_tup_hot_upd hot_, case when n_tup_upd > 0 then (n_tup_hot_upd * 100 / n_tup_upd) else 0 end percent_ from pg_stat_all_tables where schemaname not in (''pg_catalog'', ''pg_toast'', ''information_schema'', ''pglogical'') and n_tup_upd > 0) h'
+\set hot 'select tbl, to_char(updates_, ''999,999,999'') updates, to_char(hot_, ''999,999,999'') hot, (percent_::varchar || ''%'') percent from (select (schemaname || ''.'' || ''"'' || relname || ''"'')::regclass::varchar tbl, n_tup_upd updates_, n_tup_hot_upd hot_, case when n_tup_upd > 0 then (n_tup_hot_upd * 100 / n_tup_upd) else 0 end percent_ from pg_stat_all_tables where schemaname not in (''pg_catalog'', ''pg_toast'', ''information_schema'', ''pglogical'') and n_tup_upd > 0) h'
 
-\set writes 'select tbl, to_char(inserts_, ''999,999,999,999'') inserts, to_char(updates_, ''999,999,999,999'') updates, to_char(deletes_, ''999,999,999,999'') deletes from (select (schemaname || ''.'' || ''"'' || relname || ''"'')::regclass::varchar tbl, n_tup_ins inserts_, n_tup_upd updates_, n_tup_del deletes_ from pg_stat_all_tables where schemaname not in (''pg_catalog'', ''pg_toast'', ''information_schema'', ''pglogical'')) h'
+\set writes 'select tbl, to_char(inserts_, ''999,999,999'') inserts, to_char(updates_, ''999,999,999'') updates, to_char(deletes_, ''999,999,999'') deletes from (select (schemaname || ''.'' || ''"'' || relname || ''"'')::regclass::varchar tbl, n_tup_ins inserts_, n_tup_upd updates_, n_tup_del deletes_ from pg_stat_all_tables where schemaname not in (''pg_catalog'', ''pg_toast'', ''information_schema'', ''pglogical'')) h'
 
 \set connections 'select usename user, count(*) connections from pg_stat_activity where backend_type = ''client backend'' group by usename order by connections desc;'
 
 -- show the number of wal files, should probably be in the low hundreds (under 500?)
 \set wal_files 'select count(*) from pg_ls_waldir();'
 
-\set partitions 'select tbl, "partition", to_char(tablerows_, ''999,999,999,999'') tablerows, to_char(deadrows_, ''999,999,999'') deadrows, pg_size_pretty(table_size_) table_size, pg_size_pretty(indexes_size_) indexes_size, to_char(seq_scans_, ''999,999,999,999'') seq_scans, to_char(index_scans_, ''999,999,999,999'') index_scans from (select i.inhparent::regclass::text tbl, c.oid::regclass::text "partition", n_live_tup tablerows_, n_dead_tup deadrows_, pg_table_size(c.oid) table_size_, pg_indexes_size(c.oid) indexes_size_, seq_scan seq_scans_, idx_scan index_scans_ from pg_inherits i join pg_class c on c.oid = i.inhrelid join pg_stat_user_tables s on s.relid = c.oid where relispartition) p'
+-- show the percent usage of xids per database
+-- normal: <10%
+-- investigate: >=10%
+-- critical: >=25%
+-- emergency: =50% (run immediately: vacuum freeze;)
+\set xid_status 'select datname, age(datfrozenxid) xids_consumed, 2147483647 - age(datfrozenxid) xids_until_wraparound, round(100.0 * age(datfrozenxid) / 2147483647, 2) percent_consumed from pg_database'
+-- get percent usage of xids per table (limited to tables in the current database)
+\set xid_status_by_table 'select schemaname "schema", relname "table", age(relfrozenxid) xid_age, round(100.0 * age(relfrozenxid) / 2147483647, 2) percent_consumed from pg_class join pg_stat_user_tables using (relname) where relkind = ''r'' order by age(relfrozenxid) desc limit 10;'
+
+\set vacuum_status 'select a.query, p.relid::regclass table_name, p.phase, p.index_vacuum_count, round(100.0 * p.heap_blks_scanned / nullif(p.heap_blks_total, 0), 2) percent, date_trunc(''second'', now() - a.xact_start) duration from pg_stat_progress_vacuum p join pg_stat_activity a on p.pid = a.pid where a.query not like ''<insufficient privilege>%'';'
+\set vacuum_full_status 'select a.query, p.relid::regclass table_name, p.phase, p.cluster_index_relid::regclass index_name, (p.heap_blks_scanned::float / nullif(p.heap_blks_total, 0)::float * 100)::numeric(5,2) percent, date_trunc(''second'', now() - a.xact_start) duration from pg_stat_progress_cluster p join pg_stat_activity a on p.pid = a.pid where a.query not like ''<insufficient privilege>%'';'
+
+\set partitions 'select tbl, "partition", to_char(rows_, ''999,999,999'') rows, to_char(dead_, ''999,999,999'') dead, pg_size_pretty(tbl_size_) tbl_size, pg_size_pretty(indexes_size_) indexes_size, to_char(seq_scans_, ''999,999,999'') seq_scans, to_char(idx_scans_, ''999,999,999'') idx_scans from (select i.inhparent::regclass::text tbl, c.oid::regclass::text "partition", n_live_tup rows_, n_dead_tup dead_, pg_table_size(c.oid) tbl_size_, pg_indexes_size(c.oid) indexes_size_, seq_scan seq_scans_, idx_scan idx_scans_ from pg_inherits i join pg_class c on c.oid = i.inhrelid join pg_stat_user_tables s on s.relid = c.oid where relispartition) p'
 \set partition_tables 'select relname tbl from pg_class where relkind = ''p'' order by tbl;'
-\set timescaledb 'select tbl, to_char(from_, ''YYYY-MM-DD HH24'') "from", to_char(to_, ''YYYY-MM-DD HH24'') "to", to_char(tablerows_, ''999,999,999,999'') tablerows, to_char(deadrows_, ''999,999,999,999'') deadrows, pg_size_pretty(table_size_) table_size, pg_size_pretty(index_size_) index_size, to_char(seq_scans_, ''999,999,999,999'') seq_scans, to_char(index_scans_, ''999,999,999,999'') index_scans from (select c.hypertable_name tbl, range_start at time zone ''utc'' from_, range_end at time zone ''utc'' to_, n_live_tup tablerows_, n_dead_tup deadrows_, pg_table_size((c.chunk_schema || ''.'' || c.chunk_name)::regclass) table_size_, pg_indexes_size((c.chunk_schema || ''.'' || c.chunk_name)::regclass) index_size_, seq_scan seq_scans_, idx_scan index_scans_ from timescaledb_information.chunks c join pg_stat_user_tables t on t.relname = c.chunk_name)'
+\set timescaledb 'select tbl, chunk, to_char(from_, ''YYYY-MM-DD HH24'') "from", to_char(to_, ''YYYY-MM-DD HH24'') "to", to_char(rows_, ''999,999,999'') rows, to_char(dead_, ''999,999,999'') dead, pg_size_pretty(tbl_size_) tbl_size, pg_size_pretty(idx_size_) idx_size, to_char(seq_scans_, ''999,999,999'') seq_scans, to_char(idx_scans_, ''999,999,999'') idx_scans from (select c.hypertable_name tbl, c.chunk_name chunk, range_start at time zone ''utc'' from_, range_end at time zone ''utc'' to_, n_live_tup rows_, n_dead_tup dead_, pg_table_size((c.chunk_schema || ''.'' || c.chunk_name)::regclass) tbl_size_, pg_indexes_size((c.chunk_schema || ''.'' || c.chunk_name)::regclass) idx_size_, seq_scan seq_scans_, idx_scan idx_scans_ from timescaledb_information.chunks c join pg_stat_user_tables t on t.relname = c.chunk_name)'
 \set timescaledb_tables 'select hypertable_name tbl from timescaledb_information.hypertables order by tbl;'
-\set timescaledb_chunk 'select hypertable_name, range_start, range_end, chunk_name, chunk_creation_time from timescaledb_information.chunks where chunk_name'
+\set timescaledb_chunk 'select hypertable_name, range_start, range_end, chunk_name, chunk_creation_time from timescaledb_information.chunks where chunk_name = '
